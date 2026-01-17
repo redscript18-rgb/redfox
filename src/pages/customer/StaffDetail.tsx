@@ -9,6 +9,14 @@ interface Staff {
   name: string;
   bio: string | null;
   specialties: string[] | null;
+  profile_photo_url: string | null;
+}
+
+interface DailyPhoto {
+  id: number;
+  photo_url: string;
+  date: string;
+  caption: string | null;
 }
 
 interface Store {
@@ -50,10 +58,12 @@ export default function StaffDetail() {
   const [staff, setStaff] = useState<Staff | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [affiliatedStores, setAffiliatedStores] = useState<Store[]>([]);
+  const [dailyPhotos, setDailyPhotos] = useState<DailyPhoto[]>([]);
   const [reservationCounts, setReservationCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<DailyPhoto | null>(null);
   const [staffRating, setStaffRating] = useState<StaffRating>({
     customerAvgRating: null, customerAvgServiceRating: null, customerCount: 0,
     adminAvgRating: null, adminAvgServiceRating: null, adminCount: 0,
@@ -131,6 +141,16 @@ export default function StaffDetail() {
       setAffiliatedStores(storesData || []);
     }
 
+    // 직원 사진 조회 (최근 20개)
+    const { data: photosData } = await supabase
+      .from('staff_photos')
+      .select('*')
+      .eq('staff_id', id)
+      .order('date', { ascending: false })
+      .limit(20);
+
+    setDailyPhotos(photosData || []);
+
     // 직원 평균 별점 조회 (손님/관리자 분리)
     const { data: ratingsData } = await supabase
       .from('ratings')
@@ -196,7 +216,13 @@ export default function StaffDetail() {
       </Link>
 
       <div className="profile-header">
-        <div className="avatar">{staff.name.charAt(0)}</div>
+        <div className="avatar">
+          {staff.profile_photo_url ? (
+            <img src={staff.profile_photo_url} alt={staff.name} />
+          ) : (
+            staff.name.charAt(0)
+          )}
+        </div>
         <div className="profile-info">
           <h1>{staff.name}</h1>
           {(staffRating.customerCount > 0 || staffRating.adminCount > 0) && (
@@ -241,6 +267,23 @@ export default function StaffDetail() {
           )}
         </div>
       </div>
+
+      {dailyPhotos.length > 0 && (
+        <section className="section">
+          <h2>포트폴리오</h2>
+          <div className="photo-gallery">
+            {dailyPhotos.map((photo) => (
+              <div
+                key={photo.id}
+                className="photo-item"
+                onClick={() => setSelectedPhoto(photo)}
+              >
+                <img src={photo.photo_url} alt={photo.caption || '작업 사진'} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <h2>출근 스케줄</h2>
@@ -308,6 +351,20 @@ export default function StaffDetail() {
             fetchData();
           }}
         />
+      )}
+
+      {selectedPhoto && (
+        <div className="photo-modal-overlay" onClick={() => setSelectedPhoto(null)}>
+          <div className="photo-modal" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedPhoto.photo_url} alt={selectedPhoto.caption || '사진'} />
+            {selectedPhoto.caption && (
+              <p className="photo-modal-caption">{selectedPhoto.caption}</p>
+            )}
+            <button className="photo-modal-close" onClick={() => setSelectedPhoto(null)}>
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

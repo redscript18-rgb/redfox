@@ -8,6 +8,7 @@ interface Staff {
   name: string;
   bio: string | null;
   specialties: string[] | null;
+  profile_photo_url: string | null;
 }
 
 interface Schedule {
@@ -45,7 +46,7 @@ export default function StaffSearch() {
     // 직원 목록 조회 (staff role)
     const { data: staffData } = await supabase
       .from('profiles')
-      .select('id, name, bio, specialties')
+      .select('id, name, bio, specialties, profile_photo_url')
       .eq('role', 'staff');
 
     setStaffList(staffData || []);
@@ -186,7 +187,11 @@ export default function StaffSearch() {
               className="staff-card"
             >
               <div className="staff-avatar">
-                {staff.name.charAt(0)}
+                {staff.profile_photo_url ? (
+                  <img src={staff.profile_photo_url} alt={staff.name} />
+                ) : (
+                  staff.name.charAt(0)
+                )}
               </div>
               <div className="staff-info">
                 <div className="name-rating">

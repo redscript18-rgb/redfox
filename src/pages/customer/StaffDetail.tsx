@@ -275,6 +275,7 @@ export default function StaffDetail() {
       {dailyPhotos.filter(p => p.date === today).length > 0 && (
         <section className="section">
           <h2>오늘의 사진</h2>
+          <p className="section-desc">매일 0시 기준으로 리셋됩니다</p>
           <div className="photo-gallery">
             {dailyPhotos.filter(p => p.date === today).map((photo) => (
               <div

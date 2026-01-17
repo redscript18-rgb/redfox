@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initRef.current = true;
 
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     // 인증 상태 변경 리스너 먼저 설정
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -100,17 +101,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error('인증 초기화 에러:', err);
+        // 에러 발생 시 로컬 스토리지 정리
+        try {
+          await supabase.auth.signOut();
+        } catch {}
       } finally {
         if (isMounted) {
           setLoading(false);
+          clearTimeout(timeoutId);
         }
       }
     };
+
+    // 5초 타임아웃 - 로딩이 너무 오래 걸리면 강제로 정리
+    timeoutId = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('인증 초기화 타임아웃 - 세션 정리');
+        supabase.auth.signOut().catch(() => {});
+        setUser(null);
+        setLoading(false);
+      }
+    }, 5000);
 
     initAuth();
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);

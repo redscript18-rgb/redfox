@@ -65,10 +65,11 @@
 }
 
 .schedule-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto;
   align-items: center;
-  gap: 20px;
-  padding: 18px 20px;
+  gap: 16px;
+  padding: 16px 20px;
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
@@ -90,23 +91,23 @@
 }
 
 .schedule-date {
-  min-width: 100px;
   font-weight: 600;
   color: #333;
+  font-size: 0.95rem;
 }
 
 .schedule-info {
-  flex: 1;
+  min-width: 0;
 }
 
 .staff-name {
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1rem;
   margin-bottom: 2px;
 }
 
 .store-name {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #666;
   margin-bottom: 2px;
 }
@@ -117,13 +118,15 @@
 }
 
 .schedule-type {
-  min-width: 60px;
+  text-align: center;
 }
 
 .type-badge {
-  padding: 4px 10px;
+  display: inline-block;
+  padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .type-badge.request {
@@ -142,8 +145,32 @@
 }
 
 .schedule-status {
-  min-width: 140px;
   text-align: right;
+}
+
+@media (max-width: 600px) {
+  .schedule-card {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+
+  .schedule-date {
+    grid-column: 1;
+  }
+
+  .schedule-info {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .schedule-type {
+    text-align: left;
+  }
+
+  .schedule-status {
+    text-align: right;
+  }
 }
 
 .action-buttons {

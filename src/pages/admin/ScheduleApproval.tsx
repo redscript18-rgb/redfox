@@ -143,7 +143,7 @@ export default function ScheduleApproval() {
               <div className="staff-name">{schedule.staff?.name}</div>
               <div className="store-name">{schedule.store?.name}</div>
               <div className="time">
-                {schedule.start_time} - {schedule.end_time}
+                {schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}
               </div>
             </div>
             <div className="schedule-type">

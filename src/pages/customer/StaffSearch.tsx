@@ -75,12 +75,13 @@ export default function StaffSearch() {
       });
       setScheduleMap(scheduleByStaff);
 
-      // 직원별 평균 별점 조회
+      // 직원별 평균 별점 조회 (손님 평가만 - reservation_id가 있는 것)
       const { data: ratingsData } = await supabase
         .from('ratings')
-        .select('target_profile_id, rating, service_rating')
+        .select('target_profile_id, rating, service_rating, reservation_id')
         .in('target_profile_id', staffData.map(s => s.id))
-        .eq('target_type', 'staff');
+        .eq('target_type', 'staff')
+        .not('reservation_id', 'is', null);
 
       const ratingsByStaff: Record<string, StaffRating> = {};
       if (ratingsData) {

@@ -45,34 +45,54 @@
 .rating-display {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 12px;
+}
+
+.rating-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 20px;
+}
+
+.rating-group-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .rating-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+}
+
+.rating-item.service {
+  padding-left: 8px;
+  border-left: 1px solid #ddd;
 }
 
 .rating-star {
   color: #ffc107;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .rating-value {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .rating-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #888;
 }
 
 .rating-count {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: #999;
 }
 
 .profile-info .bio {

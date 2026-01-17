@@ -34,9 +34,14 @@ interface Schedule {
 }
 
 interface StaffRating {
-  avgRating: number | null;
-  avgServiceRating: number | null;
-  totalCount: number;
+  // 손님 평가 (reservation 기반)
+  customerAvgRating: number | null;
+  customerAvgServiceRating: number | null;
+  customerCount: number;
+  // 관리자 평가 (schedule 기반)
+  adminAvgRating: number | null;
+  adminAvgServiceRating: number | null;
+  adminCount: number;
 }
 
 export default function StaffDetail() {
@@ -49,7 +54,10 @@ export default function StaffDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [staffRating, setStaffRating] = useState<StaffRating>({ avgRating: null, avgServiceRating: null, totalCount: 0 });
+  const [staffRating, setStaffRating] = useState<StaffRating>({
+    customerAvgRating: null, customerAvgServiceRating: null, customerCount: 0,
+    adminAvgRating: null, adminAvgServiceRating: null, adminCount: 0,
+  });
 
   useEffect(() => {
     if (id) {
@@ -123,21 +131,31 @@ export default function StaffDetail() {
       setAffiliatedStores(storesData || []);
     }
 
-    // 직원 평균 별점 조회
+    // 직원 평균 별점 조회 (손님/관리자 분리)
     const { data: ratingsData } = await supabase
       .from('ratings')
-      .select('rating, service_rating')
+      .select('rating, service_rating, reservation_id, schedule_id')
       .eq('target_profile_id', id)
       .eq('target_type', 'staff');
 
     if (ratingsData && ratingsData.length > 0) {
-      const ratings = ratingsData.map(r => r.rating).filter(r => r !== null);
-      const serviceRatings = ratingsData.map(r => r.service_rating).filter(r => r !== null);
+      // 손님 평가 (reservation_id가 있는 것)
+      const customerRatings = ratingsData.filter(r => r.reservation_id !== null);
+      const customerRatingValues = customerRatings.map(r => r.rating).filter(r => r !== null);
+      const customerServiceValues = customerRatings.map(r => r.service_rating).filter(r => r !== null);
+
+      // 관리자 평가 (schedule_id가 있는 것)
+      const adminRatings = ratingsData.filter(r => r.schedule_id !== null);
+      const adminRatingValues = adminRatings.map(r => r.rating).filter(r => r !== null);
+      const adminServiceValues = adminRatings.map(r => r.service_rating).filter(r => r !== null);
 
       setStaffRating({
-        avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
-        avgServiceRating: serviceRatings.length > 0 ? serviceRatings.reduce((a, b) => a + b, 0) / serviceRatings.length : null,
-        totalCount: ratingsData.length,
+        customerAvgRating: customerRatingValues.length > 0 ? customerRatingValues.reduce((a, b) => a + b, 0) / customerRatingValues.length : null,
+        customerAvgServiceRating: customerServiceValues.length > 0 ? customerServiceValues.reduce((a, b) => a + b, 0) / customerServiceValues.length : null,
+        customerCount: customerRatings.length,
+        adminAvgRating: adminRatingValues.length > 0 ? adminRatingValues.reduce((a, b) => a + b, 0) / adminRatingValues.length : null,
+        adminAvgServiceRating: adminServiceValues.length > 0 ? adminServiceValues.reduce((a, b) => a + b, 0) / adminServiceValues.length : null,
+        adminCount: adminRatings.length,
       });
     }
 
@@ -181,21 +199,34 @@ export default function StaffDetail() {
         <div className="avatar">{staff.name.charAt(0)}</div>
         <div className="profile-info">
           <h1>{staff.name}</h1>
-          {staffRating.totalCount > 0 && (
+          {(staffRating.customerCount > 0 || staffRating.adminCount > 0) && (
             <div className="rating-display">
-              <div className="rating-item">
-                <span className="rating-star">★</span>
-                <span className="rating-value">{staffRating.avgRating?.toFixed(1)}</span>
-                <span className="rating-label">기본</span>
-              </div>
-              {staffRating.avgServiceRating && (
-                <div className="rating-item">
-                  <span className="rating-star">★</span>
-                  <span className="rating-value">{staffRating.avgServiceRating?.toFixed(1)}</span>
-                  <span className="rating-label">서비스</span>
+              {staffRating.customerCount > 0 && (
+                <div className="rating-group">
+                  <span className="rating-group-label">손님 평가</span>
+                  <div className="rating-item">
+                    <span className="rating-star">★</span>
+                    <span className="rating-value">{staffRating.customerAvgRating?.toFixed(1)}</span>
+                  </div>
+                  {staffRating.customerAvgServiceRating && (
+                    <div className="rating-item service">
+                      <span className="rating-value">{staffRating.customerAvgServiceRating?.toFixed(1)}</span>
+                      <span className="rating-label">서비스</span>
+                    </div>
+                  )}
+                  <span className="rating-count">({staffRating.customerCount})</span>
                 </div>
               )}
-              <span className="rating-count">({staffRating.totalCount}개 평가)</span>
+              {staffRating.adminCount > 0 && (
+                <div className="rating-group">
+                  <span className="rating-group-label">관리자 평가</span>
+                  <div className="rating-item">
+                    <span className="rating-star">★</span>
+                    <span className="rating-value">{staffRating.adminAvgRating?.toFixed(1)}</span>
+                  </div>
+                  <span className="rating-count">({staffRating.adminCount})</span>
+                </div>
+              )}
             </div>
           )}
           {staff.bio && <p className="bio">{staff.bio}</p>}

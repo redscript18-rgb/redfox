@@ -18,6 +18,7 @@ import ScheduleManage from './pages/staff/ScheduleManage';
 import MyReservations from './pages/staff/MyReservations';
 import AvailabilityManage from './pages/staff/AvailabilityManage';
 import WorkRequests from './pages/staff/WorkRequests';
+import ProfileManage from './pages/staff/ProfileManage';
 
 // 관리자용 페이지
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -157,6 +158,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <WorkRequests />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 프로필 관리 */}
+      <Route
+        path="/staff/profile"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ProfileManage />
             </Layout>
           </ProtectedRoute>
         }

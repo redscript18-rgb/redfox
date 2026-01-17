@@ -1,0 +1,164 @@
+.profile-manage {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.profile-manage h1 {
+  margin: 0 0 24px 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.section-desc {
+  margin: 0 0 16px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.bio-input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.bio-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* 전문 분야 태그 */
+.specialty-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.specialty-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff3e0;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #e65100;
+}
+
+.specialty-tag .remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: rgba(230, 81, 0, 0.2);
+  border-radius: 50%;
+  color: #e65100;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.specialty-tag .remove-btn:hover {
+  background: rgba(230, 81, 0, 0.4);
+}
+
+/* 새 전문 분야 추가 */
+.add-specialty {
+  display: flex;
+  gap: 10px;
+}
+
+.specialty-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.specialty-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.add-btn {
+  padding: 12px 20px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.add-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.empty {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* 저장 버튼 */
+.actions {
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.save-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

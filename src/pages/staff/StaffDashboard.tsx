@@ -157,6 +157,10 @@ export default function StaffDashboard() {
       {/* 빠른 메뉴 */}
       <section className="section quick-menu">
         <div className="quick-links">
+          <Link to="/staff/profile" className="quick-link">
+            <span className="icon">👤</span>
+            <span className="text">프로필 관리</span>
+          </Link>
           <Link to="/staff/availability" className="quick-link">
             <span className="icon">🕐</span>
             <span className="text">가용 시간 관리</span>

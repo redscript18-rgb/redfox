@@ -52,7 +52,8 @@ export default function InviteAccept() {
     }
 
     try {
-      const decoded = JSON.parse(atob(code));
+      // Unicode 지원 디코딩
+      const decoded = JSON.parse(decodeURIComponent(atob(code)));
 
       // 유효성 검사
       if (!decoded.storeId || !decoded.ownerId || !decoded.storeName) {

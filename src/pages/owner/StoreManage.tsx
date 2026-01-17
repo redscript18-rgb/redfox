@@ -222,14 +222,15 @@ export default function StoreManage() {
     const store = stores.find((s) => s.id === storeId);
     if (!store) return;
 
-    // 초대 코드 생성 (간단한 base64 인코딩)
+    // 초대 코드 생성 (Unicode 지원 base64 인코딩)
     const inviteData = {
       storeId: storeId,
       ownerId: user?.id,
       storeName: store.name,
       createdAt: Date.now(),
     };
-    const inviteCode = btoa(JSON.stringify(inviteData));
+    // Unicode를 지원하기 위해 encodeURIComponent 사용
+    const inviteCode = btoa(encodeURIComponent(JSON.stringify(inviteData)));
     const link = `${window.location.origin}/invite/${inviteCode}`;
 
     setInviteLinkStoreId(storeId);

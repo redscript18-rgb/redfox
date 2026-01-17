@@ -64,6 +64,15 @@ interface StaffRating {
   adminCount: number;
 }
 
+// 로컬 시간 기준 오늘 날짜 (YYYY-MM-DD)
+const getLocalToday = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function StaffDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -104,7 +113,7 @@ export default function StaffDetail() {
 
     setStaff(staffData);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
 
     // 향후 출근 스케줄 조회
     const { data: schedulesData } = await supabase
@@ -223,7 +232,7 @@ export default function StaffDetail() {
     );
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalToday();
 
   return (
     <div className="staff-detail">
@@ -528,13 +537,8 @@ function ReservationModal({
     const start = parseInt(schedule.start_time.split(':')[0]);
     const end = parseInt(schedule.end_time.split(':')[0]);
 
-    const now = new Date();
-    // 로컬 시간 기준으로 오늘 날짜 계산
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const today = `${year}-${month}-${day}`;
-    const currentHour = now.getHours();
+    const today = getLocalToday();
+    const currentHour = new Date().getHours();
 
     for (let h = start; h < end; h++) {
       // 오늘 날짜면 현재 시간 이후만 표시

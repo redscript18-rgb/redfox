@@ -67,11 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authInitializedRef.current = true;
         clearTimeout(timeoutId);
 
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
           if (session?.user) {
             const profile = await fetchProfile(session.user.id);
             if (isMounted) {
               setUser(profile);
+              setLoading(false);
+            }
+          } else {
+            // 세션 없음
+            if (isMounted) {
+              setUser(null);
               setLoading(false);
             }
           }

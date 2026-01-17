@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 인증 상태 변경 리스너 먼저 설정
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         if (!isMounted) return;
 
         // 인증 이벤트 수신 시 초기화 완료 표시

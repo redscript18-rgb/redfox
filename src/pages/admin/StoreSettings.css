@@ -95,6 +95,22 @@
   border-color: #007bff;
 }
 
+.select-field {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  background: #fff;
+  cursor: pointer;
+}
+
+.select-field:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
 .textarea-field {
   width: 100%;
   padding: 12px 14px;

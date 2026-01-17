@@ -4,6 +4,7 @@ ALTER TABLE stores ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS open_time TIME DEFAULT '10:00';
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS close_time TIME DEFAULT '22:00';
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS closed_days INTEGER[] DEFAULT '{}'; -- 0=일, 1=월, ..., 6=토
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS store_type TEXT; -- 가게 형태 (예: 1인샵, 커플관리샵, 왁싱샵 등)
 
 -- 가게 휴무일 테이블
 CREATE TABLE IF NOT EXISTS store_holidays (

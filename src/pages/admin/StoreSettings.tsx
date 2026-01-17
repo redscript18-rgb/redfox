@@ -13,7 +13,22 @@ interface Store {
   open_time: string | null;
   close_time: string | null;
   closed_days: number[] | null;
+  store_type: string | null;
 }
+
+const STORE_TYPES = [
+  '1인샵',
+  '커플관리샵',
+  '왁싱샵',
+  '스웨디시',
+  '타이마사지',
+  '중국마사지',
+  '스포츠마사지',
+  '발마사지',
+  '네일샵',
+  '피부관리샵',
+  '기타',
+];
 
 interface Menu {
   id: number;
@@ -48,6 +63,7 @@ export default function StoreSettings() {
   const [openTime, setOpenTime] = useState('10:00');
   const [closeTime, setCloseTime] = useState('22:00');
   const [closedDays, setClosedDays] = useState<number[]>([]);
+  const [storeType, setStoreType] = useState('');
 
   // 메뉴 추가용
   const [newMenuName, setNewMenuName] = useState('');
@@ -80,6 +96,7 @@ export default function StoreSettings() {
       setOpenTime(storeData.open_time?.slice(0, 5) || '10:00');
       setCloseTime(storeData.close_time?.slice(0, 5) || '22:00');
       setClosedDays(storeData.closed_days || []);
+      setStoreType(storeData.store_type || '');
     }
 
     // 메뉴
@@ -116,6 +133,7 @@ export default function StoreSettings() {
         open_time: openTime,
         close_time: closeTime,
         closed_days: closedDays.length > 0 ? closedDays : null,
+        store_type: storeType || null,
       })
       .eq('id', storeId);
 
@@ -276,6 +294,20 @@ export default function StoreSettings() {
 
       {activeTab === 'info' && (
         <div className="tab-content">
+          <section className="form-section">
+            <h2>가게 형태</h2>
+            <select
+              value={storeType}
+              onChange={(e) => setStoreType(e.target.value)}
+              className="select-field"
+            >
+              <option value="">선택하세요</option>
+              {STORE_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </section>
+
           <section className="form-section">
             <h2>연락처</h2>
             <input

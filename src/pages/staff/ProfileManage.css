@@ -327,6 +327,67 @@
   margin-bottom: 16px;
 }
 
+/* 프로필 상세 정보 */
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-field input[type="text"],
+.form-field input[type="number"] {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-field.full-width,
+.form-field input.full-width {
+  width: 100%;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 모바일 */
 @media (max-width: 480px) {
   .profile-photo-section {

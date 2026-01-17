@@ -10,6 +10,18 @@ interface Staff {
   bio: string | null;
   specialties: string[] | null;
   profile_photo_url: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  body_size: string | null;
+  is_smoker: boolean | null;
+  personality: string | null;
+  style: string | null;
+  skin_tone: string | null;
+  hair_length: string | null;
+  hair_style: string | null;
+  hair_color: string | null;
+  is_waxed: boolean | null;
 }
 
 interface DailyPhoto {
@@ -271,6 +283,87 @@ export default function StaffDetail() {
           )}
         </div>
       </div>
+
+      {/* 프로필 상세 정보 */}
+      {(staff.age || staff.height || staff.weight || staff.body_size || staff.personality || staff.style || staff.skin_tone || staff.hair_length || staff.hair_style || staff.hair_color) && (
+        <section className="section profile-details-section">
+          <h2>프로필</h2>
+          <div className="profile-details-info">
+            {staff.age && (
+              <div className="detail-item">
+                <span className="detail-label">나이</span>
+                <span className="detail-value">{staff.age}세</span>
+              </div>
+            )}
+            {staff.height && (
+              <div className="detail-item">
+                <span className="detail-label">키</span>
+                <span className="detail-value">{staff.height}cm</span>
+              </div>
+            )}
+            {staff.weight && (
+              <div className="detail-item">
+                <span className="detail-label">몸무게</span>
+                <span className="detail-value">{staff.weight}kg</span>
+              </div>
+            )}
+            {staff.body_size && (
+              <div className="detail-item">
+                <span className="detail-label">B-Size</span>
+                <span className="detail-value">{staff.body_size}</span>
+              </div>
+            )}
+            {staff.skin_tone && (
+              <div className="detail-item">
+                <span className="detail-label">피부톤</span>
+                <span className="detail-value">{staff.skin_tone}</span>
+              </div>
+            )}
+            {staff.hair_length && (
+              <div className="detail-item">
+                <span className="detail-label">머리길이</span>
+                <span className="detail-value">{staff.hair_length}</span>
+              </div>
+            )}
+            {staff.hair_style && (
+              <div className="detail-item">
+                <span className="detail-label">헤어스타일</span>
+                <span className="detail-value">{staff.hair_style}</span>
+              </div>
+            )}
+            {staff.hair_color && (
+              <div className="detail-item">
+                <span className="detail-label">머리색</span>
+                <span className="detail-value">{staff.hair_color}</span>
+              </div>
+            )}
+            {staff.is_waxed !== null && (
+              <div className="detail-item">
+                <span className="detail-label">왁싱</span>
+                <span className="detail-value">{staff.is_waxed ? '함' : '안함'}</span>
+              </div>
+            )}
+            {staff.is_smoker !== null && (
+              <div className="detail-item">
+                <span className="detail-label">흡연</span>
+                <span className="detail-value">{staff.is_smoker ? '흡연' : '비흡연'}</span>
+              </div>
+            )}
+            {staff.personality && (
+              <div className="detail-item">
+                <span className="detail-label">성격</span>
+                <span className="detail-value">{staff.personality}</span>
+              </div>
+            )}
+            {staff.style && (
+              <div className="detail-item">
+                <span className="detail-label">스타일</span>
+                <span className="detail-value">{staff.style}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {dailyPhotos.filter(p => p.date === today).length > 0 && (
         <section className="section">

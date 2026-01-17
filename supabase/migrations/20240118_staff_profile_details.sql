@@ -1,0 +1,13 @@
+-- 직원 프로필 상세 정보 컬럼 추가
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS age INTEGER;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS height INTEGER; -- cm
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS weight INTEGER; -- kg
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS body_size TEXT; -- B-Size
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_smoker BOOLEAN DEFAULT false;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS personality TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS style TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS skin_tone TEXT; -- 피부톤
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS hair_length TEXT; -- 머리길이
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS hair_style TEXT; -- 헤어스타일
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_waxed BOOLEAN DEFAULT false; -- 왁싱 여부
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS hair_color TEXT; -- 머리색

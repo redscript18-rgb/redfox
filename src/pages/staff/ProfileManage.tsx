@@ -24,6 +24,20 @@ export default function ProfileManage() {
   const [uploadingDaily, setUploadingDaily] = useState(false);
   const [newPhotoCaption, setNewPhotoCaption] = useState('');
 
+  // 추가 프로필 정보
+  const [age, setAge] = useState<number | ''>('');
+  const [height, setHeight] = useState<number | ''>('');
+  const [weight, setWeight] = useState<number | ''>('');
+  const [bodySize, setBodySize] = useState('');
+  const [isSmoker, setIsSmoker] = useState(false);
+  const [personality, setPersonality] = useState('');
+  const [style, setStyle] = useState('');
+  const [skinTone, setSkinTone] = useState('');
+  const [hairLength, setHairLength] = useState('');
+  const [hairStyle, setHairStyle] = useState('');
+  const [hairColor, setHairColor] = useState('');
+  const [isWaxed, setIsWaxed] = useState(false);
+
   const profileInputRef = useRef<HTMLInputElement>(null);
   const dailyInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +53,7 @@ export default function ProfileManage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('bio, specialties, profile_photo_url')
+      .select('bio, specialties, profile_photo_url, age, height, weight, body_size, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed')
       .eq('id', user.id)
       .single();
 
@@ -47,6 +61,18 @@ export default function ProfileManage() {
       setBio(data.bio || '');
       setSpecialties(data.specialties || []);
       setProfilePhotoUrl(data.profile_photo_url || null);
+      setAge(data.age || '');
+      setHeight(data.height || '');
+      setWeight(data.weight || '');
+      setBodySize(data.body_size || '');
+      setIsSmoker(data.is_smoker || false);
+      setPersonality(data.personality || '');
+      setStyle(data.style || '');
+      setSkinTone(data.skin_tone || '');
+      setHairLength(data.hair_length || '');
+      setHairStyle(data.hair_style || '');
+      setHairColor(data.hair_color || '');
+      setIsWaxed(data.is_waxed || false);
     }
 
     setLoading(false);
@@ -219,6 +245,18 @@ export default function ProfileManage() {
       .update({
         bio,
         specialties: specialties.length > 0 ? specialties : null,
+        age: age || null,
+        height: height || null,
+        weight: weight || null,
+        body_size: bodySize || null,
+        is_smoker: isSmoker,
+        personality: personality || null,
+        style: style || null,
+        skin_tone: skinTone || null,
+        hair_length: hairLength || null,
+        hair_style: hairStyle || null,
+        hair_color: hairColor || null,
+        is_waxed: isWaxed,
       })
       .eq('id', user.id);
 
@@ -285,6 +323,162 @@ export default function ProfileManage() {
           rows={4}
           className="bio-input"
         />
+      </section>
+
+      {/* 기본 정보 */}
+      <section className="section">
+        <h2>기본 정보</h2>
+        <div className="profile-details-grid">
+          <div className="form-field">
+            <label>나이</label>
+            <input
+              type="number"
+              value={age}
+              onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
+              placeholder="나이"
+              min={18}
+              max={99}
+            />
+          </div>
+          <div className="form-field">
+            <label>키 (cm)</label>
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(e.target.value ? Number(e.target.value) : '')}
+              placeholder="키"
+              min={100}
+              max={250}
+            />
+          </div>
+          <div className="form-field">
+            <label>몸무게 (kg)</label>
+            <input
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value ? Number(e.target.value) : '')}
+              placeholder="몸무게"
+              min={30}
+              max={200}
+            />
+          </div>
+          <div className="form-field">
+            <label>B-Size</label>
+            <input
+              type="text"
+              value={bodySize}
+              onChange={(e) => setBodySize(e.target.value)}
+              placeholder="예: A, B, C..."
+            />
+          </div>
+          <div className="form-field">
+            <label>흡연 여부</label>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="smoking"
+                  checked={!isSmoker}
+                  onChange={() => setIsSmoker(false)}
+                />
+                비흡연
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="smoking"
+                  checked={isSmoker}
+                  onChange={() => setIsSmoker(true)}
+                />
+                흡연
+              </label>
+            </div>
+          </div>
+          <div className="form-field">
+            <label>왁싱 여부</label>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="waxing"
+                  checked={!isWaxed}
+                  onChange={() => setIsWaxed(false)}
+                />
+                안함
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="waxing"
+                  checked={isWaxed}
+                  onChange={() => setIsWaxed(true)}
+                />
+                함
+              </label>
+            </div>
+          </div>
+          <div className="form-field">
+            <label>피부톤</label>
+            <input
+              type="text"
+              value={skinTone}
+              onChange={(e) => setSkinTone(e.target.value)}
+              placeholder="예: 밝은편, 중간, 어두운편..."
+            />
+          </div>
+          <div className="form-field">
+            <label>머리길이</label>
+            <input
+              type="text"
+              value={hairLength}
+              onChange={(e) => setHairLength(e.target.value)}
+              placeholder="예: 숏컷, 단발, 중간, 장발..."
+            />
+          </div>
+          <div className="form-field">
+            <label>헤어스타일</label>
+            <input
+              type="text"
+              value={hairStyle}
+              onChange={(e) => setHairStyle(e.target.value)}
+              placeholder="예: 생머리, 웨이브..."
+            />
+          </div>
+          <div className="form-field">
+            <label>머리색</label>
+            <input
+              type="text"
+              value={hairColor}
+              onChange={(e) => setHairColor(e.target.value)}
+              placeholder="예: 검정, 갈색, 금발..."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 성격 & 스타일 */}
+      <section className="section">
+        <h2>성격 & 스타일</h2>
+        <div className="form-field">
+          <label>성격</label>
+          <input
+            type="text"
+            value={personality}
+            onChange={(e) => setPersonality(e.target.value)}
+            placeholder="예: 활발함, 차분함, 친근함..."
+            className="full-width"
+          />
+        </div>
+        <div className="form-field">
+          <label>스타일</label>
+          <input
+            type="text"
+            value={style}
+            onChange={(e) => setStyle(e.target.value)}
+            placeholder="예: 캐주얼, 시크, 청순..."
+            className="full-width"
+          />
+        </div>
       </section>
 
       {/* 전문 분야 */}

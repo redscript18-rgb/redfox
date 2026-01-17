@@ -310,6 +310,10 @@ function ReservationModal({
 
     setSubmitting(true);
 
+    // end_time 계산 (1시간 후)
+    const startHour = parseInt(selectedTime.split(':')[0]);
+    const endTime = `${(startHour + 1).toString().padStart(2, '0')}:00`;
+
     const { error } = await supabase
       .from('reservations')
       .insert({
@@ -319,6 +323,7 @@ function ReservationModal({
         menu_id: selectedMenu,
         date: schedule.date,
         start_time: selectedTime,
+        end_time: endTime,
         status: 'pending',
       });
 

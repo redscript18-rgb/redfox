@@ -18,10 +18,20 @@ interface Reservation {
   menu?: { name: string; price: number };
 }
 
+interface Rating {
+  id: number;
+  reservation_id: number;
+  target_type: string;
+}
+
 export default function CustomerReservations() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [myRatings, setMyRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [ratingTargetType, setRatingTargetType] = useState<'staff' | 'store'>('staff');
   const today = new Date().toISOString().split('T')[0];
 
   const fetchReservations = useCallback(async () => {
@@ -40,6 +50,14 @@ export default function CustomerReservations() {
       .order('start_time', { ascending: true });
 
     setReservations(reservationsData || []);
+
+    // 내가 준 별점 조회
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('id, reservation_id, target_type')
+      .eq('rater_id', user.id);
+
+    setMyRatings(ratingsData || []);
     setLoading(false);
   }, [user]);
 
@@ -128,6 +146,18 @@ export default function CustomerReservations() {
     }
   };
 
+  const hasRated = (reservationId: number, targetType: string) => {
+    return myRatings.some(
+      (r) => r.reservation_id === reservationId && r.target_type === targetType
+    );
+  };
+
+  const openRatingModal = (reservation: Reservation, targetType: 'staff' | 'store') => {
+    setSelectedReservation(reservation);
+    setRatingTargetType(targetType);
+    setShowRatingModal(true);
+  };
+
   const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
     const isNew = isNewNotification(reservation);
 
@@ -154,6 +184,24 @@ export default function CustomerReservations() {
             <button className="cancel-btn" onClick={() => handleCancel(reservation.id)}>
               취소
             </button>
+          )}
+          {reservation.status === 'completed' && (
+            <div className="rating-buttons">
+              {!hasRated(reservation.id, 'staff') ? (
+                <button className="rate-btn" onClick={() => openRatingModal(reservation, 'staff')}>
+                  직원 별점
+                </button>
+              ) : (
+                <span className="rated-badge">직원 평가완료</span>
+              )}
+              {!hasRated(reservation.id, 'store') ? (
+                <button className="rate-btn" onClick={() => openRatingModal(reservation, 'store')}>
+                  가게 별점
+                </button>
+              ) : (
+                <span className="rated-badge">가게 평가완료</span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -209,6 +257,124 @@ export default function CustomerReservations() {
           </div>
         </section>
       )}
+
+      {showRatingModal && selectedReservation && (
+        <RatingModal
+          reservation={selectedReservation}
+          raterId={user?.id || ''}
+          targetType={ratingTargetType}
+          targetId={ratingTargetType === 'staff' ? selectedReservation.staff_id : selectedReservation.store_id}
+          targetName={ratingTargetType === 'staff' ? (selectedReservation.staff?.name || '직원') : (selectedReservation.store?.name || '가게')}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSelectedReservation(null);
+          }}
+          onSuccess={() => {
+            setShowRatingModal(false);
+            setSelectedReservation(null);
+            fetchReservations();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RatingModal({
+  reservation,
+  raterId,
+  targetType,
+  targetId,
+  targetName,
+  onClose,
+  onSuccess,
+}: {
+  reservation: Reservation;
+  raterId: string;
+  targetType: 'staff' | 'store';
+  targetId: string | number;
+  targetName: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+
+    const insertData: Record<string, unknown> = {
+      reservation_id: reservation.id,
+      rater_id: raterId,
+      target_type: targetType,
+      rating,
+      comment: comment || null,
+    };
+
+    if (targetType === 'store') {
+      insertData.target_store_id = targetId;
+    } else {
+      insertData.target_profile_id = targetId;
+    }
+
+    const { error } = await supabase.from('ratings').insert(insertData);
+
+    setSubmitting(false);
+
+    if (error) {
+      alert('별점 등록 중 오류가 발생했습니다.');
+    } else {
+      onSuccess();
+    }
+  };
+
+  const ratingOptions = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>별점 주기</h2>
+        <p className="rating-target">{targetName}에게 별점을 주세요</p>
+
+        <div className="rating-select">
+          <div className="stars">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
+                onClick={() => setRating(star)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+            {ratingOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}점
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>코멘트 (선택)</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="코멘트를 남겨주세요..."
+            rows={3}
+          />
+        </div>
+
+        <div className="modal-actions">
+          <button onClick={onClose} className="cancel-btn">취소</button>
+          <button onClick={handleSubmit} className="submit-btn" disabled={submitting}>
+            {submitting ? '등록 중...' : '별점 등록'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

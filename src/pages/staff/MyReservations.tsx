@@ -17,10 +17,19 @@ interface Reservation {
   customer?: { name: string };
 }
 
+interface Rating {
+  id: number;
+  reservation_id: number;
+  target_type: string;
+}
+
 export default function MyReservations() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [myRatings, setMyRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -45,6 +54,14 @@ export default function MyReservations() {
       .order('start_time', { ascending: true });
 
     setReservations(reservationsData || []);
+
+    // 내가 준 별점 조회
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('id, reservation_id, target_type')
+      .eq('rater_id', user.id);
+
+    setMyRatings(ratingsData || []);
     setLoading(false);
   };
 
@@ -110,6 +127,30 @@ export default function MyReservations() {
     }
   };
 
+  const handleComplete = async (reservationId: number) => {
+    const { error } = await supabase
+      .from('reservations')
+      .update({ status: 'completed' })
+      .eq('id', reservationId);
+
+    if (error) {
+      alert('완료 처리 중 오류가 발생했습니다.');
+    } else {
+      fetchReservations();
+    }
+  };
+
+  const hasRated = (reservationId: number, targetType: string) => {
+    return myRatings.some(
+      (r) => r.reservation_id === reservationId && r.target_type === targetType
+    );
+  };
+
+  const openRatingModal = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setShowRatingModal(true);
+  };
+
   const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
     return (
       <div className={`reservation-card status-${reservation.status}`}>
@@ -138,6 +179,23 @@ export default function MyReservations() {
                 거절
               </button>
             </div>
+          )}
+          {reservation.status === 'confirmed' && (
+            <div className="action-buttons">
+              <button className="complete-btn" onClick={() => handleComplete(reservation.id)}>
+                서비스 완료
+              </button>
+            </div>
+          )}
+          {reservation.status === 'completed' && !hasRated(reservation.id, 'customer') && (
+            <div className="action-buttons">
+              <button className="rate-btn" onClick={() => openRatingModal(reservation)}>
+                손님 별점 주기
+              </button>
+            </div>
+          )}
+          {reservation.status === 'completed' && hasRated(reservation.id, 'customer') && (
+            <span className="rated-badge">평가 완료</span>
           )}
         </div>
       </div>
@@ -193,6 +251,124 @@ export default function MyReservations() {
           </div>
         </section>
       )}
+
+      {showRatingModal && selectedReservation && (
+        <RatingModal
+          reservation={selectedReservation}
+          raterId={user?.id || ''}
+          targetType="customer"
+          targetId={selectedReservation.customer_id}
+          targetName={selectedReservation.customer?.name || '손님'}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSelectedReservation(null);
+          }}
+          onSuccess={() => {
+            setShowRatingModal(false);
+            setSelectedReservation(null);
+            fetchReservations();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RatingModal({
+  reservation,
+  raterId,
+  targetType,
+  targetId,
+  targetName,
+  onClose,
+  onSuccess,
+}: {
+  reservation: Reservation;
+  raterId: string;
+  targetType: 'staff' | 'customer' | 'store';
+  targetId: string | number;
+  targetName: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+
+    const insertData: Record<string, unknown> = {
+      reservation_id: reservation.id,
+      rater_id: raterId,
+      target_type: targetType,
+      rating,
+      comment: comment || null,
+    };
+
+    if (targetType === 'store') {
+      insertData.target_store_id = targetId;
+    } else {
+      insertData.target_profile_id = targetId;
+    }
+
+    const { error } = await supabase.from('ratings').insert(insertData);
+
+    setSubmitting(false);
+
+    if (error) {
+      alert('별점 등록 중 오류가 발생했습니다.');
+    } else {
+      onSuccess();
+    }
+  };
+
+  const ratingOptions = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>별점 주기</h2>
+        <p className="rating-target">{targetName}님에게 별점을 주세요</p>
+
+        <div className="rating-select">
+          <div className="stars">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
+                onClick={() => setRating(star)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+            {ratingOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}점
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>코멘트 (선택)</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="코멘트를 남겨주세요..."
+            rows={3}
+          />
+        </div>
+
+        <div className="modal-actions">
+          <button onClick={onClose} className="cancel-btn">취소</button>
+          <button onClick={handleSubmit} className="submit-btn" disabled={submitting}>
+            {submitting ? '등록 중...' : '별점 등록'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

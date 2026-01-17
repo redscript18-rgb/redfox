@@ -69,8 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!isMounted) return;
 
-        console.log('Auth event:', event, 'Session:', !!session?.user);
-
         // 인증 이벤트 수신 시 초기화 완료 표시
         authInitializedRef.current = true;
         clearTimeout(timeoutId);

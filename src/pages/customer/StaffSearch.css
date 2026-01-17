@@ -18,15 +18,15 @@
 /* Filters */
 .filters {
   display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
-.search-input,
-.specialty-select {
+.search-input {
   flex: 1;
+  max-width: 300px;
   padding: 10px var(--spacing-md);
-  background: var(--bg-input);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 0.9rem;
@@ -38,45 +38,55 @@
   color: var(--text-muted);
 }
 
-.search-input:focus,
-.specialty-select:focus {
+.search-input:focus {
   outline: none;
   border-color: var(--accent-primary);
 }
 
 .specialty-select {
+  padding: 10px var(--spacing-md);
+  padding-right: 36px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  color: var(--text-primary);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2371717a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
-  min-width: 130px;
+  background-position: right 12px center;
+  transition: all var(--transition-normal);
+}
+
+.specialty-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
 }
 
 /* Staff Grid */
 .staff-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: var(--spacing-md);
 }
 
 /* Staff Card */
 .staff-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: inherit;
   transition: all var(--transition-normal);
-  box-shadow: var(--shadow-sm);
 }
 
 .staff-card:hover {
-  border-color: var(--border-light);
+  border-color: var(--accent-primary);
   box-shadow: var(--shadow-md);
 }
 
@@ -88,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   flex-shrink: 0;
@@ -101,7 +111,7 @@
 
 .staff-info h3 {
   margin: 0 0 4px 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -116,14 +126,15 @@
 .specialties {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 
 .specialty-tag {
-  padding: 2px 8px;
+  padding: 3px 10px;
   background: var(--accent-light);
   border-radius: var(--radius-full);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--accent-primary);
 }
 
@@ -180,6 +191,11 @@
 @media (max-width: 640px) {
   .filters {
     flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .search-input {
+    max-width: none;
   }
 
   .staff-grid {

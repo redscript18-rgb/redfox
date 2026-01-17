@@ -140,6 +140,26 @@
   color: #ffc107;
 }
 
+.block-btn {
+  padding: 2px 8px;
+  background: #fff;
+  color: #f44336;
+  border: 1px solid #f44336;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.block-btn:hover {
+  background: #ffebee;
+}
+
+.block-btn.blocked {
+  background: #f44336;
+  color: #fff;
+}
+
 .reservation-actions {
   display: flex;
   flex-direction: column;

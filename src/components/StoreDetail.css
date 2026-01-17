@@ -41,11 +41,42 @@
   margin-left: 12px;
 }
 
+.store-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .store-title {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.favorite-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  color: #ccc;
+}
+
+.favorite-btn:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.favorite-btn.active {
+  background: #fff0f0;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
 }
 
 .store-header .phone {

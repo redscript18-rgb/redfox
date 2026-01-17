@@ -33,6 +33,7 @@ export default function MyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [myRatings, setMyRatings] = useState<Rating[]>([]);
   const [customerRatings, setCustomerRatings] = useState<Record<string, CustomerRating>>({});
+  const [blockedCustomers, setBlockedCustomers] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
@@ -41,8 +42,56 @@ export default function MyReservations() {
   useEffect(() => {
     if (user) {
       fetchReservations();
+      fetchBlockedCustomers();
     }
   }, [user]);
+
+  const fetchBlockedCustomers = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('blocks')
+      .select('blocked_id')
+      .eq('blocker_id', user.id);
+
+    if (data) {
+      setBlockedCustomers(new Set(data.map(b => b.blocked_id)));
+    }
+  };
+
+  const handleBlock = async (customerId: string, customerName: string) => {
+    if (!user) return;
+
+    const isBlocked = blockedCustomers.has(customerId);
+
+    if (isBlocked) {
+      // 차단 해제
+      await supabase
+        .from('blocks')
+        .delete()
+        .eq('blocker_id', user.id)
+        .eq('blocked_id', customerId);
+
+      setBlockedCustomers(prev => {
+        const next = new Set(prev);
+        next.delete(customerId);
+        return next;
+      });
+    } else {
+      // 차단
+      if (!confirm(`${customerName}님을 차단하시겠습니까?\n차단하면 이 손님은 당신을 볼 수 없습니다.`)) {
+        return;
+      }
+
+      await supabase
+        .from('blocks')
+        .insert({
+          blocker_id: user.id,
+          blocked_id: customerId,
+        });
+
+      setBlockedCustomers(prev => new Set([...prev, customerId]));
+    }
+  };
 
   const fetchReservations = async () => {
     if (!user) return;
@@ -192,6 +241,7 @@ export default function MyReservations() {
 
   const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
     const customerRating = customerRatings[reservation.customer_id];
+    const isBlocked = blockedCustomers.has(reservation.customer_id);
     return (
       <div className={`reservation-card status-${reservation.status}`}>
         <div className="reservation-time">
@@ -212,6 +262,13 @@ export default function MyReservations() {
                 {customerRating.avgRating?.toFixed(1)}
               </span>
             )}
+            <button
+              className={`block-btn ${isBlocked ? 'blocked' : ''}`}
+              onClick={() => handleBlock(reservation.customer_id, reservation.customer?.name || '고객')}
+              title={isBlocked ? '차단 해제' : '차단'}
+            >
+              {isBlocked ? '차단됨' : '차단'}
+            </button>
           </div>
         </div>
         <div className="reservation-actions">

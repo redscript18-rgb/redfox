@@ -11,6 +11,7 @@ import StoreDetail from './components/StoreDetail';
 import CustomerHome from './pages/customer/CustomerHome';
 import StaffDetailPage from './pages/customer/StaffDetail';
 import CustomerReservations from './pages/customer/CustomerReservations';
+import Favorites from './pages/customer/Favorites';
 
 // 직원용 페이지
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -111,6 +112,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <CustomerReservations />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 손님용: 즐겨찾기 */}
+      <Route
+        path="/customer/favorites"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Favorites />
             </Layout>
           </ProtectedRoute>
         }

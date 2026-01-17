@@ -89,12 +89,69 @@ export default function StaffDetail() {
     customerAvgRating: null, customerAvgServiceRating: null, customerCount: 0,
     adminAvgRating: null, adminAvgServiceRating: null, adminCount: 0,
   });
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchData();
+      if (user) {
+        checkFavorite();
+        checkBlocked();
+      }
     }
-  }, [id]);
+  }, [id, user]);
+
+  const checkBlocked = async () => {
+    if (!user || !id) return;
+
+    // 이 직원이 나를 차단했는지 확인
+    const { data } = await supabase
+      .from('blocks')
+      .select('id')
+      .eq('blocker_id', id)
+      .eq('blocked_id', user.id)
+      .single();
+
+    setIsBlocked(!!data);
+  };
+
+  const checkFavorite = async () => {
+    if (!user || !id) return;
+
+    const { data } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('target_type', 'staff')
+      .eq('target_staff_id', id)
+      .single();
+
+    setIsFavorite(!!data);
+  };
+
+  const toggleFavorite = async () => {
+    if (!user || !id) return;
+
+    if (isFavorite) {
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_type', 'staff')
+        .eq('target_staff_id', id);
+      setIsFavorite(false);
+    } else {
+      await supabase
+        .from('favorites')
+        .insert({
+          user_id: user.id,
+          target_type: 'staff',
+          target_staff_id: id,
+        });
+      setIsFavorite(true);
+    }
+  };
 
   const fetchData = async () => {
     if (!id) return;
@@ -223,7 +280,7 @@ export default function StaffDetail() {
     return <div className="staff-detail"><p>로딩 중...</p></div>;
   }
 
-  if (!staff) {
+  if (!staff || isBlocked) {
     return (
       <div className="staff-detail">
         <p>직원을 찾을 수 없습니다.</p>
@@ -249,7 +306,15 @@ export default function StaffDetail() {
           )}
         </div>
         <div className="profile-info">
-          <h1>{staff.name}</h1>
+          <div className="profile-name-row">
+            <h1>{staff.name}</h1>
+            <button
+              className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+              onClick={toggleFavorite}
+            >
+              {isFavorite ? '♥' : '♡'}
+            </button>
+          </div>
           {(staffRating.customerCount > 0 || staffRating.adminCount > 0) && (
             <div className="rating-display">
               {staffRating.customerCount > 0 && (

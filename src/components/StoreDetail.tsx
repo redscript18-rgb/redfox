@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './StoreDetail.css';
 
@@ -51,6 +52,7 @@ interface StoreRating {
 export default function StoreDetail() {
   const { id } = useParams<{ id: string }>();
   const storeId = Number(id);
+  const { user } = useAuth();
 
   const [store, setStore] = useState<Store | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -60,11 +62,67 @@ export default function StoreDetail() {
     customerAvgRating: null, customerCount: 0,
     staffAvgRating: null, staffCount: 0,
   });
+  const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, [storeId]);
+    if (user) {
+      checkFavorite();
+      fetchBlockedByStaff();
+    }
+  }, [storeId, user]);
+
+  const fetchBlockedByStaff = async () => {
+    if (!user) return;
+    // 나를 차단한 직원/관리자 목록 조회
+    const { data } = await supabase
+      .from('blocks')
+      .select('blocker_id')
+      .eq('blocked_id', user.id);
+
+    if (data) {
+      setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
+    }
+  };
+
+  const checkFavorite = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('target_type', 'store')
+      .eq('target_store_id', storeId)
+      .single();
+
+    setIsFavorite(!!data);
+  };
+
+  const toggleFavorite = async () => {
+    if (!user) return;
+
+    if (isFavorite) {
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_type', 'store')
+        .eq('target_store_id', storeId);
+      setIsFavorite(false);
+    } else {
+      await supabase
+        .from('favorites')
+        .insert({
+          user_id: user.id,
+          target_type: 'store',
+          target_store_id: storeId,
+        });
+      setIsFavorite(true);
+    }
+  };
 
   const fetchData = async () => {
     const today = new Date().toISOString().split('T')[0];
@@ -167,9 +225,17 @@ export default function StoreDetail() {
       </Link>
 
       <header className="store-header">
-        <div className="store-title">
-          <h1>{store.name}</h1>
-          {store.store_type && <span className="store-type-badge">{store.store_type}</span>}
+        <div className="store-title-row">
+          <div className="store-title">
+            <h1>{store.name}</h1>
+            {store.store_type && <span className="store-type-badge">{store.store_type}</span>}
+          </div>
+          <button
+            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+            onClick={toggleFavorite}
+          >
+            {isFavorite ? '♥' : '♡'}
+          </button>
         </div>
         {(storeRating.customerCount > 0 || storeRating.staffCount > 0) && (
           <div className="store-ratings">
@@ -229,24 +295,26 @@ export default function StoreDetail() {
       <section className="section">
         <h2>직원</h2>
         <div className="staff-list">
-          {staffList.map((staff) => (
-            <Link key={staff.id} to={`/staff/${staff.id}`} className="staff-item clickable">
-              <div className="staff-info">
-                <h3>{staff.name}</h3>
-                {staff.bio && <p className="bio">{staff.bio}</p>}
-                {staff.specialties && (
-                  <div className="specialties">
-                    {staff.specialties.map((s) => (
-                      <span key={s} className="specialty">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <span className="view-profile">프로필 보기 →</span>
-            </Link>
-          ))}
+          {staffList
+            .filter(staff => !blockedByStaff.has(staff.id))
+            .map((staff) => (
+              <Link key={staff.id} to={`/staff/${staff.id}`} className="staff-item clickable">
+                <div className="staff-info">
+                  <h3>{staff.name}</h3>
+                  {staff.bio && <p className="bio">{staff.bio}</p>}
+                  {staff.specialties && (
+                    <div className="specialties">
+                      {staff.specialties.map((s) => (
+                        <span key={s} className="specialty">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span className="view-profile">프로필 보기 →</span>
+              </Link>
+            ))}
         </div>
       </section>
 

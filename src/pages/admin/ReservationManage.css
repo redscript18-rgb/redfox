@@ -260,6 +260,26 @@
   border-radius: 12px;
 }
 
+.block-btn {
+  padding: 4px 10px;
+  background: #fff;
+  color: #f44336;
+  border: 1px solid #f44336;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.block-btn:hover {
+  background: #ffebee;
+}
+
+.block-btn.blocked {
+  background: #f44336;
+  color: #fff;
+}
+
 .staff-store {
   display: flex;
   gap: 16px;

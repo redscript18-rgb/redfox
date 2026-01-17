@@ -73,12 +73,17 @@ export default function Layout({ children }: LayoutProps) {
         </Link>
         <nav className="nav-links">
           {user?.role === 'customer' && (
-            <Link to="/customer/reservations" className="nav-link">
-              내 예약
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
-              )}
-            </Link>
+            <>
+              <Link to="/customer/reservations" className="nav-link">
+                내 예약
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount}</span>
+                )}
+              </Link>
+              <Link to="/customer/favorites" className="nav-link">
+                즐겨찾기
+              </Link>
+            </>
           )}
           {user?.role === 'staff' && (
             <>

@@ -23,10 +23,16 @@ interface Rating {
   target_type: string;
 }
 
+interface CustomerRating {
+  avgRating: number | null;
+  totalCount: number;
+}
+
 export default function MyReservations() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [myRatings, setMyRatings] = useState<Rating[]>([]);
+  const [customerRatings, setCustomerRatings] = useState<Record<string, CustomerRating>>({});
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
@@ -62,6 +68,39 @@ export default function MyReservations() {
       .eq('rater_id', user.id);
 
     setMyRatings(ratingsData || []);
+
+    // 손님별 평균 별점 조회
+    if (reservationsData && reservationsData.length > 0) {
+      const customerIds = [...new Set(reservationsData.map(r => r.customer_id))];
+      const { data: customerRatingsData } = await supabase
+        .from('ratings')
+        .select('target_profile_id, rating')
+        .in('target_profile_id', customerIds)
+        .eq('target_type', 'customer');
+
+      if (customerRatingsData) {
+        const ratingsByCustomer: Record<string, CustomerRating> = {};
+        const grouped: Record<string, number[]> = {};
+
+        customerRatingsData.forEach(r => {
+          if (!r.target_profile_id) return;
+          if (!grouped[r.target_profile_id]) {
+            grouped[r.target_profile_id] = [];
+          }
+          if (r.rating) grouped[r.target_profile_id].push(r.rating);
+        });
+
+        Object.entries(grouped).forEach(([customerId, ratings]) => {
+          ratingsByCustomer[customerId] = {
+            avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+            totalCount: ratings.length,
+          };
+        });
+
+        setCustomerRatings(ratingsByCustomer);
+      }
+    }
+
     setLoading(false);
   };
 
@@ -152,6 +191,7 @@ export default function MyReservations() {
   };
 
   const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
+    const customerRating = customerRatings[reservation.customer_id];
     return (
       <div className={`reservation-card status-${reservation.status}`}>
         <div className="reservation-time">
@@ -164,7 +204,15 @@ export default function MyReservations() {
             <span className="price">{reservation.menu?.price?.toLocaleString()}원</span>
           </div>
           <div className="store-name">{reservation.store?.name}</div>
-          <div className="customer-info">손님: {reservation.customer?.name || '고객'}</div>
+          <div className="customer-info">
+            손님: {reservation.customer?.name || '고객'}
+            {customerRating && customerRating.totalCount > 0 && (
+              <span className="customer-rating">
+                <span className="star">★</span>
+                {customerRating.avgRating?.toFixed(1)}
+              </span>
+            )}
+          </div>
         </div>
         <div className="reservation-actions">
           <span className={`status-badge ${reservation.status}`}>

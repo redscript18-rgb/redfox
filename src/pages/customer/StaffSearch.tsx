@@ -19,9 +19,16 @@ interface Schedule {
   store?: { name: string };
 }
 
+interface StaffRating {
+  avgRating: number | null;
+  avgServiceRating: number | null;
+  totalCount: number;
+}
+
 export default function StaffSearch() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [scheduleMap, setScheduleMap] = useState<Record<string, Schedule>>({});
+  const [ratingMap, setRatingMap] = useState<Record<string, StaffRating>>({});
   const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,6 +73,37 @@ export default function StaffSearch() {
         scheduleByStaff[s.staff_id] = s;
       });
       setScheduleMap(scheduleByStaff);
+
+      // 직원별 평균 별점 조회
+      const { data: ratingsData } = await supabase
+        .from('ratings')
+        .select('target_profile_id, rating, service_rating')
+        .in('target_profile_id', staffData.map(s => s.id))
+        .eq('target_type', 'staff');
+
+      const ratingsByStaff: Record<string, StaffRating> = {};
+      if (ratingsData) {
+        // 직원별로 그룹화
+        const grouped: Record<string, { ratings: number[]; serviceRatings: number[] }> = {};
+        ratingsData.forEach(r => {
+          if (!r.target_profile_id) return;
+          if (!grouped[r.target_profile_id]) {
+            grouped[r.target_profile_id] = { ratings: [], serviceRatings: [] };
+          }
+          if (r.rating) grouped[r.target_profile_id].ratings.push(r.rating);
+          if (r.service_rating) grouped[r.target_profile_id].serviceRatings.push(r.service_rating);
+        });
+
+        // 평균 계산
+        Object.entries(grouped).forEach(([staffId, data]) => {
+          ratingsByStaff[staffId] = {
+            avgRating: data.ratings.length > 0 ? data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length : null,
+            avgServiceRating: data.serviceRatings.length > 0 ? data.serviceRatings.reduce((a, b) => a + b, 0) / data.serviceRatings.length : null,
+            totalCount: data.ratings.length,
+          };
+        });
+      }
+      setRatingMap(ratingsByStaff);
     }
 
     setLoading(false);
@@ -116,6 +154,7 @@ export default function StaffSearch() {
       <div className="staff-grid">
         {filteredStaffs.map((staff) => {
           const todaySchedule = scheduleMap[staff.id];
+          const staffRating = ratingMap[staff.id];
           return (
             <Link
               to={`/staff/${staff.id}`}
@@ -126,7 +165,15 @@ export default function StaffSearch() {
                 {staff.name.charAt(0)}
               </div>
               <div className="staff-info">
-                <h3>{staff.name}</h3>
+                <div className="name-rating">
+                  <h3>{staff.name}</h3>
+                  {staffRating && staffRating.totalCount > 0 && (
+                    <span className="rating-badge">
+                      <span className="star">★</span>
+                      {staffRating.avgRating?.toFixed(1)}
+                    </span>
+                  )}
+                </div>
                 {staff.bio && <p className="bio">{staff.bio}</p>}
                 {staff.specialties && (
                   <div className="specialties">

@@ -34,6 +34,11 @@ interface Schedule {
   staff?: { name: string };
 }
 
+interface StoreRating {
+  avgRating: number | null;
+  totalCount: number;
+}
+
 export default function StoreDetail() {
   const { id } = useParams<{ id: string }>();
   const storeId = Number(id);
@@ -42,6 +47,7 @@ export default function StoreDetail() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [todaySchedules, setTodaySchedules] = useState<Schedule[]>([]);
+  const [storeRating, setStoreRating] = useState<StoreRating>({ avgRating: null, totalCount: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -102,6 +108,21 @@ export default function StoreDetail() {
 
     setTodaySchedules(schedulesData || []);
 
+    // 가게 평균 별점 조회
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('rating')
+      .eq('target_store_id', storeId)
+      .eq('target_type', 'store');
+
+    if (ratingsData && ratingsData.length > 0) {
+      const ratings = ratingsData.map(r => r.rating).filter(r => r !== null);
+      setStoreRating({
+        avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+        totalCount: ratingsData.length,
+      });
+    }
+
     setLoading(false);
   };
 
@@ -125,7 +146,16 @@ export default function StoreDetail() {
       </Link>
 
       <header className="store-header">
-        <h1>{store.name}</h1>
+        <div className="store-title">
+          <h1>{store.name}</h1>
+          {storeRating.totalCount > 0 && (
+            <div className="store-rating">
+              <span className="rating-star">★</span>
+              <span className="rating-value">{storeRating.avgRating?.toFixed(1)}</span>
+              <span className="rating-count">({storeRating.totalCount}개 평가)</span>
+            </div>
+          )}
+        </div>
         <p className="address">{store.address}</p>
       </header>
 

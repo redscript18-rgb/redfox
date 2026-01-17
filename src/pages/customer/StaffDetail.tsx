@@ -33,6 +33,12 @@ interface Schedule {
   store?: Store;
 }
 
+interface StaffRating {
+  avgRating: number | null;
+  avgServiceRating: number | null;
+  totalCount: number;
+}
+
 export default function StaffDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -43,6 +49,7 @@ export default function StaffDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
+  const [staffRating, setStaffRating] = useState<StaffRating>({ avgRating: null, avgServiceRating: null, totalCount: 0 });
 
   useEffect(() => {
     if (id) {
@@ -116,6 +123,24 @@ export default function StaffDetail() {
       setAffiliatedStores(storesData || []);
     }
 
+    // 직원 평균 별점 조회
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('rating, service_rating')
+      .eq('target_profile_id', id)
+      .eq('target_type', 'staff');
+
+    if (ratingsData && ratingsData.length > 0) {
+      const ratings = ratingsData.map(r => r.rating).filter(r => r !== null);
+      const serviceRatings = ratingsData.map(r => r.service_rating).filter(r => r !== null);
+
+      setStaffRating({
+        avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+        avgServiceRating: serviceRatings.length > 0 ? serviceRatings.reduce((a, b) => a + b, 0) / serviceRatings.length : null,
+        totalCount: ratingsData.length,
+      });
+    }
+
     setLoading(false);
   };
 
@@ -156,6 +181,23 @@ export default function StaffDetail() {
         <div className="avatar">{staff.name.charAt(0)}</div>
         <div className="profile-info">
           <h1>{staff.name}</h1>
+          {staffRating.totalCount > 0 && (
+            <div className="rating-display">
+              <div className="rating-item">
+                <span className="rating-star">★</span>
+                <span className="rating-value">{staffRating.avgRating?.toFixed(1)}</span>
+                <span className="rating-label">기본</span>
+              </div>
+              {staffRating.avgServiceRating && (
+                <div className="rating-item">
+                  <span className="rating-star">★</span>
+                  <span className="rating-value">{staffRating.avgServiceRating?.toFixed(1)}</span>
+                  <span className="rating-label">서비스</span>
+                </div>
+              )}
+              <span className="rating-count">({staffRating.totalCount}개 평가)</span>
+            </div>
+          )}
           {staff.bio && <p className="bio">{staff.bio}</p>}
           {staff.specialties && (
             <div className="specialties">

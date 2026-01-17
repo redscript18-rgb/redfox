@@ -21,9 +21,38 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+.store-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
 .store-header h1 {
-  margin: 0 0 8px 0;
+  margin: 0;
   color: #333;
+}
+
+.store-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.store-rating .rating-star {
+  color: #ffc107;
+  font-size: 1.2rem;
+}
+
+.store-rating .rating-value {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.store-rating .rating-count {
+  font-size: 0.85rem;
+  color: #888;
 }
 
 .store-header .address {

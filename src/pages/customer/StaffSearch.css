@@ -104,11 +104,34 @@
   min-width: 0;
 }
 
+.name-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .staff-info h3 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: #fff8e1;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.rating-badge .star {
+  color: #ffc107;
 }
 
 .staff-info .bio {

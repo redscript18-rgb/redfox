@@ -42,6 +42,39 @@
   margin: 0 0 10px 0;
 }
 
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.rating-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-star {
+  color: #ffc107;
+  font-size: 1.1rem;
+}
+
+.rating-value {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.rating-label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.rating-count {
+  font-size: 0.85rem;
+  color: #888;
+}
+
 .profile-info .bio {
   margin: 0 0 12px 0;
   color: #666;

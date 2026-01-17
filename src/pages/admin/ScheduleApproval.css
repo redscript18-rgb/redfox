@@ -276,11 +276,21 @@
   color: #666;
 }
 
+.rating-section {
+  margin-bottom: 20px;
+}
+
+.rating-label {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
 .rating-select {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
 .stars {

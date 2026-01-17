@@ -269,6 +269,7 @@ function RatingModal({
   onSuccess: () => void;
 }) {
   const [rating, setRating] = useState(5);
+  const [serviceRating, setServiceRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -281,6 +282,7 @@ function RatingModal({
       target_type: 'staff',
       target_profile_id: schedule.staff_id,
       rating,
+      service_rating: serviceRating,
       comment: comment || null,
     });
 
@@ -301,25 +303,52 @@ function RatingModal({
         <h2>직원 별점</h2>
         <p className="rating-target">{schedule.staff?.name}에게 별점을 주세요</p>
 
-        <div className="rating-select">
-          <div className="stars">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span
-                key={star}
-                className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
-                onClick={() => setRating(star)}
-              >
-                ★
-              </span>
-            ))}
+        <div className="rating-section">
+          <label className="rating-label">기본 별점</label>
+          <div className="rating-select">
+            <div className="stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
+                  onClick={() => setRating(star)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+              {ratingOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}점
+                </option>
+              ))}
+            </select>
           </div>
-          <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-            {ratingOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}점
-              </option>
-            ))}
-          </select>
+        </div>
+
+        <div className="rating-section">
+          <label className="rating-label">서비스 별점</label>
+          <div className="rating-select">
+            <div className="stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`star ${serviceRating >= star ? 'filled' : serviceRating >= star - 0.5 ? 'half' : ''}`}
+                  onClick={() => setServiceRating(star)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <select value={serviceRating} onChange={(e) => setServiceRating(Number(e.target.value))}>
+              {ratingOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}점
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="form-group">

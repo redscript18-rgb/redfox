@@ -138,40 +138,46 @@ export default function ScheduleApproval() {
       <div className="schedule-list">
         {filteredSchedules.map((schedule) => (
           <div key={schedule.id} className={`schedule-card ${schedule.status}`}>
-            <div className="schedule-date">{formatDate(schedule.date)}</div>
-            <div className="schedule-info">
-              <div className="staff-name">{schedule.staff?.name}</div>
-              <div className="store-name">{schedule.store?.name}</div>
-              <div className="time">
-                {schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}
+            <div className="schedule-card-header">
+              <div className="schedule-info">
+                <div className="staff-name">{schedule.staff?.name}</div>
+                <div className="store-name">{schedule.store?.name}</div>
+              </div>
+              <div className="schedule-date">
+                <div>{formatDate(schedule.date)}</div>
+                <div className="time">
+                  {schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}
+                </div>
               </div>
             </div>
-            <div className="schedule-type">
-              {schedule.type === 'requested' && <span className="type-badge request">신청</span>}
-              {schedule.type === 'self' && <span className="type-badge self">자율</span>}
-              {schedule.type === 'assigned' && <span className="type-badge assigned">배정</span>}
-            </div>
-            <div className="schedule-status">
-              {schedule.status === 'pending' ? (
-                <div className="action-buttons">
-                  <button
-                    className="approve-btn"
-                    onClick={() => handleApprove(schedule.id)}
-                  >
-                    승인
-                  </button>
-                  <button
-                    className="reject-btn"
-                    onClick={() => handleReject(schedule.id)}
-                  >
-                    거절
-                  </button>
-                </div>
-              ) : (
-                <span className={`status-badge ${schedule.status}`}>
-                  {schedule.status === 'approved' ? '승인됨' : '거절됨'}
-                </span>
-              )}
+            <div className="schedule-card-footer">
+              <div className="schedule-type">
+                {schedule.type === 'requested' && <span className="type-badge request">신청</span>}
+                {schedule.type === 'self' && <span className="type-badge self">자율</span>}
+                {schedule.type === 'assigned' && <span className="type-badge assigned">배정</span>}
+              </div>
+              <div className="schedule-status">
+                {schedule.status === 'pending' ? (
+                  <div className="action-buttons">
+                    <button
+                      className="approve-btn"
+                      onClick={() => handleApprove(schedule.id)}
+                    >
+                      승인
+                    </button>
+                    <button
+                      className="reject-btn"
+                      onClick={() => handleReject(schedule.id)}
+                    >
+                      거절
+                    </button>
+                  </div>
+                ) : (
+                  <span className={`status-badge ${schedule.status}`}>
+                    {schedule.status === 'approved' ? '승인됨' : '거절됨'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}

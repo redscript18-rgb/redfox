@@ -10,6 +10,7 @@ import StoreDetail from './components/StoreDetail';
 // 손님용 페이지
 import StaffSearch from './pages/customer/StaffSearch';
 import StaffDetailPage from './pages/customer/StaffDetail';
+import CustomerReservations from './pages/customer/CustomerReservations';
 
 // 직원용 페이지
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -25,6 +26,10 @@ import ReservationManage from './pages/admin/ReservationManage';
 // 사장용 페이지
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import StoreStats from './pages/owner/StoreStats';
+import StoreManage from './pages/owner/StoreManage';
+
+// 공통 페이지
+import InviteAccept from './pages/common/InviteAccept';
 
 import './App.css';
 
@@ -66,6 +71,9 @@ function AppRoutes() {
         element={isAuthenticated ? <Navigate to="/" /> : <Login />}
       />
 
+      {/* 초대 링크 수락 페이지 */}
+      <Route path="/invite/:code" element={<InviteAccept />} />
+
       {/* 홈 - 역할별 다른 화면 */}
       <Route
         path="/"
@@ -85,6 +93,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <StaffDetailPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 손님용: 내 예약 */}
+      <Route
+        path="/customer/reservations"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <CustomerReservations />
             </Layout>
           </ProtectedRoute>
         }
@@ -145,6 +165,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <ReservationManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 사장용: 가게 관리 */}
+      <Route
+        path="/owner/stores"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreManage />
             </Layout>
           </ProtectedRoute>
         }

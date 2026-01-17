@@ -132,9 +132,7 @@ export default function AdminDashboard() {
 
       {/* 관리 가게 목록 */}
       <section className="section">
-        <div className="section-header">
-          <h2>관리 가게</h2>
-        </div>
+        <h2>관리 가게</h2>
         <div className="store-list">
           {stores.length === 0 ? (
             <p className="empty">관리하는 가게가 없습니다.</p>

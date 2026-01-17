@@ -182,7 +182,10 @@ export default function OwnerDashboard() {
 
       {/* 가게별 현황 */}
       <section className="section">
-        <h2>가게별 현황</h2>
+        <div className="section-header">
+          <h2>가게별 현황</h2>
+          <Link to="/owner/stores" className="manage-link">가게 관리 →</Link>
+        </div>
         <div className="store-cards">
           {stores.map((store) => {
             const stats = getStoreStats(store.id);

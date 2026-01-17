@@ -22,6 +22,27 @@
   font-size: 1.2rem;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.manage-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.manage-link:hover {
+  text-decoration: underline;
+}
+
 /* 요약 카드 */
 .summary-cards {
   display: grid;

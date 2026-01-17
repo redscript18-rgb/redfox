@@ -1,0 +1,230 @@
+.admin-dashboard {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.admin-dashboard h1 {
+  margin: 0 0 4px 0;
+}
+
+.welcome {
+  margin: 0 0 24px 0;
+  color: #666;
+}
+
+/* 알림 */
+.alerts {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.alert-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  transition: transform 0.2s;
+}
+
+.alert-card:hover {
+  transform: translateY(-2px);
+}
+
+.alert-card.schedule {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.alert-card.reservation {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.alert-count {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.alert-text {
+  font-size: 0.95rem;
+}
+
+/* 섹션 */
+.section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+/* 통계 그리드 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.stat-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* 가게 목록 */
+.store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.store-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.store-card .store-info {
+  flex: 1;
+}
+
+.store-card h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+}
+
+.store-card .address {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.store-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.mini-stat {
+  text-align: center;
+}
+
+.mini-stat .value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.mini-stat .label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.manage-btn {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.manage-btn:hover {
+  background: #0056b3;
+}
+
+/* 빠른 링크 */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.quick-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.quick-link:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.quick-link .icon {
+  font-size: 2rem;
+}
+
+.quick-link .text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .alerts {
+    flex-direction: column;
+  }
+
+  .store-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .store-stats {
+    justify-content: space-around;
+  }
+
+  .manage-btn {
+    text-align: center;
+  }
+}

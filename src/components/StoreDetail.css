@@ -1,0 +1,166 @@
+.store-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.store-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.store-header h1 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.store-header .address {
+  margin: 0;
+  color: #666;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.empty {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* 출근부 */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #e8f5e9;
+  border-radius: 8px;
+}
+
+.schedule-staff {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.staff-name {
+  font-weight: 500;
+}
+
+.schedule-type {
+  padding: 2px 8px;
+  background: #c8e6c9;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #2e7d32;
+}
+
+.schedule-time {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* 직원 */
+.staff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.staff-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.staff-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+}
+
+.staff-info .bio {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.specialties {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.specialty {
+  padding: 4px 10px;
+  background: #fff3e0;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: #e65100;
+}
+
+.phone {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 메뉴 */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.menu-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+}
+
+.menu-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.price {
+  font-weight: 600;
+  color: #007bff;
+}

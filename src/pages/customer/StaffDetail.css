@@ -1,0 +1,348 @@
+.staff-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.profile-header {
+  display: flex;
+  gap: 24px;
+  padding: 30px;
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 30px;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-info h1 {
+  margin: 0 0 10px 0;
+}
+
+.profile-info .bio {
+  margin: 0 0 12px 0;
+  color: #666;
+}
+
+.specialties {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.specialty-tag {
+  padding: 6px 14px;
+  background: #fff3e0;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  color: #e65100;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+}
+
+.empty {
+  color: #888;
+}
+
+/* 스케줄 카드 */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.schedule-card.today {
+  border-color: #4caf50;
+  background: #f1f8e9;
+}
+
+.schedule-date {
+  text-align: center;
+  min-width: 80px;
+}
+
+.schedule-date .date {
+  display: block;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.today-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  background: #4caf50;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.7rem;
+}
+
+.schedule-details {
+  flex: 1;
+}
+
+.store-info {
+  margin-bottom: 4px;
+}
+
+.store-name {
+  font-weight: 500;
+  display: block;
+}
+
+.store-address {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.time-info {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.reservation-count {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.reserve-btn {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reserve-btn:hover {
+  background: #0056b3;
+}
+
+/* 활동 가게 */
+.affiliated-stores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.affiliated-store {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.affiliated-store h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+}
+
+.affiliated-store p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* 모달 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  margin: 0 0 20px 0;
+}
+
+.reservation-info {
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.reservation-info p {
+  margin: 6px 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-option {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  background: #f9f9f9;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.menu-option:hover {
+  background: #f0f0f0;
+}
+
+.menu-option.selected {
+  border-color: #007bff;
+  background: #e8f4ff;
+}
+
+.menu-option input {
+  display: none;
+}
+
+.menu-name {
+  flex: 1;
+}
+
+.menu-price {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.time-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.time-option {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-option:hover {
+  border-color: #007bff;
+}
+
+.time-option.selected {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cancel-btn {
+  padding: 12px 24px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submit-btn {
+  padding: 12px 24px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.success-message {
+  text-align: center;
+  padding: 20px;
+}
+
+.success-message h2 {
+  color: #4caf50;
+}
+
+.close-btn {
+  margin-top: 20px;
+  padding: 12px 30px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}

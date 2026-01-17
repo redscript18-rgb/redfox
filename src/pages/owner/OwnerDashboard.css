@@ -1,0 +1,250 @@
+.owner-dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.owner-dashboard h1 {
+  margin: 0 0 4px 0;
+}
+
+.welcome {
+  margin: 0 0 24px 0;
+  color: #666;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+}
+
+/* 요약 카드 */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.summary-card.revenue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+}
+
+.summary-card .label {
+  display: block;
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.summary-card.revenue .label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.summary-card .value {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* 트렌드 차트 */
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 150px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.trend-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.trend-bar {
+  width: 40px;
+  background: #e0e0e0;
+  border-radius: 4px 4px 0 0;
+  margin-top: auto;
+  transition: height 0.3s;
+}
+
+.trend-bar.today {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+
+.day-label {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* 가게 카드 */
+.store-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.store-card {
+  display: block;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.store-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.store-header {
+  margin-bottom: 20px;
+}
+
+.store-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.2rem;
+}
+
+.store-address {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.store-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.store-stats .stat {
+  text-align: center;
+}
+
+.store-stats .stat-value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.store-stats .stat-label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.view-detail {
+  text-align: right;
+  color: #007bff;
+  font-size: 0.9rem;
+}
+
+/* 최근 예약 */
+.recent-reservations {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.reservation-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reservation-row:last-child {
+  border-bottom: none;
+}
+
+.reservation-row .time {
+  min-width: 60px;
+  font-weight: 600;
+  color: #333;
+}
+
+.reservation-row .menu {
+  flex: 1;
+  font-weight: 500;
+}
+
+.reservation-row .staff {
+  min-width: 80px;
+  color: #666;
+}
+
+.reservation-row .store {
+  min-width: 120px;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.reservation-row .status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.reservation-row .status.confirmed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.reservation-row .status.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .store-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .reservation-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .reservation-row .store {
+    width: 100%;
+    min-width: auto;
+  }
+}

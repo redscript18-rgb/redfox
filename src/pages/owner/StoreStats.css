@@ -1,0 +1,260 @@
+.store-stats {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.store-header {
+  margin-bottom: 32px;
+}
+
+.store-header h1 {
+  margin: 0 0 4px 0;
+}
+
+.store-header .address {
+  margin: 0;
+  color: #666;
+}
+
+.error {
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+}
+
+/* 요약 카드 */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.summary-item {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.summary-item.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+}
+
+.summary-item .label {
+  display: block;
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.summary-item.highlight .label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.summary-item .value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* 일별 차트 */
+.daily-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.day-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.bar-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  justify-content: center;
+}
+
+.bar {
+  width: 36px;
+  background: #e0e0e0;
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.3s;
+}
+
+.bar.today {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+
+.day-label {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.day-revenue {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* 통계 테이블 */
+.stats-table {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  padding: 12px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.table-row {
+  display: flex;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.col-name {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.col-name small {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.col-count {
+  flex: 1;
+  text-align: center;
+}
+
+.col-revenue {
+  flex: 1;
+  text-align: right;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 예약 목록 */
+.reservation-list {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.reservation-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 16px;
+}
+
+.reservation-item:last-child {
+  border-bottom: none;
+}
+
+.reservation-item .time {
+  min-width: 50px;
+  font-weight: 600;
+}
+
+.reservation-item .menu {
+  flex: 1;
+}
+
+.reservation-item .staff {
+  min-width: 80px;
+  color: #666;
+}
+
+.reservation-item .status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.reservation-item .status.confirmed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.reservation-item .status.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .summary-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .daily-chart {
+    height: 160px;
+  }
+
+  .bar {
+    width: 28px;
+  }
+
+  .reservation-item {
+    flex-wrap: wrap;
+  }
+}

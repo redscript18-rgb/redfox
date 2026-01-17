@@ -1,0 +1,213 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-box h1 {
+  margin: 0 0 30px 0;
+  text-align: center;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin: 0 0 16px 0;
+}
+
+.success {
+  color: #28a745;
+  font-size: 0.9rem;
+  margin: 0 0 16px 0;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-btn:hover {
+  background: #0056b3;
+}
+
+.test-accounts {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.test-accounts p {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.test-accounts ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.test-accounts li {
+  padding: 6px 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.test-accounts li strong {
+  color: #555;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.login-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.toggle-mode {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toggle-btn:hover {
+  text-decoration: underline;
+}
+
+/* 빠른 로그인 */
+.quick-login {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.quick-login-label {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+.quick-login-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.quick-btn {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.quick-btn-owner {
+  background: #6366f1;
+  color: white;
+}
+
+.quick-btn-owner:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.quick-btn-admin {
+  background: #8b5cf6;
+  color: white;
+}
+
+.quick-btn-admin:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+.quick-btn-staff {
+  background: #06b6d4;
+  color: white;
+}
+
+.quick-btn-staff:hover:not(:disabled) {
+  background: #0891b2;
+}
+
+.quick-btn-customer {
+  background: #10b981;
+  color: white;
+}
+
+.quick-btn-customer:hover:not(:disabled) {
+  background: #059669;
+}

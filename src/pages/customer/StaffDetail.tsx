@@ -272,11 +272,11 @@ export default function StaffDetail() {
         </div>
       </div>
 
-      {dailyPhotos.length > 0 && (
+      {dailyPhotos.filter(p => p.date === today).length > 0 && (
         <section className="section">
-          <h2>포트폴리오</h2>
+          <h2>오늘의 사진</h2>
           <div className="photo-gallery">
-            {dailyPhotos.map((photo) => (
+            {dailyPhotos.filter(p => p.date === today).map((photo) => (
               <div
                 key={photo.id}
                 className="photo-item"

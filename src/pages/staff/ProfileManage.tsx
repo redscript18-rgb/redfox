@@ -131,9 +131,19 @@ export default function ProfileManage() {
     setUploadingProfile(false);
   };
 
+  const today = new Date().toISOString().split('T')[0];
+  const todayPhotos = dailyPhotos.filter(p => p.date === today);
+  const canUploadMore = todayPhotos.length < 5;
+
   const handleDailyPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
+    // 하루 최대 5장 체크
+    if (!canUploadMore) {
+      alert('오늘은 최대 5장까지만 업로드할 수 있습니다.');
+      return;
+    }
 
     // 파일 크기 체크 (5MB)
     if (file.size > 5 * 1024 * 1024) {
@@ -144,7 +154,7 @@ export default function ProfileManage() {
     setUploadingDaily(true);
 
     const fileExt = file.name.split('.').pop();
-    const today = new Date().toISOString().split('T')[0];
+    const uploadDate = new Date().toISOString().split('T')[0];
     const fileName = `daily_${user.id}_${Date.now()}.${fileExt}`;
     const filePath = `daily/${fileName}`;
 
@@ -170,7 +180,7 @@ export default function ProfileManage() {
       .insert({
         staff_id: user.id,
         photo_url: publicUrl,
-        date: today,
+        date: uploadDate,
         caption: newPhotoCaption || null,
       });
 
@@ -219,11 +229,6 @@ export default function ProfileManage() {
     } else {
       alert('프로필이 저장되었습니다.');
     }
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
   };
 
   if (loading) {
@@ -336,41 +341,46 @@ export default function ProfileManage() {
 
       {/* 일별 사진 */}
       <section className="section daily-photos-section">
-        <h2>오늘의 사진</h2>
-        <p className="section-desc">오늘 작업한 결과물이나 스타일 사진을 올려보세요. 손님들이 볼 수 있습니다.</p>
+        <h2>오늘의 사진 ({todayPhotos.length}/5)</h2>
+        <p className="section-desc">오늘 작업한 결과물이나 스타일 사진을 올려보세요. 손님들이 볼 수 있습니다. (0시 리셋)</p>
 
-        <div className="daily-photo-upload">
-          <input
-            type="text"
-            value={newPhotoCaption}
-            onChange={(e) => setNewPhotoCaption(e.target.value)}
-            placeholder="사진 설명 (선택)"
-            className="caption-input"
-          />
-          <input
-            type="file"
-            ref={dailyInputRef}
-            onChange={handleDailyPhotoUpload}
-            accept="image/*"
-            style={{ display: 'none' }}
-          />
-          <button
-            type="button"
-            onClick={() => dailyInputRef.current?.click()}
-            className="upload-btn"
-            disabled={uploadingDaily}
-          >
-            {uploadingDaily ? '업로드 중...' : '사진 업로드'}
-          </button>
-        </div>
+        {canUploadMore && (
+          <div className="daily-photo-upload">
+            <input
+              type="text"
+              value={newPhotoCaption}
+              onChange={(e) => setNewPhotoCaption(e.target.value)}
+              placeholder="사진 설명 (선택)"
+              className="caption-input"
+            />
+            <input
+              type="file"
+              ref={dailyInputRef}
+              onChange={handleDailyPhotoUpload}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={() => dailyInputRef.current?.click()}
+              className="upload-btn"
+              disabled={uploadingDaily}
+            >
+              {uploadingDaily ? '업로드 중...' : '사진 업로드'}
+            </button>
+          </div>
+        )}
 
-        {dailyPhotos.length > 0 ? (
+        {!canUploadMore && (
+          <p className="limit-reached">오늘 업로드 가능한 사진 수를 모두 사용했습니다.</p>
+        )}
+
+        {todayPhotos.length > 0 ? (
           <div className="daily-photos-grid">
-            {dailyPhotos.map((photo) => (
+            {todayPhotos.map((photo) => (
               <div key={photo.id} className="daily-photo-card">
                 <img src={photo.photo_url} alt={photo.caption || '사진'} />
                 <div className="photo-info">
-                  <span className="photo-date">{formatDate(photo.date)}</span>
                   {photo.caption && <span className="photo-caption">{photo.caption}</span>}
                 </div>
                 <button
@@ -384,7 +394,7 @@ export default function ProfileManage() {
             ))}
           </div>
         ) : (
-          <p className="empty">아직 업로드한 사진이 없습니다.</p>
+          <p className="empty">오늘 업로드한 사진이 없습니다.</p>
         )}
       </section>
     </div>

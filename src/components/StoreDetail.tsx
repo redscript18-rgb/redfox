@@ -7,6 +7,11 @@ interface Store {
   id: number;
   name: string;
   address: string;
+  store_type: string | null;
+  phone: string | null;
+  description: string | null;
+  open_time: string | null;
+  close_time: string | null;
 }
 
 interface Menu {
@@ -164,6 +169,7 @@ export default function StoreDetail() {
       <header className="store-header">
         <div className="store-title">
           <h1>{store.name}</h1>
+          {store.store_type && <span className="store-type-badge">{store.store_type}</span>}
         </div>
         {(storeRating.customerCount > 0 || storeRating.staffCount > 0) && (
           <div className="store-ratings">
@@ -186,6 +192,11 @@ export default function StoreDetail() {
           </div>
         )}
         <p className="address">{store.address}</p>
+        {store.phone && <p className="phone">{store.phone}</p>}
+        {store.open_time && store.close_time && (
+          <p className="hours">영업시간: {store.open_time.slice(0, 5)} - {store.close_time.slice(0, 5)}</p>
+        )}
+        {store.description && <p className="description">{store.description}</p>}
       </header>
 
       <section className="section">

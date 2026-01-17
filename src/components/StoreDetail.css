@@ -30,6 +30,43 @@
   color: #333;
 }
 
+.store-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-left: 12px;
+}
+
+.store-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.store-header .phone {
+  margin: 8px 0 0 0;
+  color: #007bff;
+  font-size: 0.95rem;
+}
+
+.store-header .hours {
+  margin: 4px 0 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.store-header .description {
+  margin: 12px 0 0 0;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
 .store-ratings {
   display: flex;
   gap: 16px;

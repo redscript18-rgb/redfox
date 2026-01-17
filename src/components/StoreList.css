@@ -30,7 +30,8 @@
   border-color: var(--primary);
 }
 
-.store-list .sort-select {
+.store-list .sort-select,
+.store-list .type-select {
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -41,7 +42,8 @@
   min-width: 120px;
 }
 
-.store-list .sort-select:focus {
+.store-list .sort-select:focus,
+.store-list .type-select:focus {
   outline: none;
   border-color: var(--primary);
 }
@@ -109,6 +111,17 @@
   font-size: 0.75rem;
   font-weight: 400;
   color: #999;
+}
+
+.store-card .store-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: var(--spacing-sm);
 }
 
 .store-card .address {

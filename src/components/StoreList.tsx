@@ -7,9 +7,24 @@ interface Store {
   id: number;
   name: string;
   address: string;
+  store_type: string | null;
   menuCount?: number;
   staffCount?: number;
 }
+
+const STORE_TYPES = [
+  '1인샵',
+  '커플관리샵',
+  '왁싱샵',
+  '스웨디시',
+  '타이마사지',
+  '중국마사지',
+  '스포츠마사지',
+  '발마사지',
+  '네일샵',
+  '피부관리샵',
+  '기타',
+];
 
 interface StoreRating {
   avgRating: number | null;
@@ -22,6 +37,7 @@ export default function StoreList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
+  const [filterType, setFilterType] = useState('');
 
   useEffect(() => {
     fetchStores();
@@ -99,7 +115,8 @@ export default function StoreList() {
     .filter((store) => {
       const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         store.address.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
+      const matchesType = !filterType || store.store_type === filterType;
+      return matchesSearch && matchesType;
     })
     .sort((a, b) => {
       if (sortBy === 'rating') {
@@ -126,6 +143,16 @@ export default function StoreList() {
           className="search-input"
         />
         <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="type-select"
+        >
+          <option value="">전체 업종</option>
+          {STORE_TYPES.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+        <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
           className="sort-select"
@@ -150,6 +177,7 @@ export default function StoreList() {
                   </span>
                 )}
               </div>
+              {store.store_type && <span className="store-type-badge">{store.store_type}</span>}
               <p className="address">{store.address}</p>
               <div className="store-info">
                 <span>메뉴 {store.menuCount}개</span>

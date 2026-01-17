@@ -150,43 +150,51 @@
 .store-demand-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .store-demand-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   transition: all 0.2s;
 }
 
 .store-demand-card.hot {
-  border-color: #ff9800;
-  background: #fff8e1;
+  border-color: var(--warning);
+  background: rgba(245, 158, 11, 0.05);
 }
 
 .store-demand-card .store-info {
-  flex: 1;
+  min-width: 0;
 }
 
 .store-demand-card .store-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 1.1rem;
+  margin: 0 0 2px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .store-demand-card .store-info .address {
   margin: 0;
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .demand-stats {
   display: flex;
-  gap: 20px;
+  gap: 16px;
 }
 
 .stat {
@@ -195,58 +203,86 @@
 
 .stat-value {
   display: block;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .stat-label {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }
 
 .demand-indicator {
-  min-width: 80px;
+  min-width: 70px;
   text-align: center;
 }
 
 .hot-badge {
-  padding: 6px 12px;
-  background: #ff9800;
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--warning);
   color: #fff;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .normal-badge {
-  padding: 6px 12px;
-  background: #e0e0e0;
-  color: #666;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
 }
 
 .scheduled-badge {
-  padding: 8px 16px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--success);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .register-btn {
-  padding: 8px 16px;
-  background: #007bff;
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--accent-primary);
   color: #fff;
   text-decoration: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
   transition: background 0.2s;
 }
 
 .register-btn:hover {
-  background: #0056b3;
+  background: var(--accent-hover);
+}
+
+@media (max-width: 600px) {
+  .store-demand-card {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+
+  .store-demand-card .store-info {
+    grid-column: 1 / -1;
+  }
+
+  .demand-stats {
+    justify-content: flex-start;
+  }
+
+  .demand-indicator {
+    text-align: left;
+  }
 }
 
 /* 다른 가게 */

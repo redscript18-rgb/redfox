@@ -219,7 +219,7 @@ export default function StoreDetail() {
         <h2>직원</h2>
         <div className="staff-list">
           {staffList.map((staff) => (
-            <div key={staff.id} className="staff-item">
+            <Link key={staff.id} to={`/staff/${staff.id}`} className="staff-item clickable">
               <div className="staff-info">
                 <h3>{staff.name}</h3>
                 {staff.bio && <p className="bio">{staff.bio}</p>}
@@ -233,8 +233,8 @@ export default function StoreDetail() {
                   </div>
                 )}
               </div>
-              {staff.phone && <span className="phone">{staff.phone}</span>}
-            </div>
+              <span className="view-profile">프로필 보기 →</span>
+            </Link>
           ))}
         </div>
       </section>

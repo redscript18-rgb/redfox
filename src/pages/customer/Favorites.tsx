@@ -48,26 +48,45 @@ export default function Favorites() {
       .from('favorites')
       .select(`
         id,
-        store:stores(id, name, address, store_type)
+        target_store_id,
+        stores:target_store_id(id, name, address, store_type)
       `)
       .eq('user_id', user.id)
       .eq('target_type', 'store')
       .not('target_store_id', 'is', null);
 
-    setFavoriteStores((storesData || []).filter(item => item.store) as FavoriteStore[]);
+    if (storesData) {
+      const mapped = storesData
+        .filter((item): item is typeof item & { stores: NonNullable<typeof item.stores> } => item.stores !== null)
+        .map(item => ({
+          id: item.id,
+          store: item.stores as unknown as FavoriteStore['store'],
+        }));
+      setFavoriteStores(mapped);
+    }
 
     // 즐겨찾기한 직원 조회
     const { data: staffData } = await supabase
       .from('favorites')
       .select(`
         id,
-        staff:profiles(id, name, bio, specialties, profile_image_url)
+        target_staff_id,
+        profiles:target_staff_id(id, name, bio, specialties, profile_image_url)
       `)
       .eq('user_id', user.id)
       .eq('target_type', 'staff')
       .not('target_staff_id', 'is', null);
 
-    setFavoriteStaff((staffData || []).filter(item => item.staff) as FavoriteStaff[]);
+    if (staffData) {
+      const mapped = staffData
+        .filter((item): item is typeof item & { profiles: NonNullable<typeof item.profiles> } => item.profiles !== null)
+        .map(item => ({
+          id: item.id,
+          staff: item.profiles as unknown as FavoriteStaff['staff'],
+        }));
+      setFavoriteStaff(mapped);
+    }
+
     setLoading(false);
   };
 

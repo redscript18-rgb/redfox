@@ -8,7 +8,7 @@ import StoreList from './components/StoreList';
 import StoreDetail from './components/StoreDetail';
 
 // 손님용 페이지
-import StaffSearch from './pages/customer/StaffSearch';
+import CustomerHome from './pages/customer/CustomerHome';
 import StaffDetailPage from './pages/customer/StaffDetail';
 import CustomerReservations from './pages/customer/CustomerReservations';
 
@@ -49,7 +49,7 @@ function RoleBasedHome() {
 
   switch (user?.role) {
     case 'customer':
-      return <StaffSearch />;
+      return <CustomerHome />;
     case 'staff':
       return <StaffDashboard />;
     case 'admin':

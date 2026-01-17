@@ -72,11 +72,12 @@
   text-decoration: none;
   color: inherit;
   transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .staff-card:hover {
   border-color: var(--border-light);
-  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .staff-avatar {

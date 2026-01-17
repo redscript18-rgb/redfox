@@ -11,8 +11,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-md) var(--spacing-xl);
-  background: rgba(9, 9, 11, 0.8);
-  backdrop-filter: blur(12px);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;

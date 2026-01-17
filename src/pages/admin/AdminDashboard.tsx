@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './AdminDashboard.css';
 
 interface Store {
   id: number;
@@ -31,7 +30,6 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     if (!user) return;
 
-    // 관리하는 가게 목록
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
@@ -40,14 +38,12 @@ export default function AdminDashboard() {
     const storeIds = adminStores?.map(s => s.store_id) || [];
 
     if (storeIds.length > 0) {
-      // 가게 정보
       const { data: storesData } = await supabase
         .from('stores')
         .select('*')
         .in('id', storeIds);
       setStores(storesData || []);
 
-      // 대기 중 스케줄
       const { count: scheduleCount } = await supabase
         .from('schedules')
         .select('*', { count: 'exact', head: true })
@@ -55,7 +51,6 @@ export default function AdminDashboard() {
         .eq('status', 'pending');
       setPendingSchedules(scheduleCount || 0);
 
-      // 대기 중 예약
       const { count: reservationCount } = await supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
@@ -63,7 +58,6 @@ export default function AdminDashboard() {
         .eq('status', 'pending');
       setPendingReservations(reservationCount || 0);
 
-      // 오늘 예약
       const { count: todayResCount } = await supabase
         .from('reservations')
         .select('*', { count: 'exact', head: true })
@@ -72,7 +66,6 @@ export default function AdminDashboard() {
         .neq('status', 'cancelled');
       setTodayReservations(todayResCount || 0);
 
-      // 오늘 출근 직원
       const { count: todayStaffCount } = await supabase
         .from('schedules')
         .select('*', { count: 'exact', head: true })
@@ -81,7 +74,6 @@ export default function AdminDashboard() {
         .eq('status', 'approved');
       setTodayStaff(todayStaffCount || 0);
 
-      // 대기 중인 출근 요청
       const { count: workRequestCount } = await supabase
         .from('work_requests')
         .select('*', { count: 'exact', head: true })
@@ -94,95 +86,103 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return <div className="admin-dashboard"><p>로딩 중...</p></div>;
+    return <div className="text-slate-500">로딩 중...</div>;
   }
 
   return (
-    <div className="admin-dashboard">
-      <h1>관리자 대시보드</h1>
-      <p className="welcome">안녕하세요, {user?.name}님</p>
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">관리자 대시보드</h1>
+      <p className="text-slate-500 mb-6">안녕하세요, {user?.name}님</p>
 
-      {/* 승인 대기 알림 */}
+      {/* Alert Cards */}
       {(pendingSchedules > 0 || pendingReservations > 0) && (
-        <div className="alerts">
+        <div className="grid grid-cols-2 gap-3 mb-6 max-md:grid-cols-1">
           {pendingSchedules > 0 && (
-            <Link to="/admin/schedules" className="alert-card schedule">
-              <span className="alert-count">{pendingSchedules}</span>
-              <span className="alert-text">출근 승인 대기</span>
+            <Link to="/admin/schedules" className="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors">
+              <span className="text-2xl font-bold text-amber-600">{pendingSchedules}</span>
+              <span className="text-sm font-medium text-amber-700">출근 승인 대기</span>
             </Link>
           )}
           {pendingReservations > 0 && (
-            <Link to="/admin/reservations" className="alert-card reservation">
-              <span className="alert-count">{pendingReservations}</span>
-              <span className="alert-text">예약 승인 대기</span>
+            <Link to="/admin/reservations" className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors">
+              <span className="text-2xl font-bold text-blue-600">{pendingReservations}</span>
+              <span className="text-sm font-medium text-blue-700">예약 승인 대기</span>
             </Link>
           )}
         </div>
       )}
 
-      {/* 오늘 현황 */}
-      <section className="section">
-        <h2>오늘 현황</h2>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-value">{todayReservations}</span>
-            <span className="stat-label">총 예약</span>
+      {/* Today Stats */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">오늘 현황</h2>
+        <div className="grid grid-cols-3 gap-3 max-md:grid-cols-1">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl text-center">
+            <span className="block text-2xl font-bold text-slate-900">{todayReservations}</span>
+            <span className="text-sm text-slate-500">총 예약</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-value">{todayStaff}</span>
-            <span className="stat-label">출근 직원</span>
+          <div className="p-4 bg-white border border-slate-200 rounded-xl text-center">
+            <span className="block text-2xl font-bold text-slate-900">{todayStaff}</span>
+            <span className="text-sm text-slate-500">출근 직원</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-value">{stores.length}</span>
-            <span className="stat-label">관리 가게</span>
+          <div className="p-4 bg-white border border-slate-200 rounded-xl text-center">
+            <span className="block text-2xl font-bold text-slate-900">{stores.length}</span>
+            <span className="text-sm text-slate-500">관리 가게</span>
           </div>
         </div>
       </section>
 
-      {/* 관리 가게 목록 */}
-      <section className="section">
-        <h2>관리 가게</h2>
-        <div className="store-list">
+      {/* Store List */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">관리 가게</h2>
+        <div className="flex flex-col gap-2">
           {stores.length === 0 ? (
-            <p className="empty">관리하는 가게가 없습니다.</p>
+            <p className="text-slate-400 text-sm py-4">관리하는 가게가 없습니다.</p>
           ) : (
             stores.map((store) => (
-              <Link key={store.id} to={`/admin/store/${store.id}/settings`} className="store-card clickable">
-                <div className="store-info">
-                  <h3>{store.name}</h3>
-                  <p className="address">{store.address}</p>
+              <Link
+                key={store.id}
+                to={`/admin/store/${store.id}/settings`}
+                className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all"
+              >
+                <div>
+                  <h3 className="font-semibold text-slate-900">{store.name}</h3>
+                  <p className="text-sm text-slate-500">{store.address}</p>
                 </div>
-                <span className="settings-link">설정 →</span>
+                <span className="text-sm text-blue-600 font-medium">설정 →</span>
               </Link>
             ))
           )}
         </div>
       </section>
 
-      {/* 빠른 링크 */}
-      <section className="section">
-        <h2>관리 메뉴</h2>
-        <div className="quick-links">
-          <Link to="/admin/staff" className="quick-link">
-            <span className="icon">👥</span>
-            <span className="text">직원 관리</span>
+      {/* Quick Links */}
+      <section>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">관리 메뉴</h2>
+        <div className="grid grid-cols-3 gap-3 max-md:grid-cols-2">
+          <Link to="/admin/staff" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <span className="text-2xl">👥</span>
+            <span className="text-sm font-medium text-slate-700">직원 관리</span>
           </Link>
-          <Link to="/admin/schedules" className="quick-link">
-            <span className="icon">📅</span>
-            <span className="text">출근 관리</span>
+          <Link to="/admin/schedules" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <span className="text-2xl">📅</span>
+            <span className="text-sm font-medium text-slate-700">출근 관리</span>
           </Link>
-          <Link to="/admin/reservations" className="quick-link">
-            <span className="icon">📋</span>
-            <span className="text">예약 관리</span>
+          <Link to="/admin/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <span className="text-2xl">📋</span>
+            <span className="text-sm font-medium text-slate-700">예약 관리</span>
           </Link>
-          <Link to="/admin/find-staff" className="quick-link highlight">
-            <span className="icon">🔍</span>
-            <span className="text">직원 찾기</span>
+          <Link to="/admin/find-staff" className="flex flex-col items-center gap-2 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all">
+            <span className="text-2xl">🔍</span>
+            <span className="text-sm font-medium text-blue-700">직원 찾기</span>
           </Link>
-          <Link to="/admin/work-requests" className="quick-link">
-            <span className="icon">📨</span>
-            <span className="text">보낸 요청</span>
-            {pendingWorkRequests > 0 && <span className="badge">{pendingWorkRequests}</span>}
+          <Link to="/admin/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <span className="text-2xl">📨</span>
+            <span className="text-sm font-medium text-slate-700">보낸 요청</span>
+            {pendingWorkRequests > 0 && (
+              <span className="absolute top-2 right-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full flex items-center justify-center">
+                {pendingWorkRequests}
+              </span>
+            )}
           </Link>
         </div>
       </section>

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './WorkRequests.css';
 
 interface WorkRequest {
   id: number;
@@ -39,11 +38,7 @@ export default function WorkRequests() {
 
     let query = supabase
       .from('work_requests')
-      .select(`
-        *,
-        store:stores(name),
-        admin:profiles!work_requests_admin_id_fkey(name)
-      `)
+      .select(`*, store:stores(name), admin:profiles!work_requests_admin_id_fkey(name)`)
       .eq('staff_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -59,7 +54,6 @@ export default function WorkRequests() {
   const handleAccept = async (request: WorkRequest) => {
     if (!user) return;
 
-    // 이미 해당 날짜에 스케줄이 있는지 체크
     const { data: existingSchedules } = await supabase
       .from('schedules')
       .select('id, start_time, end_time')
@@ -68,7 +62,6 @@ export default function WorkRequests() {
       .in('status', ['approved', 'pending']);
 
     if (existingSchedules && existingSchedules.length > 0) {
-      // 시간 겹침 체크
       const hasConflict = existingSchedules.some((s) => {
         return request.start_time < s.end_time && request.end_time > s.start_time;
       });
@@ -79,7 +72,6 @@ export default function WorkRequests() {
       }
     }
 
-    // 스케줄 생성
     const { data: schedule, error: scheduleError } = await supabase
       .from('schedules')
       .insert({
@@ -99,7 +91,6 @@ export default function WorkRequests() {
       return;
     }
 
-    // 요청 상태 업데이트
     const { error: updateError } = await supabase
       .from('work_requests')
       .update({
@@ -159,45 +150,50 @@ export default function WorkRequests() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending':
-        return '대기중';
-      case 'accepted':
-        return '수락됨';
-      case 'rejected':
-        return '거절됨';
-      case 'cancelled':
-        return '취소됨';
-      default:
-        return status;
+      case 'pending': return '대기중';
+      case 'accepted': return '수락됨';
+      case 'rejected': return '거절됨';
+      case 'cancelled': return '취소됨';
+      default: return status;
     }
   };
 
   const pendingCount = requests.filter((r) => r.status === 'pending').length;
 
   if (loading) {
-    return <div className="work-requests"><p>로딩 중...</p></div>;
+    return <div className="text-slate-500">로딩 중...</div>;
   }
 
   return (
-    <div className="work-requests">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
 
-      <div className="page-header">
-        <h1>출근 요청</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">출근 요청</h1>
         {pendingCount > 0 && filter !== 'pending' && (
-          <span className="pending-badge">{pendingCount}건 대기중</span>
+          <span className="px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
+            {pendingCount}건 대기중
+          </span>
         )}
       </div>
 
-      <div className="filter-tabs">
+      <div className="flex gap-2 mb-6">
         <button
-          className={`filter-tab ${filter === 'pending' ? 'active' : ''}`}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            filter === 'pending'
+              ? 'bg-blue-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
           onClick={() => setFilter('pending')}
         >
           대기중 ({requests.filter((r) => r.status === 'pending').length})
         </button>
         <button
-          className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            filter === 'all'
+              ? 'bg-blue-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
           onClick={() => setFilter('all')}
         >
           전체
@@ -205,43 +201,54 @@ export default function WorkRequests() {
       </div>
 
       {requests.length > 0 ? (
-        <div className="request-list">
+        <div className="flex flex-col gap-3">
           {requests.map((request) => (
-            <div key={request.id} className={`request-card status-${request.status}`}>
-              <div className="request-header">
-                <span className="store-name">{request.store?.name}</span>
-                <span className={`status-badge ${request.status}`}>
+            <div
+              key={request.id}
+              className={`p-4 bg-white border rounded-xl ${
+                request.status === 'pending' ? 'border-blue-300' :
+                request.status === 'accepted' ? 'border-green-300' :
+                request.status === 'rejected' ? 'border-red-200 opacity-60' : 'border-slate-200'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="font-semibold text-slate-900">{request.store?.name}</span>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                  request.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+                  request.status === 'accepted' ? 'bg-green-100 text-green-600' :
+                  request.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'
+                }`}>
                   {getStatusText(request.status)}
                 </span>
               </div>
 
-              <div className="request-date">{formatDate(request.date)}</div>
-              <div className="request-time">
+              <div className="text-lg font-bold text-slate-900 mb-1">{formatDate(request.date)}</div>
+              <div className="text-slate-600 mb-3">
                 {request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}
               </div>
 
               {request.message && (
-                <div className="request-message">
-                  <span className="message-label">메시지:</span>
-                  {request.message}
+                <div className="p-3 bg-slate-50 rounded-lg mb-3">
+                  <span className="text-xs text-slate-500">메시지:</span>
+                  <p className="text-sm text-slate-700 mt-1">{request.message}</p>
                 </div>
               )}
 
-              <div className="request-meta">
-                <span className="admin-name">요청자: {request.admin?.name}</span>
-                <span className="created-at">{formatDateTime(request.created_at)}</span>
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>요청자: {request.admin?.name}</span>
+                <span>{formatDateTime(request.created_at)}</span>
               </div>
 
               {request.status === 'pending' && (
-                <div className="request-actions">
+                <div className="flex gap-2 mt-4">
                   <button
-                    className="reject-btn"
+                    className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors"
                     onClick={() => handleReject(request)}
                   >
                     거절
                   </button>
                   <button
-                    className="accept-btn"
+                    className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     onClick={() => handleAccept(request)}
                   >
                     수락
@@ -250,16 +257,19 @@ export default function WorkRequests() {
               )}
 
               {request.status === 'accepted' && request.schedule_id && (
-                <div className="schedule-link">
-                  <Link to="/staff/schedule">스케줄 확인 →</Link>
-                </div>
+                <Link
+                  to="/staff/schedule"
+                  className="block mt-4 text-center text-sm text-blue-600 hover:underline"
+                >
+                  스케줄 확인 →
+                </Link>
               )}
             </div>
           ))}
         </div>
       ) : (
-        <div className="empty-state">
-          <p>
+        <div className="p-8 bg-slate-50 rounded-xl text-center">
+          <p className="text-slate-500">
             {filter === 'pending'
               ? '대기 중인 출근 요청이 없습니다.'
               : '받은 출근 요청이 없습니다.'}

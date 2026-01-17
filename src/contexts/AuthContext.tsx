@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface Profile {
@@ -26,23 +26,14 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const initRef = useRef(false);
-  const authInitializedRef = useRef(false);
 
-  // 프로필 가져오기 (5초 타임아웃)
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 5000)
-      );
-
-      const fetchPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as Awaited<typeof fetchPromise>;
 
       if (error) {
         console.error('프로필 조회 실패:', error);
@@ -55,60 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 초기화
   useEffect(() => {
-    // 이미 초기화됐으면 스킵
-    if (initRef.current) return;
-    initRef.current = true;
-
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    // 인증 상태 변경 리스너 먼저 설정
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!isMounted) return;
-
-        // 인증 이벤트 수신 시 초기화 완료 표시
-        authInitializedRef.current = true;
-        clearTimeout(timeoutId);
-
-        try {
-          if (session?.user) {
-            const profile = await fetchProfile(session.user.id);
-            if (isMounted) {
-              setUser(profile);
-              setLoading(false);
-            }
-          } else {
-            if (isMounted) {
-              setUser(null);
-              setLoading(false);
-            }
-          }
-        } catch (err) {
-          console.error('Auth state change error:', err);
-          if (isMounted) {
-            setUser(null);
-            setLoading(false);
-          }
-        }
-      }
-    );
 
     // 초기 세션 확인
     const initAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (!isMounted) return;
-
-        if (error) {
-          console.error('세션 조회 실패:', error);
-          await supabase.auth.signOut();
-          setLoading(false);
-          return;
-        }
 
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
@@ -118,37 +64,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error('인증 초기화 에러:', err);
-        // 에러 발생 시 로컬 스토리지 정리
-        try {
-          await supabase.auth.signOut();
-        } catch {}
       } finally {
         if (isMounted) {
           setLoading(false);
-          clearTimeout(timeoutId);
-          authInitializedRef.current = true;
         }
       }
     };
 
-    // 3초 타임아웃 - 초기 로딩이 너무 오래 걸리면 강제로 해제하고 세션 정리
-    timeoutId = setTimeout(async () => {
-      if (isMounted && !authInitializedRef.current) {
-        console.warn('인증 초기화 타임아웃 - 세션 정리 및 로딩 해제');
-        authInitializedRef.current = true;
-        try {
-          await supabase.auth.signOut();
-        } catch {}
-        setUser(null);
-        setLoading(false);
-      }
-    }, 3000);
-
     initAuth();
+
+    // 인증 상태 변경 리스너
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!isMounted) return;
+
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          if (isMounted) {
+            setUser(profile);
+          }
+        } else {
+          if (isMounted) {
+            setUser(null);
+          }
+        }
+      }
+    );
 
     return () => {
       isMounted = false;
-      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);

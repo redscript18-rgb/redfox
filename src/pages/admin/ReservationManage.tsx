@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './ReservationManage.css';
 
 interface Reservation {
   id: number;
@@ -58,7 +57,6 @@ export default function ReservationManage() {
     const isBlocked = blockedCustomers.has(customerId);
 
     if (isBlocked) {
-      // 차단 해제
       await supabase
         .from('blocks')
         .delete()
@@ -71,7 +69,6 @@ export default function ReservationManage() {
         return next;
       });
     } else {
-      // 차단
       if (!confirm(`${customerName}님을 차단하시겠습니까?\n차단하면 이 손님은 당신을 볼 수 없습니다.`)) {
         return;
       }
@@ -90,7 +87,6 @@ export default function ReservationManage() {
   const fetchReservations = async () => {
     if (!user) return;
 
-    // 관리하는 가게 목록 조회
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
@@ -99,7 +95,6 @@ export default function ReservationManage() {
     const storeIds = adminStores?.map(s => s.store_id) || [];
 
     if (storeIds.length > 0) {
-      // 예약과 관련 정보 조회
       const { data: reservationsData } = await supabase
         .from('reservations')
         .select(`
@@ -116,7 +111,6 @@ export default function ReservationManage() {
 
       setReservations(reservationsData || []);
 
-      // 손님별 평균 별점 조회
       if (reservationsData && reservationsData.length > 0) {
         const customerIds = [...new Set(reservationsData.map(r => r.customer_id))];
         const { data: ratingsData } = await supabase
@@ -152,21 +146,18 @@ export default function ReservationManage() {
     setLoading(false);
   };
 
-  // 필터링
   const filteredReservations =
     filter === 'all'
       ? reservations
       : reservations.filter((r) => r.status === filter);
 
-  // 대기 중인 것 개수
   const pendingCount = reservations.filter((r) => r.status === 'pending').length;
 
-  // 날짜 포맷
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     const isToday = dateStr === today;
-    return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})${isToday ? ' 오늘' : ''}`;
+    return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})${isToday ? ' 오늘' : ''}`;
   };
 
   const handleConfirm = async (reservationId: number) => {
@@ -198,116 +189,174 @@ export default function ReservationManage() {
   };
 
   if (loading) {
-    return <div className="reservation-manage"><p>로딩 중...</p></div>;
+    return (
+      <div className="max-w-lg mx-auto p-4">
+        <p className="text-slate-500">로딩 중...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="reservation-manage">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div className="max-w-lg mx-auto">
+      <Link to="/" className="inline-block mb-3 text-blue-600 text-sm hover:underline">
+        ← 대시보드
+      </Link>
 
-      <h1>예약 관리</h1>
+      <h1 className="text-xl font-bold text-slate-900 mb-4">예약 관리</h1>
 
-      <div className="filter-tabs">
+      {/* Filter Tabs */}
+      <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
         <button
-          className={`tab ${filter === 'pending' ? 'active' : ''}`}
+          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+            filter === 'pending' ? 'bg-blue-600 text-white' : 'text-slate-500'
+          }`}
           onClick={() => setFilter('pending')}
         >
-          승인 대기 {pendingCount > 0 && <span className="count">{pendingCount}</span>}
+          대기
+          {pendingCount > 0 && (
+            <span className={`text-xs px-1.5 py-0.5 rounded-lg ${
+              filter === 'pending' ? 'bg-white/30' : 'bg-slate-200 text-slate-500'
+            }`}>
+              {pendingCount}
+            </span>
+          )}
         </button>
         <button
-          className={`tab ${filter === 'confirmed' ? 'active' : ''}`}
+          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
+            filter === 'confirmed' ? 'bg-blue-600 text-white' : 'text-slate-500'
+          }`}
           onClick={() => setFilter('confirmed')}
         >
-          확정됨
+          확정
         </button>
         <button
-          className={`tab ${filter === 'all' ? 'active' : ''}`}
+          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
+            filter === 'all' ? 'bg-blue-600 text-white' : 'text-slate-500'
+          }`}
           onClick={() => setFilter('all')}
         >
           전체
         </button>
       </div>
 
-      <div className="reservation-list">
+      {/* Reservation List */}
+      <div className="flex flex-col gap-3">
         {filteredReservations.map((reservation) => {
           const customerRating = customerRatings[reservation.customer_id];
           const isLowRating = customerRating?.avgRating !== null && customerRating?.avgRating < 3;
           const isBlocked = blockedCustomers.has(reservation.customer_id);
+
           return (
-            <div key={reservation.id} className={`reservation-card ${reservation.status} ${isLowRating ? 'low-rating' : ''}`}>
-              <div className="card-header">
-                <div className="datetime-service">
-                  <div className="datetime">
-                    <span className="time">{reservation.start_time.slice(0, 5)}</span>
-                    <span className="date">{formatDate(reservation.date)}</span>
-                  </div>
-                  <div className="service">
-                    <span className="menu-name">{reservation.menu?.name}</span>
-                    <span className="price">{reservation.menu?.price?.toLocaleString()}원</span>
-                  </div>
+            <div
+              key={reservation.id}
+              className={`bg-white border rounded-xl overflow-hidden ${
+                reservation.status === 'pending'
+                  ? 'border-blue-600 border-2'
+                  : isLowRating
+                  ? 'border-amber-500'
+                  : 'border-slate-200'
+              }`}
+            >
+              {/* Card Top */}
+              <div className={`p-3 border-b border-slate-100 ${
+                reservation.status === 'pending'
+                  ? 'bg-blue-50'
+                  : isLowRating
+                  ? 'bg-amber-50'
+                  : 'bg-slate-50'
+              }`}>
+                <div className="flex items-center mb-1">
+                  <span className="text-lg font-bold text-slate-900 mr-2">
+                    {reservation.start_time.slice(0, 5)}
+                  </span>
+                  <span className="text-xs text-slate-500 flex-1">
+                    {formatDate(reservation.date)}
+                  </span>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                    reservation.status === 'pending'
+                      ? 'bg-blue-100 text-blue-600'
+                      : reservation.status === 'confirmed'
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {reservation.status === 'pending' && '대기'}
+                    {reservation.status === 'confirmed' && '확정'}
+                    {reservation.status === 'cancelled' && '취소'}
+                  </span>
                 </div>
-                <div className="actions">
-                  {reservation.status === 'pending' ? (
-                    <div className="action-buttons">
-                      <button
-                        className="confirm-btn"
-                        onClick={() => handleConfirm(reservation.id)}
-                      >
-                        확정
-                      </button>
-                      <button
-                        className="cancel-btn"
-                        onClick={() => handleCancel(reservation.id)}
-                      >
-                        취소
-                      </button>
-                    </div>
-                  ) : (
-                    <span className={`status-badge ${reservation.status}`}>
-                      {reservation.status === 'confirmed' ? '확정' :
-                       reservation.status === 'cancelled' ? '취소됨' : reservation.status}
-                    </span>
-                  )}
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-semibold text-slate-900">
+                    {reservation.menu?.name}
+                  </span>
+                  <span className="text-sm font-semibold text-blue-600">
+                    {reservation.menu?.price?.toLocaleString()}원
+                  </span>
                 </div>
               </div>
-              <div className="card-body">
-                <div className="customer-info">
-                  <span className="label">손님</span>
-                  <span className="name">{reservation.customer?.name || '고객'}</span>
+
+              {/* Card Middle */}
+              <div className="p-3">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="text-sm font-semibold text-slate-900">
+                    {reservation.customer?.name || '고객'}
+                  </span>
                   {customerRating && customerRating.totalCount > 0 ? (
-                    <span className={`customer-rating ${isLowRating ? 'low' : ''}`}>
-                      <span className="star">★</span>
-                      {customerRating.avgRating?.toFixed(1)}
-                      <span className="count">({customerRating.totalCount})</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                      isLowRating
+                        ? 'bg-red-50 border-red-200 text-red-600'
+                        : 'bg-amber-50 border-amber-300 text-amber-700'
+                    }`}>
+                      ★ {customerRating.avgRating?.toFixed(1)} ({customerRating.totalCount})
                     </span>
                   ) : (
-                    <span className="no-rating">평가 없음</span>
+                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                      평가없음
+                    </span>
                   )}
                   <button
-                    className={`block-btn ${isBlocked ? 'blocked' : ''}`}
+                    className={`ml-auto text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                      isBlocked
+                        ? 'bg-red-600 text-white border-red-600'
+                        : 'bg-white text-red-600 border-red-600 hover:bg-red-50'
+                    }`}
                     onClick={() => handleBlock(reservation.customer_id, reservation.customer?.name || '고객')}
-                    title={isBlocked ? '차단 해제' : '차단'}
                   >
                     {isBlocked ? '차단됨' : '차단'}
                   </button>
                 </div>
-                <div className="staff-store">
-                  <span className="staff">담당: {reservation.staff?.name}</span>
-                  <span className="store">{reservation.store?.name}</span>
+                <div className="flex gap-3 text-xs text-slate-500">
+                  <span>담당: {reservation.staff?.name}</span>
+                  <span>{reservation.store?.name}</span>
                 </div>
               </div>
+
+              {/* Card Bottom - Buttons */}
+              {reservation.status === 'pending' && (
+                <div className="flex border-t border-slate-200">
+                  <button
+                    className="flex-1 py-3.5 bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
+                    onClick={() => handleConfirm(reservation.id)}
+                  >
+                    확정
+                  </button>
+                  <button
+                    className="flex-1 py-3.5 bg-slate-100 text-slate-500 text-sm font-semibold hover:bg-slate-200 transition-colors"
+                    onClick={() => handleCancel(reservation.id)}
+                  >
+                    취소
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
       {filteredReservations.length === 0 && (
-        <div className="empty-state">
-          <p>
-            {filter === 'pending'
-              ? '승인 대기 중인 예약이 없습니다.'
-              : '예약이 없습니다.'}
-          </p>
+        <div className="py-10 text-center text-slate-400 bg-slate-50 rounded-xl">
+          {filter === 'pending'
+            ? '승인 대기 중인 예약이 없습니다.'
+            : '예약이 없습니다.'}
         </div>
       )}
     </div>

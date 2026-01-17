@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './ScheduleApproval.css';
 
 interface Schedule {
   id: number;
@@ -34,15 +33,12 @@ export default function ScheduleApproval() {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    if (user) {
-      fetchSchedules();
-    }
+    if (user) fetchSchedules();
   }, [user]);
 
   const fetchSchedules = async () => {
     if (!user) return;
 
-    // 관리하는 가게 목록 조회
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
@@ -51,20 +47,14 @@ export default function ScheduleApproval() {
     const storeIds = adminStores?.map(s => s.store_id) || [];
 
     if (storeIds.length > 0) {
-      // 스케줄과 관련 정보 조회
       const { data: schedulesData } = await supabase
         .from('schedules')
-        .select(`
-          *,
-          store:stores(name),
-          staff:profiles(name)
-        `)
+        .select(`*, store:stores(name), staff:profiles(name)`)
         .in('store_id', storeIds)
         .order('date', { ascending: false });
 
       setSchedules(schedulesData || []);
 
-      // 내가 준 별점 조회
       const { data: ratingsData } = await supabase
         .from('ratings')
         .select('id, schedule_id, target_type')
@@ -76,148 +66,82 @@ export default function ScheduleApproval() {
     setLoading(false);
   };
 
-  // 필터링
-  const filteredSchedules =
-    filter === 'all'
-      ? schedules
-      : schedules.filter((s) => s.status === filter);
-
-  // 대기 중인 것 개수
+  const filteredSchedules = filter === 'all' ? schedules : schedules.filter((s) => s.status === filter);
   const pendingCount = schedules.filter((s) => s.status === 'pending').length;
 
-  // 날짜 포맷
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const today = new Date().toISOString().split('T')[0];
     const isToday = dateStr === today;
     return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})${isToday ? ' 오늘' : ''}`;
   };
 
   const handleApprove = async (scheduleId: number) => {
-    const { error } = await supabase
-      .from('schedules')
-      .update({ status: 'approved' })
-      .eq('id', scheduleId);
-
-    if (error) {
-      alert('승인 처리 중 오류가 발생했습니다.');
-    } else {
-      alert('승인되었습니다.');
-      fetchSchedules();
-    }
+    const { error } = await supabase.from('schedules').update({ status: 'approved' }).eq('id', scheduleId);
+    if (error) alert('승인 처리 중 오류가 발생했습니다.');
+    else { alert('승인되었습니다.'); fetchSchedules(); }
   };
 
   const handleReject = async (scheduleId: number) => {
-    const { error } = await supabase
-      .from('schedules')
-      .update({ status: 'rejected' })
-      .eq('id', scheduleId);
-
-    if (error) {
-      alert('거절 처리 중 오류가 발생했습니다.');
-    } else {
-      alert('거절되었습니다.');
-      fetchSchedules();
-    }
+    const { error } = await supabase.from('schedules').update({ status: 'rejected' }).eq('id', scheduleId);
+    if (error) alert('거절 처리 중 오류가 발생했습니다.');
+    else { alert('거절되었습니다.'); fetchSchedules(); }
   };
 
-  const hasRated = (scheduleId: number) => {
-    return myRatings.some(
-      (r) => r.schedule_id === scheduleId && r.target_type === 'staff'
-    );
-  };
+  const hasRated = (scheduleId: number) => myRatings.some((r) => r.schedule_id === scheduleId && r.target_type === 'staff');
+  const openRatingModal = (schedule: Schedule) => { setSelectedSchedule(schedule); setShowRatingModal(true); };
+  const isPastSchedule = (dateStr: string) => dateStr < today;
 
-  const openRatingModal = (schedule: Schedule) => {
-    setSelectedSchedule(schedule);
-    setShowRatingModal(true);
-  };
-
-  // 지난 스케줄인지 확인
-  const isPastSchedule = (dateStr: string) => {
-    return dateStr < today;
-  };
-
-  if (loading) {
-    return <div className="schedule-approval"><p>로딩 중...</p></div>;
-  }
+  if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   return (
-    <div className="schedule-approval">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">출근 관리</h1>
 
-      <h1>출근 관리</h1>
-
-      <div className="filter-tabs">
-        <button
-          className={`tab ${filter === 'pending' ? 'active' : ''}`}
-          onClick={() => setFilter('pending')}
-        >
-          승인 대기 {pendingCount > 0 && <span className="count">{pendingCount}</span>}
+      <div className="flex gap-2 mb-6">
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('pending')}>
+          승인 대기 {pendingCount > 0 && <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">{pendingCount}</span>}
         </button>
-        <button
-          className={`tab ${filter === 'approved' ? 'active' : ''}`}
-          onClick={() => setFilter('approved')}
-        >
-          승인됨
-        </button>
-        <button
-          className={`tab ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          전체
-        </button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'approved' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('approved')}>승인됨</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('all')}>전체</button>
       </div>
 
-      <div className="schedule-list">
+      <div className="flex flex-col gap-3">
         {filteredSchedules.map((schedule) => (
-          <div key={schedule.id} className={`schedule-card ${schedule.status}`}>
-            <div className="schedule-card-header">
-              <div className="schedule-info">
-                <div className="staff-name">{schedule.staff?.name}</div>
-                <div className="store-name">{schedule.store?.name}</div>
+          <div key={schedule.id} className={`p-4 bg-white border rounded-xl ${schedule.status === 'approved' ? 'border-green-300' : schedule.status === 'pending' ? 'border-blue-300' : 'border-red-200 opacity-60'}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="font-semibold text-slate-900">{schedule.staff?.name}</div>
+                <div className="text-sm text-slate-500">{schedule.store?.name}</div>
               </div>
-              <div className="schedule-date">
-                <div>{formatDate(schedule.date)}</div>
-                <div className="time">
-                  {schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}
-                </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-slate-900">{formatDate(schedule.date)}</div>
+                <div className="text-xs text-slate-500">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
               </div>
             </div>
-            <div className="schedule-card-footer">
-              <div className="schedule-type">
-                {schedule.type === 'requested' && <span className="type-badge request">신청</span>}
-                {schedule.type === 'self' && <span className="type-badge self">자율</span>}
-                {schedule.type === 'assigned' && <span className="type-badge assigned">배정</span>}
+            <div className="flex items-center justify-between">
+              <div>
+                {schedule.type === 'requested' && <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">신청</span>}
+                {schedule.type === 'self' && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">자율</span>}
+                {schedule.type === 'assigned' && <span className="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full">배정</span>}
               </div>
-              <div className="schedule-status">
+              <div className="flex items-center gap-2">
                 {schedule.status === 'pending' ? (
-                  <div className="action-buttons">
-                    <button
-                      className="approve-btn"
-                      onClick={() => handleApprove(schedule.id)}
-                    >
-                      승인
-                    </button>
-                    <button
-                      className="reject-btn"
-                      onClick={() => handleReject(schedule.id)}
-                    >
-                      거절
-                    </button>
-                  </div>
+                  <>
+                    <button className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700" onClick={() => handleApprove(schedule.id)}>승인</button>
+                    <button className="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-medium rounded-lg hover:bg-red-200" onClick={() => handleReject(schedule.id)}>거절</button>
+                  </>
                 ) : (
-                  <div className="status-with-rating">
-                    <span className={`status-badge ${schedule.status}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${schedule.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                       {schedule.status === 'approved' ? '승인됨' : '거절됨'}
                     </span>
                     {schedule.status === 'approved' && isPastSchedule(schedule.date) && (
                       !hasRated(schedule.id) ? (
-                        <button className="rate-btn" onClick={() => openRatingModal(schedule)}>
-                          직원 별점
-                        </button>
+                        <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(schedule)}>직원 별점</button>
                       ) : (
-                        <span className="rated-badge">평가완료</span>
+                        <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded">평가완료</span>
                       )
                     )}
                   </div>
@@ -229,12 +153,8 @@ export default function ScheduleApproval() {
       </div>
 
       {filteredSchedules.length === 0 && (
-        <div className="empty-state">
-          <p>
-            {filter === 'pending'
-              ? '승인 대기 중인 출근 신청이 없습니다.'
-              : '스케줄이 없습니다.'}
-          </p>
+        <div className="p-8 bg-slate-50 rounded-xl text-center">
+          <p className="text-slate-500">{filter === 'pending' ? '승인 대기 중인 출근 신청이 없습니다.' : '스케줄이 없습니다.'}</p>
         </div>
       )}
 
@@ -242,32 +162,15 @@ export default function ScheduleApproval() {
         <RatingModal
           schedule={selectedSchedule}
           raterId={user?.id || ''}
-          onClose={() => {
-            setShowRatingModal(false);
-            setSelectedSchedule(null);
-          }}
-          onSuccess={() => {
-            setShowRatingModal(false);
-            setSelectedSchedule(null);
-            fetchSchedules();
-          }}
+          onClose={() => { setShowRatingModal(false); setSelectedSchedule(null); }}
+          onSuccess={() => { setShowRatingModal(false); setSelectedSchedule(null); fetchSchedules(); }}
         />
       )}
     </div>
   );
 }
 
-function RatingModal({
-  schedule,
-  raterId,
-  onClose,
-  onSuccess,
-}: {
-  schedule: Schedule;
-  raterId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
+function RatingModal({ schedule, raterId, onClose, onSuccess }: { schedule: Schedule; raterId: string; onClose: () => void; onSuccess: () => void; }) {
   const [rating, setRating] = useState(5);
   const [serviceRating, setServiceRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -275,97 +178,45 @@ function RatingModal({
 
   const handleSubmit = async () => {
     setSubmitting(true);
-
     const { error } = await supabase.from('ratings').insert({
-      schedule_id: schedule.id,
-      rater_id: raterId,
-      target_type: 'staff',
-      target_profile_id: schedule.staff_id,
-      rating,
-      service_rating: serviceRating,
-      comment: comment || null,
+      schedule_id: schedule.id, rater_id: raterId, target_type: 'staff', target_profile_id: schedule.staff_id,
+      rating, service_rating: serviceRating, comment: comment || null,
     });
-
     setSubmitting(false);
-
-    if (error) {
-      alert('별점 등록 중 오류가 발생했습니다.');
-    } else {
-      onSuccess();
-    }
+    if (error) alert('별점 등록 중 오류가 발생했습니다.');
+    else onSuccess();
   };
 
-  const ratingOptions = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>직원 별점</h2>
-        <p className="rating-target">{schedule.staff?.name}에게 별점을 주세요</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">직원 별점</h2>
+        <p className="text-slate-600 mb-4">{schedule.staff?.name}에게 별점을 주세요</p>
 
-        <div className="rating-section">
-          <label className="rating-label">기본 별점</label>
-          <div className="rating-select">
-            <div className="stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
-                  onClick={() => setRating(star)}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-              {ratingOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}점
-                </option>
-              ))}
-            </select>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">기본 별점</label>
+          <div className="flex items-center gap-2">
+            <div className="flex">{[1,2,3,4,5].map((star) => (<span key={star} className={`text-2xl cursor-pointer ${rating >= star ? 'text-amber-400' : 'text-slate-300'}`} onClick={() => setRating(star)}>★</span>))}</div>
+            <span className="text-sm text-slate-600">{rating}점</span>
           </div>
         </div>
 
-        <div className="rating-section">
-          <label className="rating-label">서비스 별점</label>
-          <div className="rating-select">
-            <div className="stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${serviceRating >= star ? 'filled' : serviceRating >= star - 0.5 ? 'half' : ''}`}
-                  onClick={() => setServiceRating(star)}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <select value={serviceRating} onChange={(e) => setServiceRating(Number(e.target.value))}>
-              {ratingOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}점
-                </option>
-              ))}
-            </select>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">서비스 별점</label>
+          <div className="flex items-center gap-2">
+            <div className="flex">{[1,2,3,4,5].map((star) => (<span key={star} className={`text-2xl cursor-pointer ${serviceRating >= star ? 'text-amber-400' : 'text-slate-300'}`} onClick={() => setServiceRating(star)}>★</span>))}</div>
+            <span className="text-sm text-slate-600">{serviceRating}점</span>
           </div>
         </div>
 
-        <div className="form-group">
-          <label>코멘트 (선택)</label>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="코멘트를 남겨주세요..."
-            rows={3}
-          />
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-slate-700 mb-2">코멘트 (선택)</label>
+          <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
         </div>
 
-        <div className="modal-actions">
-          <button onClick={onClose} className="cancel-btn">취소</button>
-          <button onClick={handleSubmit} className="submit-btn" disabled={submitting}>
-            {submitting ? '등록 중...' : '별점 등록'}
-          </button>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400">{submitting ? '등록 중...' : '별점 등록'}</button>
         </div>
       </div>
     </div>

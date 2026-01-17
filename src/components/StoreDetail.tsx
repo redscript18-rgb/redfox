@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import './StoreDetail.css';
 
 interface Store {
   id: number;
@@ -41,10 +40,8 @@ interface Schedule {
 }
 
 interface StoreRating {
-  // 손님 평가 (reservation 기반)
   customerAvgRating: number | null;
   customerCount: number;
-  // 직원 평가 (schedule 기반)
   staffAvgRating: number | null;
   staffCount: number;
 }
@@ -59,72 +56,34 @@ export default function StoreDetail() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [todaySchedules, setTodaySchedules] = useState<Schedule[]>([]);
-  const [storeRating, setStoreRating] = useState<StoreRating>({
-    customerAvgRating: null, customerCount: 0,
-    staffAvgRating: null, staffCount: 0,
-  });
+  const [storeRating, setStoreRating] = useState<StoreRating>({ customerAvgRating: null, customerCount: 0, staffAvgRating: null, staffCount: 0 });
   const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-    if (user) {
-      checkFavorite();
-      fetchBlockedByStaff();
-    }
-  }, [storeId, user, location.key]);
+  useEffect(() => { fetchData(); if (user) { checkFavorite(); fetchBlockedByStaff(); } }, [storeId, user, location.key]);
 
   const fetchBlockedByStaff = async () => {
     if (!user) return;
     try {
-      // 나를 차단한 직원/관리자 목록 조회
-      const { data, error } = await supabase
-        .from('blocks')
-        .select('blocker_id')
-        .eq('blocked_id', user.id);
-
-      if (!error && data) {
-        setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
-      }
-    } catch {
-      // 블록 조회 실패해도 무시
-    }
+      const { data, error } = await supabase.from('blocks').select('blocker_id').eq('blocked_id', user.id);
+      if (!error && data) setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
+    } catch { /* ignore */ }
   };
 
   const checkFavorite = async () => {
     if (!user) return;
-
-    const { data } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('target_type', 'store')
-      .eq('target_store_id', storeId)
-      .maybeSingle();
-
+    const { data } = await supabase.from('favorites').select('id').eq('user_id', user.id).eq('target_type', 'store').eq('target_store_id', storeId).maybeSingle();
     setIsFavorite(!!data);
   };
 
   const toggleFavorite = async () => {
     if (!user) return;
-
     if (isFavorite) {
-      await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('target_type', 'store')
-        .eq('target_store_id', storeId);
+      await supabase.from('favorites').delete().eq('user_id', user.id).eq('target_type', 'store').eq('target_store_id', storeId);
       setIsFavorite(false);
     } else {
-      await supabase
-        .from('favorites')
-        .insert({
-          user_id: user.id,
-          target_type: 'store',
-          target_store_id: storeId,
-        });
+      await supabase.from('favorites').insert({ user_id: user.id, target_type: 'store', target_store_id: storeId });
       setIsFavorite(true);
     }
   };
@@ -132,70 +91,28 @@ export default function StoreDetail() {
   const fetchData = async () => {
     const today = new Date().toISOString().split('T')[0];
 
-    // 가게 정보 조회
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('id', storeId)
-      .single();
-
-    if (!storeData) {
-      setLoading(false);
-      return;
-    }
-
+    const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
+    if (!storeData) { setLoading(false); return; }
     setStore(storeData);
 
-    // 메뉴 조회
-    const { data: menusData } = await supabase
-      .from('menus')
-      .select('*')
-      .eq('store_id', storeId);
-
+    const { data: menusData } = await supabase.from('menus').select('*').eq('store_id', storeId);
     setMenus(menusData || []);
 
-    // 가게 소속 직원 조회
-    const { data: storeStaffData } = await supabase
-      .from('store_staff')
-      .select('staff_id')
-      .eq('store_id', storeId);
-
+    const { data: storeStaffData } = await supabase.from('store_staff').select('staff_id').eq('store_id', storeId);
     if (storeStaffData && storeStaffData.length > 0) {
       const staffIds = storeStaffData.map(s => s.staff_id);
-      const { data: staffData } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', staffIds);
-
+      const { data: staffData } = await supabase.from('profiles').select('*').in('id', staffIds);
       setStaffList(staffData || []);
     }
 
-    // 오늘 출근 스케줄 조회
-    const { data: schedulesData } = await supabase
-      .from('schedules')
-      .select(`
-        *,
-        staff:profiles(name)
-      `)
-      .eq('store_id', storeId)
-      .eq('date', today)
-      .eq('status', 'approved');
-
+    const { data: schedulesData } = await supabase.from('schedules').select(`*, staff:profiles(name)`).eq('store_id', storeId).eq('date', today).eq('status', 'approved');
     setTodaySchedules(schedulesData || []);
 
-    // 가게 평균 별점 조회 (손님/직원 분리)
-    const { data: ratingsData } = await supabase
-      .from('ratings')
-      .select('rating, reservation_id, schedule_id')
-      .eq('target_store_id', storeId)
-      .eq('target_type', 'store');
+    const { data: ratingsData } = await supabase.from('ratings').select('rating, reservation_id, schedule_id').eq('target_store_id', storeId).eq('target_type', 'store');
 
     if (ratingsData && ratingsData.length > 0) {
-      // 손님 평가 (reservation_id가 있는 것)
       const customerRatings = ratingsData.filter(r => r.reservation_id !== null);
       const customerRatingValues = customerRatings.map(r => r.rating).filter(r => r !== null);
-
-      // 직원 평가 (schedule_id가 있는 것)
       const staffRatings = ratingsData.filter(r => r.schedule_id !== null);
       const staffRatingValues = staffRatings.map(r => r.rating).filter(r => r !== null);
 
@@ -210,129 +127,118 @@ export default function StoreDetail() {
     setLoading(false);
   };
 
-  if (loading) {
-    return <div className="store-detail"><p>로딩 중...</p></div>;
-  }
+  if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   if (!store) {
     return (
-      <div className="store-detail">
-        <p>가게를 찾을 수 없습니다.</p>
-        <Link to="/">← 목록으로</Link>
+      <div>
+        <p className="text-slate-500 mb-4">가게를 찾을 수 없습니다.</p>
+        <Link to="/" className="text-blue-600 text-sm hover:underline">← 목록으로</Link>
       </div>
     );
   }
 
   return (
-    <div className="store-detail">
-      <Link to="/" className="back-link">
-        ← 목록으로
-      </Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 목록으로</Link>
 
-      <header className="store-header">
-        <div className="store-title-row">
-          <div className="store-title">
-            <h1>{store.name}</h1>
-            {store.store_type && <span className="store-type-badge">{store.store_type}</span>}
+      {/* Header */}
+      <header className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
+            {store.store_type && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{store.store_type}</span>}
           </div>
-          <button
-            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-            onClick={toggleFavorite}
-          >
+          <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
             {isFavorite ? '♥' : '♡'}
           </button>
         </div>
+
         {(storeRating.customerCount > 0 || storeRating.staffCount > 0) && (
-          <div className="store-ratings">
+          <div className="flex flex-wrap gap-4 mb-3">
             {storeRating.customerCount > 0 && (
-              <div className="rating-group">
-                <span className="rating-label">손님 평가</span>
-                <span className="rating-star">★</span>
-                <span className="rating-value">{storeRating.customerAvgRating?.toFixed(1)}</span>
-                <span className="rating-count">({storeRating.customerCount})</span>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-slate-500">손님 평가</span>
+                <span className="text-amber-500">★</span>
+                <span className="font-medium text-slate-900">{storeRating.customerAvgRating?.toFixed(1)}</span>
+                <span className="text-slate-400">({storeRating.customerCount})</span>
               </div>
             )}
             {storeRating.staffCount > 0 && (
-              <div className="rating-group">
-                <span className="rating-label">직원 평가</span>
-                <span className="rating-star">★</span>
-                <span className="rating-value">{storeRating.staffAvgRating?.toFixed(1)}</span>
-                <span className="rating-count">({storeRating.staffCount})</span>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-slate-500">직원 평가</span>
+                <span className="text-amber-500">★</span>
+                <span className="font-medium text-slate-900">{storeRating.staffAvgRating?.toFixed(1)}</span>
+                <span className="text-slate-400">({storeRating.staffCount})</span>
               </div>
             )}
           </div>
         )}
-        <p className="address">{store.address}</p>
-        {store.phone && <p className="phone">{store.phone}</p>}
+
+        <p className="text-slate-600 mb-1">{store.address}</p>
+        {store.phone && <p className="text-slate-500 text-sm">{store.phone}</p>}
         {store.open_time && store.close_time && (
-          <p className="hours">영업시간: {store.open_time.slice(0, 5)} - {store.close_time.slice(0, 5)}</p>
+          <p className="text-slate-500 text-sm">영업시간: {store.open_time.slice(0, 5)} - {store.close_time.slice(0, 5)}</p>
         )}
-        {store.description && <p className="description">{store.description}</p>}
+        {store.description && <p className="text-slate-500 text-sm mt-2">{store.description}</p>}
       </header>
 
-      <section className="section">
-        <h2>오늘의 출근부</h2>
+      {/* Today Schedule */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">오늘의 출근부</h2>
         {todaySchedules.length > 0 ? (
-          <div className="schedule-list">
+          <div className="flex flex-col gap-2">
             {todaySchedules.map((schedule) => (
-              <div key={schedule.id} className="schedule-item">
-                <div className="schedule-staff">
-                  <span className="staff-name">{schedule.staff?.name}</span>
-                  <span className="schedule-type">
-                    {schedule.type === 'assigned'
-                      ? '배정'
-                      : schedule.type === 'requested'
-                      ? '신청'
-                      : '자율'}
+              <div key={schedule.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-slate-900">{schedule.staff?.name}</span>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${schedule.type === 'assigned' ? 'bg-green-100 text-green-600' : schedule.type === 'requested' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
+                    {schedule.type === 'assigned' ? '배정' : schedule.type === 'requested' ? '신청' : '자율'}
                   </span>
                 </div>
-                <span className="schedule-time">
-                  {schedule.start_time} - {schedule.end_time}
-                </span>
+                <span className="text-sm text-slate-500">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="empty">오늘 출근 예정인 직원이 없습니다.</p>
+          <p className="text-slate-500">오늘 출근 예정인 직원이 없습니다.</p>
         )}
       </section>
 
-      <section className="section">
-        <h2>직원</h2>
-        <div className="staff-list">
-          {staffList
-            .filter(staff => !blockedByStaff.has(staff.id))
-            .map((staff) => (
-              <Link key={staff.id} to={`/staff/${staff.id}`} className="staff-item clickable">
-                <div className="staff-info">
-                  <h3>{staff.name}</h3>
-                  {staff.bio && <p className="bio">{staff.bio}</p>}
-                  {staff.specialties && (
-                    <div className="specialties">
-                      {staff.specialties.map((s) => (
-                        <span key={s} className="specialty">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <span className="view-profile">프로필 보기 →</span>
-              </Link>
-            ))}
+      {/* Staff */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">직원</h2>
+        <div className="flex flex-col gap-2">
+          {staffList.filter(staff => !blockedByStaff.has(staff.id)).map((staff) => (
+            <Link key={staff.id} to={`/staff/${staff.id}`} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+              <div>
+                <h3 className="font-medium text-slate-900">{staff.name}</h3>
+                {staff.bio && <p className="text-sm text-slate-500 line-clamp-1">{staff.bio}</p>}
+                {staff.specialties && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {staff.specialties.map((s) => (
+                      <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded">{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <span className="text-sm text-blue-600">프로필 보기 →</span>
+            </Link>
+          ))}
         </div>
       </section>
 
-      <section className="section">
-        <h2>메뉴</h2>
-        <div className="menu-list">
+      {/* Menu */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">메뉴</h2>
+        <div className="flex flex-col gap-2">
           {menus.map((menu) => (
-            <div key={menu.id} className="menu-item">
-              <div className="menu-info">
-                <h3>{menu.name}</h3>
-                {menu.description && <p>{menu.description}</p>}
+            <div key={menu.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div>
+                <h3 className="font-medium text-slate-900">{menu.name}</h3>
+                {menu.description && <p className="text-sm text-slate-500">{menu.description}</p>}
               </div>
-              <span className="price">{menu.price.toLocaleString()}원</span>
+              <span className="font-semibold text-blue-600">{menu.price.toLocaleString()}원</span>
             </div>
           ))}
         </div>

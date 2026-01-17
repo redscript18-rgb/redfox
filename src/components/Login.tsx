@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import './Login.css';
 
 const TEST_ACCOUNTS = [
   { email: 'owner@test.com', password: 'test123456', name: '김사장', role: 'owner', label: '사장' },
@@ -22,7 +21,6 @@ export default function Login() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  // 로그인 후 리다이렉트 처리
   const handleLoginSuccess = () => {
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
     sessionStorage.removeItem('redirectAfterLogin');
@@ -59,18 +57,15 @@ export default function Login() {
     }
   };
 
-  // 테스트 계정 빠른 로그인
   const handleQuickLogin = async (account: typeof TEST_ACCOUNTS[0]) => {
     setError('');
     setMessage('');
     setLoading(true);
 
     try {
-      // 먼저 로그인 시도
       const { error: loginError } = await login(account.email, account.password);
 
       if (loginError) {
-        // 로그인 실패시 회원가입 후 로그인
         setMessage('계정 생성 중...');
         const { error: signupError } = await signup(
           account.email,
@@ -80,14 +75,12 @@ export default function Login() {
         );
 
         if (signupError) {
-          // 이미 가입됐지만 이메일 확인 안됨
           if (signupError.includes('already')) {
             setError('이메일 확인이 필요합니다. Supabase에서 이메일 확인을 비활성화하세요.');
           } else {
             setError(signupError);
           }
         } else {
-          // 회원가입 성공 후 로그인 재시도
           const { error: retryError } = await login(account.email, account.password);
           if (retryError) {
             setMessage('회원가입 완료! 이메일 확인 후 다시 클릭하세요.');
@@ -106,20 +99,22 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h1>{isSignup ? '회원가입' : '로그인'}</h1>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+      <div className="w-full max-w-[400px] p-8 bg-white border border-slate-200 rounded-2xl shadow-lg">
+        <h1 className="mb-8 text-center text-2xl font-semibold text-slate-900">
+          {isSignup ? '회원가입' : '로그인'}
+        </h1>
 
         {/* 빠른 로그인 버튼 */}
         {!isSignup && (
-          <div className="quick-login">
-            <p className="quick-login-label">테스트 계정으로 빠른 로그인</p>
-            <div className="quick-login-buttons">
+          <div className="mb-6 pb-6 border-b border-slate-200">
+            <p className="mb-4 text-sm text-slate-400 text-center">테스트 계정으로 빠른 로그인</p>
+            <div className="grid grid-cols-2 gap-2">
               {TEST_ACCOUNTS.map((account) => (
                 <button
                   key={account.email}
                   type="button"
-                  className={`quick-btn quick-btn-${account.role}`}
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-blue-600 hover:text-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() => handleQuickLogin(account)}
                   disabled={loading}
                 >
@@ -132,8 +127,10 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           {isSignup && (
-            <div className="form-group">
-              <label htmlFor="name">이름</label>
+            <div className="mb-4">
+              <label htmlFor="name" className="block mb-2 text-sm font-medium text-slate-600">
+                이름
+              </label>
               <input
                 type="text"
                 id="name"
@@ -141,11 +138,15 @@ export default function Login() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="이름을 입력하세요"
                 required={isSignup}
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
               />
             </div>
           )}
-          <div className="form-group">
-            <label htmlFor="email">이메일</label>
+
+          <div className="mb-4">
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-slate-600">
+              이메일
+            </label>
             <input
               type="email"
               id="email"
@@ -153,10 +154,14 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일을 입력하세요"
               required
+              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="password">비밀번호</label>
+
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-slate-600">
+              비밀번호
+            </label>
             <input
               type="password"
               id="password"
@@ -165,15 +170,20 @@ export default function Login() {
               placeholder="비밀번호를 입력하세요"
               required
               minLength={6}
+              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
             />
           </div>
+
           {isSignup && (
-            <div className="form-group">
-              <label htmlFor="role">역할</label>
+            <div className="mb-4">
+              <label htmlFor="role" className="block mb-2 text-sm font-medium text-slate-600">
+                역할
+              </label>
               <select
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-blue-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2371717a%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]"
               >
                 <option value="customer">손님</option>
                 <option value="staff">직원</option>
@@ -182,17 +192,23 @@ export default function Login() {
               </select>
             </div>
           )}
-          {error && <p className="error">{error}</p>}
-          {message && <p className="success">{message}</p>}
-          <button type="submit" className="login-btn" disabled={loading}>
+
+          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+          {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
+
+          <button
+            type="submit"
+            className="w-full py-4 mt-2 bg-blue-600 text-white rounded-lg text-base font-semibold hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
             {loading ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
           </button>
         </form>
 
-        <div className="toggle-mode">
+        <div className="mt-6 text-center">
           <button
             type="button"
-            className="toggle-btn"
+            className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-blue-600 transition-colors"
             onClick={() => {
               setIsSignup(!isSignup);
               setError('');

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './StoreStats.css';
 
 interface Store {
   id: number;
@@ -56,294 +55,214 @@ export default function StoreStats() {
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user, storeId]);
+  useEffect(() => { if (user) fetchData(); }, [user, storeId]);
 
   const fetchData = async () => {
     if (!user) return;
 
-    // 가게 정보 조회
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('id', storeId)
-      .single();
-
-    if (!storeData || storeData.owner_id !== user.id) {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
+    const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
+    if (!storeData || storeData.owner_id !== user.id) { setHasAccess(false); setLoading(false); return; }
 
     setStore(storeData);
     setHasAccess(true);
 
-    // 메뉴 조회
-    const { data: menusData } = await supabase
-      .from('menus')
-      .select('*')
-      .eq('store_id', storeId);
-
+    const { data: menusData } = await supabase.from('menus').select('*').eq('store_id', storeId);
     setMenus(menusData || []);
 
-    // 예약 조회
-    const { data: reservationsData } = await supabase
-      .from('reservations')
-      .select(`
-        *,
-        menu:menus(name, price),
-        staff:profiles!reservations_staff_id_fkey(name)
-      `)
-      .eq('store_id', storeId);
-
+    const { data: reservationsData } = await supabase.from('reservations').select(`*, menu:menus(name, price), staff:profiles!reservations_staff_id_fkey(name)`).eq('store_id', storeId);
     setReservations(reservationsData || []);
 
-    // 스케줄 조회
-    const { data: schedulesData } = await supabase
-      .from('schedules')
-      .select('*')
-      .eq('store_id', storeId);
-
+    const { data: schedulesData } = await supabase.from('schedules').select('*').eq('store_id', storeId);
     setSchedules(schedulesData || []);
 
-    // 소속 직원 조회
-    const { data: storeStaff } = await supabase
-      .from('store_staff')
-      .select('staff_id')
-      .eq('store_id', storeId);
-
+    const { data: storeStaff } = await supabase.from('store_staff').select('staff_id').eq('store_id', storeId);
     if (storeStaff && storeStaff.length > 0) {
       const staffIds = storeStaff.map(s => s.staff_id);
-      const { data: staffData } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', staffIds);
-
+      const { data: staffData } = await supabase.from('profiles').select('id, name').in('id', staffIds);
       setStaffMembers(staffData || []);
     }
 
     setLoading(false);
   };
 
-  if (loading) {
-    return <div className="store-stats"><p>로딩 중...</p></div>;
-  }
+  if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   if (!hasAccess || !store) {
     return (
-      <div className="store-stats">
-        <Link to="/" className="back-link">← 대시보드</Link>
-        <p className="error">가게를 찾을 수 없거나 접근 권한이 없습니다.</p>
+      <div>
+        <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+        <p className="text-slate-500">가게를 찾을 수 없거나 접근 권한이 없습니다.</p>
       </div>
     );
   }
 
-  // 이 가게의 예약들
-  const todayReservations = reservations.filter(
-    (r) => r.date === today && r.status !== 'cancelled'
-  );
-  const confirmedReservations = reservations.filter(
-    (r) => r.status === 'confirmed'
-  );
+  const todayReservations = reservations.filter((r) => r.date === today && r.status !== 'cancelled');
+  const confirmedReservations = reservations.filter((r) => r.status === 'confirmed');
+  const todaySchedules = schedules.filter((s) => s.date === today && s.status === 'approved');
 
-  // 이 가게의 스케줄
-  const todaySchedules = schedules.filter(
-    (s) => s.date === today && s.status === 'approved'
-  );
-
-  // 매출 계산
-  const calculateRevenue = (targetReservations: Reservation[]) => {
-    return targetReservations.reduce((sum, r) => {
-      return sum + (r.menu?.price || 0);
-    }, 0);
-  };
+  const calculateRevenue = (targetReservations: Reservation[]) => targetReservations.reduce((sum, r) => sum + (r.menu?.price || 0), 0);
 
   const todayRevenue = calculateRevenue(todayReservations);
   const totalRevenue = calculateRevenue(confirmedReservations);
 
-  // 메뉴별 통계
   const menuStats = menus.map((menu) => {
-    const menuReservations = confirmedReservations.filter(
-      (r) => r.menu_id === menu.id
-    );
-    return {
-      ...menu,
-      count: menuReservations.length,
-      revenue: menuReservations.length * menu.price,
-    };
+    const menuReservations = confirmedReservations.filter((r) => r.menu_id === menu.id);
+    return { ...menu, count: menuReservations.length, revenue: menuReservations.length * menu.price };
   }).sort((a, b) => b.count - a.count);
 
-  // 직원별 통계
   const staffStats = staffMembers.map((staff) => {
-    const staffReservations = confirmedReservations.filter(
-      (r) => r.staff_id === staff.id
-    );
-    const staffScheduleCount = schedules.filter(
-      (s) => s.staff_id === staff.id && s.status === 'approved'
-    ).length;
-    return {
-      ...staff,
-      reservationCount: staffReservations.length,
-      revenue: calculateRevenue(staffReservations),
-      scheduleCount: staffScheduleCount,
-    };
+    const staffReservations = confirmedReservations.filter((r) => r.staff_id === staff.id);
+    const staffScheduleCount = schedules.filter((s) => s.staff_id === staff.id && s.status === 'approved').length;
+    return { ...staff, reservationCount: staffReservations.length, revenue: calculateRevenue(staffReservations), scheduleCount: staffScheduleCount };
   }).sort((a, b) => b.revenue - a.revenue);
 
-  // 최근 7일 일별 통계
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
     const dateStr = date.toISOString().split('T')[0];
-    const dayReservations = reservations.filter(
-      (r) => r.date === dateStr && r.status !== 'cancelled'
-    );
-    return {
-      date: dateStr,
-      dayLabel: ['일', '월', '화', '수', '목', '금', '토'][date.getDay()],
-      count: dayReservations.length,
-      revenue: calculateRevenue(dayReservations),
-    };
+    const dayReservations = reservations.filter((r) => r.date === dateStr && r.status !== 'cancelled');
+    return { date: dateStr, dayLabel: ['일', '월', '화', '수', '목', '금', '토'][date.getDay()], count: dayReservations.length, revenue: calculateRevenue(dayReservations) };
   });
 
   const maxDayRevenue = Math.max(...last7Days.map((d) => d.revenue), 1);
 
   return (
-    <div className="store-stats">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
 
-      <div className="store-header">
-        <h1>{store.name}</h1>
-        <p className="address">{store.address}</p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
+        <p className="text-slate-500">{store.address}</p>
       </div>
 
-      {/* 오늘 요약 */}
-      <section className="section">
-        <h2>오늘 현황</h2>
-        <div className="summary-row">
-          <div className="summary-item highlight">
-            <span className="label">오늘 매출</span>
-            <span className="value">{todayRevenue.toLocaleString()}원</span>
+      {/* Today Summary */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">오늘 현황</h2>
+        <div className="grid grid-cols-4 gap-4 max-sm:grid-cols-2">
+          <div className="p-3 bg-blue-50 rounded-lg text-center">
+            <div className="text-sm text-blue-600">오늘 매출</div>
+            <div className="text-xl font-bold text-blue-700">{todayRevenue.toLocaleString()}원</div>
           </div>
-          <div className="summary-item">
-            <span className="label">오늘 예약</span>
-            <span className="value">{todayReservations.length}건</span>
+          <div className="p-3 bg-slate-50 rounded-lg text-center">
+            <div className="text-sm text-slate-500">오늘 예약</div>
+            <div className="text-xl font-bold text-slate-900">{todayReservations.length}건</div>
           </div>
-          <div className="summary-item">
-            <span className="label">출근 직원</span>
-            <span className="value">{todaySchedules.length}명</span>
+          <div className="p-3 bg-slate-50 rounded-lg text-center">
+            <div className="text-sm text-slate-500">출근 직원</div>
+            <div className="text-xl font-bold text-slate-900">{todaySchedules.length}명</div>
           </div>
-          <div className="summary-item">
-            <span className="label">총 직원</span>
-            <span className="value">{staffMembers.length}명</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 누적 통계 */}
-      <section className="section">
-        <h2>누적 통계</h2>
-        <div className="summary-row">
-          <div className="summary-item">
-            <span className="label">총 매출</span>
-            <span className="value">{totalRevenue.toLocaleString()}원</span>
-          </div>
-          <div className="summary-item">
-            <span className="label">완료된 예약</span>
-            <span className="value">{confirmedReservations.length}건</span>
+          <div className="p-3 bg-slate-50 rounded-lg text-center">
+            <div className="text-sm text-slate-500">총 직원</div>
+            <div className="text-xl font-bold text-slate-900">{staffMembers.length}명</div>
           </div>
         </div>
       </section>
 
-      {/* 일별 매출 차트 */}
-      <section className="section">
-        <h2>최근 7일 매출</h2>
-        <div className="daily-chart">
+      {/* Total Summary */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">누적 통계</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-3 bg-slate-50 rounded-lg text-center">
+            <div className="text-sm text-slate-500">총 매출</div>
+            <div className="text-xl font-bold text-slate-900">{totalRevenue.toLocaleString()}원</div>
+          </div>
+          <div className="p-3 bg-slate-50 rounded-lg text-center">
+            <div className="text-sm text-slate-500">완료된 예약</div>
+            <div className="text-xl font-bold text-slate-900">{confirmedReservations.length}건</div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7 Day Chart */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">최근 7일 매출</h2>
+        <div className="flex items-end justify-between h-32 gap-2">
           {last7Days.map((day) => (
-            <div key={day.date} className="day-column">
-              <div className="bar-wrapper">
-                <div
-                  className={`bar ${day.date === today ? 'today' : ''}`}
-                  style={{ height: `${(day.revenue / maxDayRevenue) * 100}%` }}
-                />
+            <div key={day.date} className="flex flex-col items-center flex-1">
+              <div className="w-full flex-1 flex items-end">
+                <div className={`w-full rounded-t transition-all ${day.date === today ? 'bg-blue-600' : 'bg-slate-200'}`} style={{ height: `${(day.revenue / maxDayRevenue) * 100}%` }} />
               </div>
-              <span className="day-label">{day.dayLabel}</span>
-              <span className="day-revenue">
-                {(day.revenue / 10000).toFixed(0)}만
-              </span>
+              <span className={`text-xs mt-2 ${day.date === today ? 'text-blue-600 font-semibold' : 'text-slate-500'}`}>{day.dayLabel}</span>
+              <span className="text-xs text-slate-400">{(day.revenue / 10000).toFixed(0)}만</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 인기 메뉴 */}
-      <section className="section">
-        <h2>메뉴별 실적</h2>
-        <div className="stats-table">
-          <div className="table-header">
-            <span className="col-name">메뉴</span>
-            <span className="col-count">예약 수</span>
-            <span className="col-revenue">매출</span>
-          </div>
-          {menuStats.map((menu) => (
-            <div key={menu.id} className="table-row">
-              <span className="col-name">
-                {menu.name}
-                <small>{menu.price.toLocaleString()}원</small>
-              </span>
-              <span className="col-count">{menu.count}건</span>
-              <span className="col-revenue">
-                {menu.revenue.toLocaleString()}원
-              </span>
-            </div>
-          ))}
+      {/* Menu Stats */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">메뉴별 실적</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-2 font-medium text-slate-500">메뉴</th>
+                <th className="text-right py-2 font-medium text-slate-500">예약 수</th>
+                <th className="text-right py-2 font-medium text-slate-500">매출</th>
+              </tr>
+            </thead>
+            <tbody>
+              {menuStats.map((menu) => (
+                <tr key={menu.id} className="border-b border-slate-100 last:border-0">
+                  <td className="py-3">
+                    <div className="font-medium text-slate-900">{menu.name}</div>
+                    <div className="text-xs text-slate-400">{menu.price.toLocaleString()}원</div>
+                  </td>
+                  <td className="py-3 text-right text-slate-600">{menu.count}건</td>
+                  <td className="py-3 text-right font-medium text-slate-900">{menu.revenue.toLocaleString()}원</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* 직원별 실적 */}
-      <section className="section">
-        <h2>직원별 실적</h2>
-        <div className="stats-table">
-          <div className="table-header">
-            <span className="col-name">직원</span>
-            <span className="col-count">예약 수</span>
-            <span className="col-revenue">매출</span>
-          </div>
-          {staffStats.map((staff) => (
-            <div key={staff.id} className="table-row">
-              <span className="col-name">
-                {staff.name}
-                <small>출근 {staff.scheduleCount}회</small>
-              </span>
-              <span className="col-count">{staff.reservationCount}건</span>
-              <span className="col-revenue">
-                {staff.revenue.toLocaleString()}원
-              </span>
-            </div>
-          ))}
+      {/* Staff Stats */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">직원별 실적</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-2 font-medium text-slate-500">직원</th>
+                <th className="text-right py-2 font-medium text-slate-500">예약 수</th>
+                <th className="text-right py-2 font-medium text-slate-500">매출</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffStats.map((staff) => (
+                <tr key={staff.id} className="border-b border-slate-100 last:border-0">
+                  <td className="py-3">
+                    <div className="font-medium text-slate-900">{staff.name}</div>
+                    <div className="text-xs text-slate-400">출근 {staff.scheduleCount}회</div>
+                  </td>
+                  <td className="py-3 text-right text-slate-600">{staff.reservationCount}건</td>
+                  <td className="py-3 text-right font-medium text-slate-900">{staff.revenue.toLocaleString()}원</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* 오늘 예약 목록 */}
-      <section className="section">
-        <h2>오늘 예약 목록</h2>
+      {/* Today Reservations */}
+      <section className="p-5 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">오늘 예약 목록</h2>
         {todayReservations.length > 0 ? (
-          <div className="reservation-list">
+          <div className="flex flex-col gap-2">
             {todayReservations.map((reservation) => (
-              <div key={reservation.id} className="reservation-item">
-                <span className="time">{reservation.start_time}</span>
-                <span className="menu">{reservation.menu?.name}</span>
-                <span className="staff">{reservation.staff?.name}</span>
-                <span className={`status ${reservation.status}`}>
+              <div key={reservation.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg text-sm">
+                <span className="font-medium text-slate-900 w-14">{reservation.start_time.slice(0, 5)}</span>
+                <span className="flex-1 text-slate-700">{reservation.menu?.name}</span>
+                <span className="text-slate-500">{reservation.staff?.name}</span>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
                   {reservation.status === 'confirmed' ? '확정' : '대기'}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="empty">오늘 예약이 없습니다.</p>
+          <p className="text-slate-500">오늘 예약이 없습니다.</p>
         )}
       </section>
     </div>

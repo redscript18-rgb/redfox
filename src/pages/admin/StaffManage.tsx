@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './StaffManage.css';
 
 interface Staff {
   id: string;
@@ -64,11 +63,7 @@ export default function StaffManage() {
     } else {
       await supabase
         .from('favorites')
-        .insert({
-          user_id: user.id,
-          target_type: 'staff',
-          target_staff_id: staffId,
-        });
+        .insert({ user_id: user.id, target_type: 'staff', target_staff_id: staffId });
 
       setFavoriteStaff(prev => new Set([...prev, staffId]));
     }
@@ -105,60 +100,57 @@ export default function StaffManage() {
   };
 
   if (loading) {
-    return <div className="staff-manage"><p>로딩 중...</p></div>;
+    return <div className="text-slate-500">로딩 중...</div>;
   }
 
   return (
-    <div className="staff-manage">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
 
-      <div className="page-header">
-        <h1>직원 관리</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">직원 관리</h1>
       </div>
 
-      <div className="filters">
-        <span className="staff-count">총 {staffList.length}명</span>
+      <div className="mb-4">
+        <span className="text-sm text-slate-500">총 {staffList.length}명</span>
       </div>
 
-      <div className="staff-list">
+      <div className="flex flex-col gap-3">
         {staffList.map((staff) => (
-          <div key={staff.id} className="staff-card">
-            <Link to={`/staff/${staff.id}`} className="staff-link">
-              <div className="staff-avatar">
+          <div key={staff.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <Link to={`/staff/${staff.id}`} className="flex gap-4">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden flex-shrink-0">
                 {staff.profile_photo_url ? (
-                  <img src={staff.profile_photo_url} alt={staff.name} />
+                  <img src={staff.profile_photo_url} alt={staff.name} className="w-full h-full object-cover" />
                 ) : (
                   staff.name.charAt(0)
                 )}
               </div>
-              <div className="staff-info">
-                <div className="staff-header">
-                  <h3>{staff.name}</h3>
-                  <div className="profile-summary">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-slate-900">{staff.name}</h3>
+                  <div className="flex gap-1 text-xs text-slate-500">
                     {staff.age && <span>{staff.age}세</span>}
                     {staff.height && <span>{staff.height}cm</span>}
                     {staff.weight && <span>{staff.weight}kg</span>}
                   </div>
                 </div>
-                <p className="bio">{staff.bio || '소개 없음'}</p>
-                <div className="meta">
-                  {staff.phone && <span className="phone">{staff.phone}</span>}
-                </div>
+                <p className="text-sm text-slate-600 line-clamp-1 mb-1">{staff.bio || '소개 없음'}</p>
+                {staff.phone && <span className="text-xs text-slate-400">{staff.phone}</span>}
                 {staff.specialties && staff.specialties.length > 0 && (
-                  <div className="specialties">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {staff.specialties.map((s) => (
-                      <span key={s} className="specialty-tag">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">{s}</span>
                     ))}
                   </div>
                 )}
               </div>
             </Link>
             <button
-              className={`favorite-btn ${favoriteStaff.has(staff.id) ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                toggleFavorite(staff.id);
-              }}
+              className={`absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl rounded-full transition-colors ${
+                favoriteStaff.has(staff.id) ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'
+              }`}
+              onClick={(e) => { e.preventDefault(); toggleFavorite(staff.id); }}
             >
               {favoriteStaff.has(staff.id) ? '♥' : '♡'}
             </button>
@@ -167,8 +159,8 @@ export default function StaffManage() {
       </div>
 
       {staffList.length === 0 && (
-        <div className="empty-state">
-          <p>등록된 직원이 없습니다.</p>
+        <div className="p-8 bg-slate-50 rounded-xl text-center">
+          <p className="text-slate-500">등록된 직원이 없습니다.</p>
         </div>
       )}
     </div>

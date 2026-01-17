@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import './AvailabilityManage.css';
 
 interface Availability {
   id: number;
@@ -65,63 +64,72 @@ export default function AvailabilityManage() {
   }, {} as Record<number, Availability[]>);
 
   if (loading) {
-    return <div className="availability-manage"><p>로딩 중...</p></div>;
+    return <div className="text-slate-500">로딩 중...</div>;
   }
 
   return (
-    <div className="availability-manage">
-      <Link to="/" className="back-link">← 대시보드</Link>
+    <div>
+      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
 
-      <div className="page-header">
-        <h1>가용 시간 관리</h1>
-        <button className="add-btn" onClick={() => setShowAddModal(true)}>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-slate-900">가용 시간 관리</h1>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={() => setShowAddModal(true)}
+        >
           + 시간 추가
         </button>
       </div>
 
-      <p className="page-desc">
+      <p className="text-sm text-slate-500 mb-6">
         출근 가능한 요일과 시간대를 등록하면, 관리자가 해당 시간에 출근 요청을 보낼 수 있습니다.
       </p>
 
-      <div className="week-grid">
+      <div className="grid grid-cols-7 gap-2 mb-8 max-md:grid-cols-4 max-sm:grid-cols-2">
         {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-          <div key={day} className="day-column">
-            <div className="day-header">{DAY_NAMES[day]}요일</div>
-            <div className="time-slots">
+          <div key={day} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="p-3 bg-slate-50 border-b border-slate-200 text-center">
+              <span className="font-semibold text-slate-900">{DAY_NAMES[day]}요일</span>
+            </div>
+            <div className="p-2 min-h-[100px]">
               {groupedByDay[day]?.length > 0 ? (
-                groupedByDay[day].map((avail) => (
-                  <div key={avail.id} className="time-slot">
-                    <span className="time">
-                      {avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}
-                    </span>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(avail.id)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))
+                <div className="flex flex-col gap-1">
+                  {groupedByDay[day].map((avail) => (
+                    <div key={avail.id} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg text-xs">
+                      <span className="text-blue-700 font-medium">
+                        {avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}
+                      </span>
+                      <button
+                        className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded"
+                        onClick={() => handleDelete(avail.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <div className="empty-slot">등록된 시간 없음</div>
+                <p className="text-xs text-slate-400 text-center py-4">등록된 시간 없음</p>
               )}
             </div>
           </div>
         ))}
       </div>
 
-      <section className="section">
-        <h2>전체 가용 시간 목록</h2>
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">전체 가용 시간 목록</h2>
         {availabilities.length > 0 ? (
-          <div className="availability-list">
+          <div className="flex flex-col gap-2">
             {availabilities.map((avail) => (
-              <div key={avail.id} className="availability-item">
-                <span className="day-badge">{DAY_NAMES[avail.day_of_week]}</span>
-                <span className="time-range">
+              <div key={avail.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl">
+                <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-semibold rounded-full">
+                  {DAY_NAMES[avail.day_of_week]}
+                </span>
+                <span className="text-slate-900">
                   {avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}
                 </span>
                 <button
-                  className="delete-btn-text"
+                  className="ml-auto px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   onClick={() => handleDelete(avail.id)}
                 >
                   삭제
@@ -130,9 +138,12 @@ export default function AvailabilityManage() {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <p>등록된 가용 시간이 없습니다.</p>
-            <button className="action-btn" onClick={() => setShowAddModal(true)}>
+          <div className="p-6 bg-slate-50 rounded-xl text-center">
+            <p className="text-slate-500 mb-3">등록된 가용 시간이 없습니다.</p>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => setShowAddModal(true)}
+            >
               시간 추가하기
             </button>
           </div>
@@ -143,10 +154,7 @@ export default function AvailabilityManage() {
         <AddAvailabilityModal
           staffId={user?.id || ''}
           onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            setShowAddModal(false);
-            fetchAvailabilities();
-          }}
+          onSuccess={() => { setShowAddModal(false); fetchAvailabilities(); }}
         />
       )}
     </div>
@@ -154,13 +162,9 @@ export default function AvailabilityManage() {
 }
 
 function AddAvailabilityModal({
-  staffId,
-  onClose,
-  onSuccess,
+  staffId, onClose, onSuccess,
 }: {
-  staffId: string;
-  onClose: () => void;
-  onSuccess: () => void;
+  staffId: string; onClose: () => void; onSuccess: () => void;
 }) {
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('10:00');
@@ -212,18 +216,22 @@ function AddAvailabilityModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>가용 시간 추가</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900 mb-4">가용 시간 추가</h2>
 
-        <div className="form-group">
-          <label>요일 선택 (복수 선택 가능)</label>
-          <div className="day-buttons">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">요일 선택 (복수 선택 가능)</label>
+          <div className="flex gap-2 flex-wrap">
             {[1, 2, 3, 4, 5, 6, 0].map((day) => (
               <button
                 key={day}
                 type="button"
-                className={`day-btn ${selectedDays.includes(day) ? 'selected' : ''}`}
+                className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                  selectedDays.includes(day)
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
                 onClick={() => toggleDay(day)}
               >
                 {DAY_NAMES[day]}
@@ -232,10 +240,14 @@ function AddAvailabilityModal({
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>시작 시간</label>
-            <select value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
+            <select
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+            >
               {Array.from({ length: 15 }, (_, i) => i + 7).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
                   {h.toString().padStart(2, '0')}:00
@@ -243,9 +255,13 @@ function AddAvailabilityModal({
               ))}
             </select>
           </div>
-          <div className="form-group">
-            <label>종료 시간</label>
-            <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
+            <select
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+            >
               {Array.from({ length: 15 }, (_, i) => i + 8).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
                   {h.toString().padStart(2, '0')}:00
@@ -255,12 +271,14 @@ function AddAvailabilityModal({
           </div>
         </div>
 
-        <div className="modal-actions">
-          <button onClick={onClose} className="cancel-btn">취소</button>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+            취소
+          </button>
           <button
             onClick={handleSubmit}
-            className="submit-btn"
             disabled={selectedDays.length === 0 || submitting}
+            className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400"
           >
             {submitting ? '등록 중...' : '등록하기'}
           </button>

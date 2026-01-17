@@ -29,14 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initRef = useRef(false);
   const authInitializedRef = useRef(false);
 
-  // 프로필 가져오기
+  // 프로필 가져오기 (5초 타임아웃)
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .single()
+        .abortSignal(controller.signal);
+
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('프로필 조회 실패:', error);

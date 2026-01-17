@@ -59,6 +59,26 @@ export default function WorkRequests() {
   const handleAccept = async (request: WorkRequest) => {
     if (!user) return;
 
+    // 이미 해당 날짜에 스케줄이 있는지 체크
+    const { data: existingSchedules } = await supabase
+      .from('schedules')
+      .select('id, start_time, end_time')
+      .eq('staff_id', user.id)
+      .eq('date', request.date)
+      .in('status', ['approved', 'pending']);
+
+    if (existingSchedules && existingSchedules.length > 0) {
+      // 시간 겹침 체크
+      const hasConflict = existingSchedules.some((s) => {
+        return request.start_time < s.end_time && request.end_time > s.start_time;
+      });
+
+      if (hasConflict) {
+        alert('해당 시간에 이미 등록된 스케줄이 있습니다.');
+        return;
+      }
+    }
+
     // 스케줄 생성
     const { data: schedule, error: scheduleError } = await supabase
       .from('schedules')

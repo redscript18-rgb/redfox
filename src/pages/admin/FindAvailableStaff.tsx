@@ -295,20 +295,6 @@ function SendRequestModal({
   const handleSubmit = async () => {
     setSubmitting(true);
 
-    // 중복 요청 체크 (같은 직원, 같은 날짜, 대기중인 요청)
-    const { data: existingRequests } = await supabase
-      .from('work_requests')
-      .select('id')
-      .eq('staff_id', staff.id)
-      .eq('date', date)
-      .eq('status', 'pending');
-
-    if (existingRequests && existingRequests.length > 0) {
-      setSubmitting(false);
-      alert('이미 해당 직원에게 같은 날짜로 대기중인 요청이 있습니다.');
-      return;
-    }
-
     const { error } = await supabase
       .from('work_requests')
       .insert({

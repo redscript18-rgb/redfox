@@ -22,6 +22,13 @@ export default function Login() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
+  // 로그인 후 리다이렉트 처리
+  const handleLoginSuccess = () => {
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    sessionStorage.removeItem('redirectAfterLogin');
+    navigate(redirectUrl || '/');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -42,7 +49,7 @@ export default function Login() {
         if (error) {
           setError(error);
         } else {
-          navigate('/');
+          handleLoginSuccess();
         }
       }
     } catch {
@@ -85,11 +92,11 @@ export default function Login() {
           if (retryError) {
             setMessage('회원가입 완료! 이메일 확인 후 다시 클릭하세요.');
           } else {
-            navigate('/');
+            handleLoginSuccess();
           }
         }
       } else {
-        navigate('/');
+        handleLoginSuccess();
       }
     } catch {
       setError('오류가 발생했습니다.');

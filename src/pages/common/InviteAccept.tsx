@@ -162,6 +162,12 @@ export default function InviteAccept() {
     setAccepting(false);
   };
 
+  // 로그인 페이지로 이동 (현재 URL 저장)
+  const goToLogin = () => {
+    sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+    navigate('/login');
+  };
+
   // 로그인 필요
   if (!isAuthenticated) {
     return (
@@ -169,7 +175,7 @@ export default function InviteAccept() {
         <div className="invite-card">
           <h1>관리자 초대</h1>
           <p className="desc">초대를 수락하려면 먼저 로그인해주세요.</p>
-          <button className="login-btn" onClick={() => navigate('/login')}>
+          <button className="login-btn" onClick={goToLogin}>
             로그인하기
           </button>
         </div>

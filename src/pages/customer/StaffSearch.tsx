@@ -33,6 +33,7 @@ export default function StaffSearch() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
 
   useEffect(() => {
     fetchData();
@@ -110,15 +111,28 @@ export default function StaffSearch() {
   };
 
   // 필터링된 직원
-  const filteredStaffs = staffList.filter((staff) => {
-    const matchesSearch = staff.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesSpecialty =
-      !selectedSpecialty ||
-      staff.specialties?.includes(selectedSpecialty);
-    return matchesSearch && matchesSpecialty;
-  });
+  const filteredStaffs = staffList
+    .filter((staff) => {
+      const matchesSearch = staff.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesSpecialty =
+        !selectedSpecialty ||
+        staff.specialties?.includes(selectedSpecialty);
+      return matchesSearch && matchesSpecialty;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'rating') {
+        const ratingA = ratingMap[a.id]?.avgRating ?? 0;
+        const ratingB = ratingMap[b.id]?.avgRating ?? 0;
+        return ratingB - ratingA; // 높은 순
+      } else if (sortBy === 'reviewCount') {
+        const countA = ratingMap[a.id]?.totalCount ?? 0;
+        const countB = ratingMap[b.id]?.totalCount ?? 0;
+        return countB - countA; // 많은 순
+      }
+      return a.name.localeCompare(b.name, 'ko'); // 이름순
+    });
 
   if (loading) {
     return <div className="staff-search"><p>로딩 중...</p></div>;
@@ -148,6 +162,15 @@ export default function StaffSearch() {
               {specialty}
             </option>
           ))}
+        </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
+          className="sort-select"
+        >
+          <option value="name">이름순</option>
+          <option value="rating">별점순</option>
+          <option value="reviewCount">리뷰 많은순</option>
         </select>
       </div>
 

@@ -24,7 +24,8 @@
 }
 
 .search-input,
-.specialty-select {
+.specialty-select,
+.sort-select {
   height: 40px;
   padding: 0 var(--spacing-md);
   background: var(--bg-primary);
@@ -39,7 +40,8 @@
   width: 200px;
 }
 
-.specialty-select {
+.specialty-select,
+.sort-select {
   width: 140px;
   padding-right: 32px;
   cursor: pointer;
@@ -54,7 +56,8 @@
 }
 
 .search-input:focus,
-.specialty-select:focus {
+.specialty-select:focus,
+.sort-select:focus {
   outline: none;
   border-color: var(--accent-primary);
 }

@@ -35,8 +35,12 @@ interface Schedule {
 }
 
 interface StoreRating {
-  avgRating: number | null;
-  totalCount: number;
+  // 손님 평가 (reservation 기반)
+  customerAvgRating: number | null;
+  customerCount: number;
+  // 직원 평가 (schedule 기반)
+  staffAvgRating: number | null;
+  staffCount: number;
 }
 
 export default function StoreDetail() {
@@ -47,7 +51,10 @@ export default function StoreDetail() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [todaySchedules, setTodaySchedules] = useState<Schedule[]>([]);
-  const [storeRating, setStoreRating] = useState<StoreRating>({ avgRating: null, totalCount: 0 });
+  const [storeRating, setStoreRating] = useState<StoreRating>({
+    customerAvgRating: null, customerCount: 0,
+    staffAvgRating: null, staffCount: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -108,18 +115,27 @@ export default function StoreDetail() {
 
     setTodaySchedules(schedulesData || []);
 
-    // 가게 평균 별점 조회
+    // 가게 평균 별점 조회 (손님/직원 분리)
     const { data: ratingsData } = await supabase
       .from('ratings')
-      .select('rating')
+      .select('rating, reservation_id, schedule_id')
       .eq('target_store_id', storeId)
       .eq('target_type', 'store');
 
     if (ratingsData && ratingsData.length > 0) {
-      const ratings = ratingsData.map(r => r.rating).filter(r => r !== null);
+      // 손님 평가 (reservation_id가 있는 것)
+      const customerRatings = ratingsData.filter(r => r.reservation_id !== null);
+      const customerRatingValues = customerRatings.map(r => r.rating).filter(r => r !== null);
+
+      // 직원 평가 (schedule_id가 있는 것)
+      const staffRatings = ratingsData.filter(r => r.schedule_id !== null);
+      const staffRatingValues = staffRatings.map(r => r.rating).filter(r => r !== null);
+
       setStoreRating({
-        avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
-        totalCount: ratingsData.length,
+        customerAvgRating: customerRatingValues.length > 0 ? customerRatingValues.reduce((a, b) => a + b, 0) / customerRatingValues.length : null,
+        customerCount: customerRatings.length,
+        staffAvgRating: staffRatingValues.length > 0 ? staffRatingValues.reduce((a, b) => a + b, 0) / staffRatingValues.length : null,
+        staffCount: staffRatings.length,
       });
     }
 
@@ -148,14 +164,27 @@ export default function StoreDetail() {
       <header className="store-header">
         <div className="store-title">
           <h1>{store.name}</h1>
-          {storeRating.totalCount > 0 && (
-            <div className="store-rating">
-              <span className="rating-star">★</span>
-              <span className="rating-value">{storeRating.avgRating?.toFixed(1)}</span>
-              <span className="rating-count">({storeRating.totalCount}개 평가)</span>
-            </div>
-          )}
         </div>
+        {(storeRating.customerCount > 0 || storeRating.staffCount > 0) && (
+          <div className="store-ratings">
+            {storeRating.customerCount > 0 && (
+              <div className="rating-group">
+                <span className="rating-label">손님 평가</span>
+                <span className="rating-star">★</span>
+                <span className="rating-value">{storeRating.customerAvgRating?.toFixed(1)}</span>
+                <span className="rating-count">({storeRating.customerCount})</span>
+              </div>
+            )}
+            {storeRating.staffCount > 0 && (
+              <div className="rating-group">
+                <span className="rating-label">직원 평가</span>
+                <span className="rating-star">★</span>
+                <span className="rating-value">{storeRating.staffAvgRating?.toFixed(1)}</span>
+                <span className="rating-count">({storeRating.staffCount})</span>
+              </div>
+            )}
+          </div>
+        )}
         <p className="address">{store.address}</p>
       </header>
 

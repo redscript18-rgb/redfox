@@ -22,9 +22,6 @@
 }
 
 .store-title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   margin-bottom: 8px;
 }
 
@@ -33,26 +30,41 @@
   color: #333;
 }
 
-.store-rating {
+.store-ratings {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.store-ratings .rating-group {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 20px;
 }
 
-.store-rating .rating-star {
+.store-ratings .rating-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.store-ratings .rating-star {
   color: #ffc107;
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
-.store-rating .rating-value {
+.store-ratings .rating-value {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #333;
 }
 
-.store-rating .rating-count {
-  font-size: 0.85rem;
-  color: #888;
+.store-ratings .rating-count {
+  font-size: 0.75rem;
+  color: #999;
 }
 
 .store-header .address {

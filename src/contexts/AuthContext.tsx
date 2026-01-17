@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface Profile {
@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const initRef = useRef(false);
 
   // 프로필 가져오기
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -48,19 +48,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 초기화 - 한 번만 실행
+  // 초기화
   useEffect(() => {
+    // 이미 초기화됐으면 스킵
+    if (initRef.current) return;
+    initRef.current = true;
+
     let isMounted = true;
 
+    // 인증 상태 변경 리스너 먼저 설정
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            const profile = await fetchProfile(session.user.id);
+            if (isMounted) {
+              setUser(profile);
+              setLoading(false);
+            }
+          }
+        } else if (event === 'SIGNED_OUT') {
+          if (isMounted) {
+            setUser(null);
+            setLoading(false);
+          }
+        }
+      }
+    );
+
+    // 초기 세션 확인
     const initAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
 
+        if (!isMounted) return;
+
         if (error) {
           console.error('세션 조회 실패:', error);
-          // 세션 에러 시 로컬 스토리지 정리
           await supabase.auth.signOut();
-        } else if (session?.user && isMounted) {
+          setLoading(false);
+          return;
+        }
+
+        if (session?.user) {
           const profile = await fetchProfile(session.user.id);
           if (isMounted) {
             setUser(profile);
@@ -71,39 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
         if (isMounted) {
           setLoading(false);
-          setInitialized(true);
         }
       }
     };
 
     initAuth();
 
-    // 인증 상태 변경 리스너
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // 초기화 전에는 무시 (getSession에서 처리)
-        if (!initialized && event === 'INITIAL_SESSION') {
-          return;
-        }
-
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          if (isMounted) {
-            setUser(profile);
-          }
-        } else {
-          if (isMounted) {
-            setUser(null);
-          }
-        }
-      }
-    );
-
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [initialized]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);

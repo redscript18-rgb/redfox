@@ -20,6 +20,7 @@ export default function StoreList() {
   const [stores, setStores] = useState<Store[]>([]);
   const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
 
   useEffect(() => {
@@ -93,24 +94,37 @@ export default function StoreList() {
     return <div className="store-list"><p>로딩 중...</p></div>;
   }
 
-  // 정렬된 가게 목록
-  const sortedStores = [...stores].sort((a, b) => {
-    if (sortBy === 'rating') {
-      const ratingA = ratingMap[a.id]?.avgRating ?? 0;
-      const ratingB = ratingMap[b.id]?.avgRating ?? 0;
-      return ratingB - ratingA;
-    } else if (sortBy === 'reviewCount') {
-      const countA = ratingMap[a.id]?.ratingCount ?? 0;
-      const countB = ratingMap[b.id]?.ratingCount ?? 0;
-      return countB - countA;
-    }
-    return a.name.localeCompare(b.name, 'ko');
-  });
+  // 필터링 및 정렬된 가게 목록
+  const filteredStores = stores
+    .filter((store) => {
+      const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        store.address.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'rating') {
+        const ratingA = ratingMap[a.id]?.avgRating ?? 0;
+        const ratingB = ratingMap[b.id]?.avgRating ?? 0;
+        return ratingB - ratingA;
+      } else if (sortBy === 'reviewCount') {
+        const countA = ratingMap[a.id]?.ratingCount ?? 0;
+        const countB = ratingMap[b.id]?.ratingCount ?? 0;
+        return countB - countA;
+      }
+      return a.name.localeCompare(b.name, 'ko');
+    });
 
   return (
     <div className="store-list">
-      <div className="list-header">
-        <h1>가게 목록</h1>
+      <h1>가게 목록</h1>
+      <div className="filters">
+        <input
+          type="text"
+          placeholder="가게명 또는 주소로 검색"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
@@ -122,7 +136,7 @@ export default function StoreList() {
         </select>
       </div>
       <div className="stores">
-        {sortedStores.map((store) => {
+        {filteredStores.map((store) => {
           const storeRating = ratingMap[store.id];
           return (
             <Link to={`/store/${store.id}`} key={store.id} className="store-card">
@@ -145,6 +159,10 @@ export default function StoreList() {
           );
         })}
       </div>
+
+      {filteredStores.length === 0 && (
+        <p className="no-results">검색 결과가 없습니다.</p>
+      )}
     </div>
   );
 }

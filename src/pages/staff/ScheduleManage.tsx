@@ -20,6 +20,12 @@ interface Schedule {
   store?: { name: string };
 }
 
+interface Rating {
+  id: number;
+  schedule_id: number;
+  target_type: string;
+}
+
 export default function ScheduleManage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -27,8 +33,12 @@ export default function ScheduleManage() {
 
   const [myStores, setMyStores] = useState<Store[]>([]);
   const [mySchedules, setMySchedules] = useState<Schedule[]>([]);
+  const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
+  const [myRatings, setMyRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(!!preselectedStore);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(
     preselectedStore ? Number(preselectedStore) : null
   );
@@ -62,7 +72,7 @@ export default function ScheduleManage() {
     }
 
     // 내 스케줄 (향후 7일)
-    const todayStr = today.toISOString().split('T')[0];
+    const currentTodayStr = today.toISOString().split('T')[0];
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     const nextWeekStr = nextWeek.toISOString().split('T')[0];
@@ -74,12 +84,39 @@ export default function ScheduleManage() {
         store:stores(name)
       `)
       .eq('staff_id', user.id)
-      .gte('date', todayStr)
+      .gte('date', currentTodayStr)
       .lte('date', nextWeekStr)
       .order('date', { ascending: true })
       .order('start_time', { ascending: true });
 
     setMySchedules(schedulesData || []);
+
+    // 지난 스케줄 (최근 30일)
+    const pastMonth = new Date();
+    pastMonth.setDate(pastMonth.getDate() - 30);
+    const pastMonthStr = pastMonth.toISOString().split('T')[0];
+
+    const { data: pastData } = await supabase
+      .from('schedules')
+      .select(`
+        *,
+        store:stores(name)
+      `)
+      .eq('staff_id', user.id)
+      .eq('status', 'approved')
+      .lt('date', currentTodayStr)
+      .gte('date', pastMonthStr)
+      .order('date', { ascending: false });
+
+    setPastSchedules(pastData || []);
+
+    // 내가 준 별점 조회
+    const { data: ratingsData } = await supabase
+      .from('ratings')
+      .select('id, schedule_id, target_type')
+      .eq('rater_id', user.id);
+
+    setMyRatings(ratingsData || []);
     setLoading(false);
   };
 
@@ -131,6 +168,17 @@ export default function ScheduleManage() {
       alert('스케줄이 취소되었습니다.');
       fetchData();
     }
+  };
+
+  const hasRated = (scheduleId: number) => {
+    return myRatings.some(
+      (r) => r.schedule_id === scheduleId && r.target_type === 'store'
+    );
+  };
+
+  const openRatingModal = (schedule: Schedule) => {
+    setSelectedSchedule(schedule);
+    setShowRatingModal(true);
   };
 
   if (loading) {
@@ -187,6 +235,51 @@ export default function ScheduleManage() {
           </div>
         )}
       </section>
+
+      {/* 지난 스케줄 */}
+      {pastSchedules.length > 0 && (
+        <section className="section past-section">
+          <h2>지난 출근</h2>
+          <div className="schedule-list past">
+            {pastSchedules.slice(0, 5).map((schedule) => (
+              <div key={schedule.id} className="schedule-card past">
+                <div className="schedule-date">{formatDate(schedule.date)}</div>
+                <div className="schedule-details">
+                  <div className="store-name">{schedule.store?.name}</div>
+                  <div className="time">
+                    {schedule.start_time} - {schedule.end_time}
+                  </div>
+                </div>
+                <div className="schedule-meta">
+                  {!hasRated(schedule.id) ? (
+                    <button className="rate-btn" onClick={() => openRatingModal(schedule)}>
+                      가게 별점
+                    </button>
+                  ) : (
+                    <span className="rated-badge">평가완료</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {showRatingModal && selectedSchedule && (
+        <RatingModal
+          schedule={selectedSchedule}
+          raterId={user?.id || ''}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSelectedSchedule(null);
+          }}
+          onSuccess={() => {
+            setShowRatingModal(false);
+            setSelectedSchedule(null);
+            fetchData();
+          }}
+        />
+      )}
 
       {showAddModal && (
         <AddScheduleModal
@@ -349,6 +442,93 @@ function AddScheduleModal({
             disabled={!storeId || !date || submitting}
           >
             {submitting ? '신청 중...' : '신청하기'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 가게 별점 모달
+function RatingModal({
+  schedule,
+  raterId,
+  onClose,
+  onSuccess,
+}: {
+  schedule: Schedule;
+  raterId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+
+    const { error } = await supabase.from('ratings').insert({
+      schedule_id: schedule.id,
+      rater_id: raterId,
+      target_type: 'store',
+      target_store_id: schedule.store_id,
+      rating,
+      comment: comment || null,
+    });
+
+    setSubmitting(false);
+
+    if (error) {
+      alert('별점 등록 중 오류가 발생했습니다.');
+    } else {
+      onSuccess();
+    }
+  };
+
+  const ratingOptions = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>가게 별점</h2>
+        <p className="rating-target">{schedule.store?.name}에 별점을 주세요</p>
+
+        <div className="rating-select">
+          <div className="stars">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star ${rating >= star ? 'filled' : rating >= star - 0.5 ? 'half' : ''}`}
+                onClick={() => setRating(star)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+            {ratingOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}점
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>코멘트 (선택)</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="코멘트를 남겨주세요..."
+            rows={3}
+          />
+        </div>
+
+        <div className="modal-actions">
+          <button onClick={onClose} className="cancel-btn">취소</button>
+          <button onClick={handleSubmit} className="submit-btn" disabled={submitting}>
+            {submitting ? '등록 중...' : '별점 등록'}
           </button>
         </div>
       </div>

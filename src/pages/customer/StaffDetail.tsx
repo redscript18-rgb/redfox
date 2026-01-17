@@ -529,7 +529,11 @@ function ReservationModal({
     const end = parseInt(schedule.end_time.split(':')[0]);
 
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    // 로컬 시간 기준으로 오늘 날짜 계산
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
     const currentHour = now.getHours();
 
     for (let h = start; h < end; h++) {

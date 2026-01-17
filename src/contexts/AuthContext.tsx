@@ -63,11 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!isMounted) return;
 
+        console.log('Auth event:', event, 'Session:', !!session?.user);
+
         // 인증 이벤트 수신 시 초기화 완료 표시
         authInitializedRef.current = true;
         clearTimeout(timeoutId);
 
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        try {
           if (session?.user) {
             const profile = await fetchProfile(session.user.id);
             if (isMounted) {
@@ -75,13 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setLoading(false);
             }
           } else {
-            // 세션 없음
             if (isMounted) {
               setUser(null);
               setLoading(false);
             }
           }
-        } else if (event === 'SIGNED_OUT') {
+        } catch (err) {
+          console.error('Auth state change error:', err);
           if (isMounted) {
             setUser(null);
             setLoading(false);
@@ -125,16 +127,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // 5초 타임아웃 - 초기 로딩이 너무 오래 걸리면 강제로 해제
-    // signOut은 호출하지 않음 - 로그인 과정과 충돌 방지
-    timeoutId = setTimeout(() => {
+    // 3초 타임아웃 - 초기 로딩이 너무 오래 걸리면 강제로 해제하고 세션 정리
+    timeoutId = setTimeout(async () => {
       if (isMounted && !authInitializedRef.current) {
-        console.warn('인증 초기화 타임아웃 - 로딩 해제');
+        console.warn('인증 초기화 타임아웃 - 세션 정리 및 로딩 해제');
         authInitializedRef.current = true;
+        try {
+          await supabase.auth.signOut();
+        } catch {}
         setUser(null);
         setLoading(false);
       }
-    }, 5000);
+    }, 3000);
 
     initAuth();
 

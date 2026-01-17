@@ -99,6 +99,9 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/favorites" className="nav-link">
                 즐겨찾기
               </Link>
+              <Link to="/blocks" className="nav-link">
+                차단 관리
+              </Link>
             </>
           )}
           {user?.role === 'admin' && (
@@ -111,6 +114,9 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
               <Link to="/favorites" className="nav-link">
                 즐겨찾기
+              </Link>
+              <Link to="/blocks" className="nav-link">
+                차단 관리
               </Link>
             </>
           )}

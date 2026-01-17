@@ -37,6 +37,7 @@ import StoreManage from './pages/owner/StoreManage';
 
 // 공통 페이지
 import InviteAccept from './pages/common/InviteAccept';
+import BlockManage from './pages/common/BlockManage';
 
 import './App.css';
 
@@ -292,6 +293,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <StoreStats />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 공통: 차단 관리 (직원/관리자용) */}
+      <Route
+        path="/blocks"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <BlockManage />
             </Layout>
           </ProtectedRoute>
         }

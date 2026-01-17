@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import './StaffSearch.css';
 
@@ -27,9 +28,11 @@ interface StaffRating {
 }
 
 export default function StaffSearch() {
+  const { user } = useAuth();
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [scheduleMap, setScheduleMap] = useState<Record<string, Schedule>>({});
   const [ratingMap, setRatingMap] = useState<Record<string, StaffRating>>({});
+  const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +41,28 @@ export default function StaffSearch() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    if (user) {
+      fetchBlockedByStaff();
+    }
+  }, [user]);
+
+  const fetchBlockedByStaff = async () => {
+    if (!user) return;
+
+    try {
+      // 나를 차단한 직원 목록 조회
+      const { data } = await supabase
+        .from('blocks')
+        .select('blocker_id')
+        .eq('blocked_id', user.id);
+
+      if (data) {
+        setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
+      }
+    } catch {
+      // 차단 조회 실패해도 무시
+    }
+  };
 
   const fetchData = async () => {
     const today = new Date().toISOString().split('T')[0];
@@ -115,6 +139,9 @@ export default function StaffSearch() {
   // 필터링된 직원
   const filteredStaffs = staffList
     .filter((staff) => {
+      // 차단한 직원 제외
+      if (blockedByStaff.has(staff.id)) return false;
+
       const matchesSearch = staff.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());

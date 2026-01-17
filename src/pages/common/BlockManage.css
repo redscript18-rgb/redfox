@@ -1,0 +1,106 @@
+.block-manage {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.block-manage h1 {
+  margin: 0 0 8px 0;
+}
+
+.page-desc {
+  margin: 0 0 24px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.blocked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blocked-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  border-left: 4px solid #f44336;
+}
+
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.customer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.customer-details h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+}
+
+.customer-details .email {
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.customer-details .blocked-date {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.customer-details .reason {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #e65100;
+}
+
+.unblock-btn {
+  padding: 10px 20px;
+  background: #fff;
+  color: #f44336;
+  border: 1px solid #f44336;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.unblock-btn:hover {
+  background: #ffebee;
+}
+
+.empty-state {
+  padding: 60px;
+  text-align: center;
+  color: #888;
+  background: #f9f9f9;
+  border-radius: 12px;
+}

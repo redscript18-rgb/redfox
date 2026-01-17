@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './StoreList.css';
 
@@ -32,8 +33,10 @@ interface StoreRating {
 }
 
 export default function StoreList() {
+  const { user } = useAuth();
   const [stores, setStores] = useState<Store[]>([]);
   const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
+  const [blockedStoreIds, setBlockedStoreIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
@@ -41,7 +44,45 @@ export default function StoreList() {
 
   useEffect(() => {
     fetchStores();
-  }, []);
+    if (user) {
+      fetchBlockedStores();
+    }
+  }, [user]);
+
+  const fetchBlockedStores = async () => {
+    if (!user) return;
+
+    try {
+      // 나를 차단한 사람들 조회
+      const { data: blocksData } = await supabase
+        .from('blocks')
+        .select('blocker_id')
+        .eq('blocked_id', user.id);
+
+      if (!blocksData || blocksData.length === 0) return;
+
+      const blockerIds = blocksData.map(b => b.blocker_id);
+
+      // 차단한 사람들이 관련된 가게 조회 (직원 또는 관리자로서)
+      const { data: staffStores } = await supabase
+        .from('store_staff')
+        .select('store_id')
+        .in('staff_id', blockerIds);
+
+      const { data: adminStores } = await supabase
+        .from('store_admins')
+        .select('store_id')
+        .in('admin_id', blockerIds);
+
+      const blockedIds = new Set<number>();
+      staffStores?.forEach(s => blockedIds.add(s.store_id));
+      adminStores?.forEach(s => blockedIds.add(s.store_id));
+
+      setBlockedStoreIds(blockedIds);
+    } catch {
+      // 차단 조회 실패해도 무시
+    }
+  };
 
   const fetchStores = async () => {
     // 가게 목록 조회
@@ -113,6 +154,9 @@ export default function StoreList() {
   // 필터링 및 정렬된 가게 목록
   const filteredStores = stores
     .filter((store) => {
+      // 차단된 가게 제외
+      if (blockedStoreIds.has(store.id)) return false;
+
       const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         store.address.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = !filterType || store.store_type === filterType;

@@ -32,17 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 프로필 가져오기 (5초 타임아웃)
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
 
-      const { data, error } = await supabase
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
-        .abortSignal(controller.signal);
+        .single();
 
-      clearTimeout(timeoutId);
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as Awaited<typeof fetchPromise>;
 
       if (error) {
         console.error('프로필 조회 실패:', error);

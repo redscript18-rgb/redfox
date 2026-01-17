@@ -50,14 +50,12 @@ export default function Favorites() {
     if (!user) return;
 
     // 즐겨찾기한 가게 조회
-    const { data: storeFavs, error: storeError } = await supabase
+    const { data: storeFavs } = await supabase
       .from('favorites')
       .select('id, target_store_id')
       .eq('user_id', user.id)
       .eq('target_type', 'store')
       .not('target_store_id', 'is', null);
-
-    console.log('Store favs:', storeFavs, 'Error:', storeError);
 
     if (storeFavs && storeFavs.length > 0) {
       const storeIds = storeFavs.map(f => f.target_store_id).filter(Boolean);
@@ -65,8 +63,6 @@ export default function Favorites() {
         .from('stores')
         .select('id, name, address, store_type')
         .in('id', storeIds);
-
-      console.log('Stores data:', storesData);
 
       if (storesData) {
         const mapped = storeFavs.map(fav => {
@@ -78,32 +74,25 @@ export default function Favorites() {
     }
 
     // 즐겨찾기한 직원 조회
-    const { data: staffFavs, error: staffError } = await supabase
+    const { data: staffFavs } = await supabase
       .from('favorites')
       .select('id, target_staff_id')
       .eq('user_id', user.id)
       .eq('target_type', 'staff')
       .not('target_staff_id', 'is', null);
 
-    console.log('Staff favs:', staffFavs, 'Error:', staffError);
-
     if (staffFavs && staffFavs.length > 0) {
       const staffIds = staffFavs.map(f => f.target_staff_id).filter(Boolean);
-      console.log('Staff IDs to fetch:', staffIds);
-
-      const { data: staffData, error: profileError } = await supabase
+      const { data: staffData } = await supabase
         .from('profiles')
         .select('id, name, bio, specialties, profile_photo_url')
         .in('id', staffIds);
-
-      console.log('Staff data:', staffData, 'Error:', profileError);
 
       if (staffData) {
         const mapped = staffFavs.map(fav => {
           const staff = staffData.find(s => s.id === fav.target_staff_id);
           return staff ? { id: fav.id, staff } : null;
         }).filter((item): item is FavoriteStaff => item !== null);
-        console.log('Mapped staff:', mapped);
         setFavoriteStaff(mapped);
       }
     }

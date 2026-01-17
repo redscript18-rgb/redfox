@@ -76,14 +76,18 @@ export default function StoreDetail() {
 
   const fetchBlockedByStaff = async () => {
     if (!user) return;
-    // 나를 차단한 직원/관리자 목록 조회
-    const { data } = await supabase
-      .from('blocks')
-      .select('blocker_id')
-      .eq('blocked_id', user.id);
+    try {
+      // 나를 차단한 직원/관리자 목록 조회
+      const { data, error } = await supabase
+        .from('blocks')
+        .select('blocker_id')
+        .eq('blocked_id', user.id);
 
-    if (data) {
-      setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
+      if (!error && data) {
+        setBlockedByStaff(new Set(data.map(b => b.blocker_id)));
+      }
+    } catch {
+      // 블록 조회 실패해도 무시
     }
   };
 

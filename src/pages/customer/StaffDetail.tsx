@@ -105,15 +105,21 @@ export default function StaffDetail() {
   const checkBlocked = async () => {
     if (!user || !id) return;
 
-    // 이 직원이 나를 차단했는지 확인
-    const { data } = await supabase
-      .from('blocks')
-      .select('id')
-      .eq('blocker_id', id)
-      .eq('blocked_id', user.id)
-      .single();
+    try {
+      // 이 직원이 나를 차단했는지 확인
+      const { data, error } = await supabase
+        .from('blocks')
+        .select('id')
+        .eq('blocker_id', id)
+        .eq('blocked_id', user.id)
+        .maybeSingle();
 
-    setIsBlocked(!!data);
+      if (!error && data) {
+        setIsBlocked(true);
+      }
+    } catch {
+      // 블록 조회 실패해도 무시
+    }
   };
 
   const checkFavorite = async () => {

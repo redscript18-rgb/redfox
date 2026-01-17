@@ -19,9 +19,15 @@ interface Reservation {
   menu?: { name: string; price: number };
 }
 
+interface CustomerRating {
+  avgRating: number | null;
+  totalCount: number;
+}
+
 export default function ReservationManage() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [customerRatings, setCustomerRatings] = useState<Record<string, CustomerRating>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'all'>('pending');
   const today = new Date().toISOString().split('T')[0];
@@ -60,6 +66,38 @@ export default function ReservationManage() {
         .order('start_time', { ascending: true });
 
       setReservations(reservationsData || []);
+
+      // 손님별 평균 별점 조회
+      if (reservationsData && reservationsData.length > 0) {
+        const customerIds = [...new Set(reservationsData.map(r => r.customer_id))];
+        const { data: ratingsData } = await supabase
+          .from('ratings')
+          .select('target_profile_id, rating')
+          .in('target_profile_id', customerIds)
+          .eq('target_type', 'customer');
+
+        if (ratingsData) {
+          const ratingsByCustomer: Record<string, CustomerRating> = {};
+          const grouped: Record<string, number[]> = {};
+
+          ratingsData.forEach(r => {
+            if (!r.target_profile_id) return;
+            if (!grouped[r.target_profile_id]) {
+              grouped[r.target_profile_id] = [];
+            }
+            if (r.rating) grouped[r.target_profile_id].push(r.rating);
+          });
+
+          Object.entries(grouped).forEach(([customerId, ratings]) => {
+            ratingsByCustomer[customerId] = {
+              avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+              totalCount: ratings.length,
+            };
+          });
+
+          setCustomerRatings(ratingsByCustomer);
+        }
+      }
     }
 
     setLoading(false);
@@ -142,48 +180,68 @@ export default function ReservationManage() {
       </div>
 
       <div className="reservation-list">
-        {filteredReservations.map((reservation) => (
-          <div key={reservation.id} className={`reservation-card ${reservation.status}`}>
-            <div className="reservation-datetime">
-              <span className="date">{formatDate(reservation.date)}</span>
-              <span className="time">{reservation.start_time}</span>
-            </div>
-            <div className="reservation-info">
-              <div className="service-row">
-                <span className="menu-name">{reservation.menu?.name}</span>
-                <span className="price">{reservation.menu?.price?.toLocaleString()}원</span>
-              </div>
-              <div className="people-row">
-                <span className="customer">손님: {reservation.customer?.name || '고객'}</span>
-                <span className="staff">담당: {reservation.staff?.name}</span>
-              </div>
-              <div className="store-name">{reservation.store?.name}</div>
-            </div>
-            <div className="reservation-status">
-              {reservation.status === 'pending' ? (
-                <div className="action-buttons">
-                  <button
-                    className="confirm-btn"
-                    onClick={() => handleConfirm(reservation.id)}
-                  >
-                    확정
-                  </button>
-                  <button
-                    className="cancel-btn"
-                    onClick={() => handleCancel(reservation.id)}
-                  >
-                    취소
-                  </button>
+        {filteredReservations.map((reservation) => {
+          const customerRating = customerRatings[reservation.customer_id];
+          const isLowRating = customerRating?.avgRating !== null && customerRating?.avgRating < 3;
+          return (
+            <div key={reservation.id} className={`reservation-card ${reservation.status} ${isLowRating ? 'low-rating' : ''}`}>
+              <div className="card-header">
+                <div className="datetime-service">
+                  <div className="datetime">
+                    <span className="time">{reservation.start_time.slice(0, 5)}</span>
+                    <span className="date">{formatDate(reservation.date)}</span>
+                  </div>
+                  <div className="service">
+                    <span className="menu-name">{reservation.menu?.name}</span>
+                    <span className="price">{reservation.menu?.price?.toLocaleString()}원</span>
+                  </div>
                 </div>
-              ) : (
-                <span className={`status-badge ${reservation.status}`}>
-                  {reservation.status === 'confirmed' ? '확정' :
-                   reservation.status === 'cancelled' ? '취소됨' : reservation.status}
-                </span>
-              )}
+                <div className="actions">
+                  {reservation.status === 'pending' ? (
+                    <div className="action-buttons">
+                      <button
+                        className="confirm-btn"
+                        onClick={() => handleConfirm(reservation.id)}
+                      >
+                        확정
+                      </button>
+                      <button
+                        className="cancel-btn"
+                        onClick={() => handleCancel(reservation.id)}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  ) : (
+                    <span className={`status-badge ${reservation.status}`}>
+                      {reservation.status === 'confirmed' ? '확정' :
+                       reservation.status === 'cancelled' ? '취소됨' : reservation.status}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="card-body">
+                <div className="customer-info">
+                  <span className="label">손님</span>
+                  <span className="name">{reservation.customer?.name || '고객'}</span>
+                  {customerRating && customerRating.totalCount > 0 ? (
+                    <span className={`customer-rating ${isLowRating ? 'low' : ''}`}>
+                      <span className="star">★</span>
+                      {customerRating.avgRating?.toFixed(1)}
+                      <span className="count">({customerRating.totalCount})</span>
+                    </span>
+                  ) : (
+                    <span className="no-rating">평가 없음</span>
+                  )}
+                </div>
+                <div className="staff-store">
+                  <span className="staff">담당: {reservation.staff?.name}</span>
+                  <span className="store">{reservation.store?.name}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredReservations.length === 0 && (

@@ -129,6 +129,18 @@ function AppRoutes() {
         }
       />
 
+      {/* 공통: 즐겨찾기 (모든 역할) */}
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Favorites />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 직원용: 스케줄 관리 */}
       <Route
         path="/staff/schedule"

@@ -11,18 +11,68 @@ interface Staff {
   phone: string | null;
   bio: string | null;
   specialties: string[] | null;
+  profile_photo_url: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
 }
 
 export default function StaffManage() {
   const { user } = useAuth();
   const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [favoriteStaff, setFavoriteStaff] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchStaff();
+      fetchFavorites();
     }
   }, [user]);
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('favorites')
+      .select('target_staff_id')
+      .eq('user_id', user.id)
+      .eq('target_type', 'staff');
+
+    if (data) {
+      setFavoriteStaff(new Set(data.map(f => f.target_staff_id).filter(Boolean)));
+    }
+  };
+
+  const toggleFavorite = async (staffId: string) => {
+    if (!user) return;
+
+    const isFavorite = favoriteStaff.has(staffId);
+
+    if (isFavorite) {
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('target_type', 'staff')
+        .eq('target_staff_id', staffId);
+
+      setFavoriteStaff(prev => {
+        const next = new Set(prev);
+        next.delete(staffId);
+        return next;
+      });
+    } else {
+      await supabase
+        .from('favorites')
+        .insert({
+          user_id: user.id,
+          target_type: 'staff',
+          target_staff_id: staffId,
+        });
+
+      setFavoriteStaff(prev => new Set([...prev, staffId]));
+    }
+  };
 
   const fetchStaff = async () => {
     if (!user) return;
@@ -73,23 +123,45 @@ export default function StaffManage() {
       <div className="staff-list">
         {staffList.map((staff) => (
           <div key={staff.id} className="staff-card">
-            <div className="staff-avatar">{staff.name.charAt(0)}</div>
-            <div className="staff-info">
-              <div className="staff-header">
-                <h3>{staff.name}</h3>
+            <Link to={`/staff/${staff.id}`} className="staff-link">
+              <div className="staff-avatar">
+                {staff.profile_photo_url ? (
+                  <img src={staff.profile_photo_url} alt={staff.name} />
+                ) : (
+                  staff.name.charAt(0)
+                )}
               </div>
-              <p className="bio">{staff.bio || '소개 없음'}</p>
-              <div className="meta">
-                {staff.phone && <span className="phone">{staff.phone}</span>}
-              </div>
-              {staff.specialties && staff.specialties.length > 0 && (
-                <div className="specialties">
-                  {staff.specialties.map((s) => (
-                    <span key={s} className="specialty-tag">{s}</span>
-                  ))}
+              <div className="staff-info">
+                <div className="staff-header">
+                  <h3>{staff.name}</h3>
+                  <div className="profile-summary">
+                    {staff.age && <span>{staff.age}세</span>}
+                    {staff.height && <span>{staff.height}cm</span>}
+                    {staff.weight && <span>{staff.weight}kg</span>}
+                  </div>
                 </div>
-              )}
-            </div>
+                <p className="bio">{staff.bio || '소개 없음'}</p>
+                <div className="meta">
+                  {staff.phone && <span className="phone">{staff.phone}</span>}
+                </div>
+                {staff.specialties && staff.specialties.length > 0 && (
+                  <div className="specialties">
+                    {staff.specialties.map((s) => (
+                      <span key={s} className="specialty-tag">{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Link>
+            <button
+              className={`favorite-btn ${favoriteStaff.has(staff.id) ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                toggleFavorite(staff.id);
+              }}
+            >
+              {favoriteStaff.has(staff.id) ? '♥' : '♡'}
+            </button>
           </div>
         ))}
       </div>

@@ -29,10 +29,16 @@ type TabType = 'stores' | 'staff';
 
 export default function Favorites() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('stores');
+  // 역할에 따라 기본 탭 설정: 관리자는 직원탭, 나머지는 가게탭
+  const defaultTab: TabType = user?.role === 'admin' ? 'staff' : 'stores';
+  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [favoriteStores, setFavoriteStores] = useState<FavoriteStore[]>([]);
   const [favoriteStaff, setFavoriteStaff] = useState<FavoriteStaff[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 역할별 표시 가능한 탭
+  const canShowStores = user?.role === 'customer' || user?.role === 'staff';
+  const canShowStaff = user?.role === 'customer' || user?.role === 'admin';
 
   useEffect(() => {
     if (user) {
@@ -44,47 +50,51 @@ export default function Favorites() {
     if (!user) return;
 
     // 즐겨찾기한 가게 조회
-    const { data: storesData } = await supabase
+    const { data: storeFavs } = await supabase
       .from('favorites')
-      .select(`
-        id,
-        target_store_id,
-        stores:target_store_id(id, name, address, store_type)
-      `)
+      .select('id, target_store_id')
       .eq('user_id', user.id)
       .eq('target_type', 'store')
       .not('target_store_id', 'is', null);
 
-    if (storesData) {
-      const mapped = storesData
-        .filter((item): item is typeof item & { stores: NonNullable<typeof item.stores> } => item.stores !== null)
-        .map(item => ({
-          id: item.id,
-          store: item.stores as unknown as FavoriteStore['store'],
-        }));
-      setFavoriteStores(mapped);
+    if (storeFavs && storeFavs.length > 0) {
+      const storeIds = storeFavs.map(f => f.target_store_id).filter(Boolean);
+      const { data: storesData } = await supabase
+        .from('stores')
+        .select('id, name, address, store_type')
+        .in('id', storeIds);
+
+      if (storesData) {
+        const mapped = storeFavs.map(fav => {
+          const store = storesData.find(s => s.id === fav.target_store_id);
+          return store ? { id: fav.id, store } : null;
+        }).filter((item): item is FavoriteStore => item !== null);
+        setFavoriteStores(mapped);
+      }
     }
 
     // 즐겨찾기한 직원 조회
-    const { data: staffData } = await supabase
+    const { data: staffFavs } = await supabase
       .from('favorites')
-      .select(`
-        id,
-        target_staff_id,
-        profiles:target_staff_id(id, name, bio, specialties, profile_image_url)
-      `)
+      .select('id, target_staff_id')
       .eq('user_id', user.id)
       .eq('target_type', 'staff')
       .not('target_staff_id', 'is', null);
 
-    if (staffData) {
-      const mapped = staffData
-        .filter((item): item is typeof item & { profiles: NonNullable<typeof item.profiles> } => item.profiles !== null)
-        .map(item => ({
-          id: item.id,
-          staff: item.profiles as unknown as FavoriteStaff['staff'],
-        }));
-      setFavoriteStaff(mapped);
+    if (staffFavs && staffFavs.length > 0) {
+      const staffIds = staffFavs.map(f => f.target_staff_id).filter(Boolean);
+      const { data: staffData } = await supabase
+        .from('profiles')
+        .select('id, name, bio, specialties, profile_image_url')
+        .in('id', staffIds);
+
+      if (staffData) {
+        const mapped = staffFavs.map(fav => {
+          const staff = staffData.find(s => s.id === fav.target_staff_id);
+          return staff ? { id: fav.id, staff } : null;
+        }).filter((item): item is FavoriteStaff => item !== null);
+        setFavoriteStaff(mapped);
+      }
     }
 
     setLoading(false);
@@ -109,21 +119,25 @@ export default function Favorites() {
       <h1>즐겨찾기</h1>
 
       <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'stores' ? 'active' : ''}`}
-          onClick={() => setActiveTab('stores')}
-        >
-          가게 ({favoriteStores.length})
-        </button>
-        <button
-          className={`tab ${activeTab === 'staff' ? 'active' : ''}`}
-          onClick={() => setActiveTab('staff')}
-        >
-          직원 ({favoriteStaff.length})
-        </button>
+        {canShowStores && (
+          <button
+            className={`tab ${activeTab === 'stores' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stores')}
+          >
+            가게 ({favoriteStores.length})
+          </button>
+        )}
+        {canShowStaff && (
+          <button
+            className={`tab ${activeTab === 'staff' ? 'active' : ''}`}
+            onClick={() => setActiveTab('staff')}
+          >
+            직원 ({favoriteStaff.length})
+          </button>
+        )}
       </div>
 
-      {activeTab === 'stores' && (
+      {canShowStores && activeTab === 'stores' && (
         <div className="favorites-list">
           {favoriteStores.length > 0 ? (
             favoriteStores.map((fav) => (
@@ -150,7 +164,7 @@ export default function Favorites() {
         </div>
       )}
 
-      {activeTab === 'staff' && (
+      {canShowStaff && activeTab === 'staff' && (
         <div className="favorites-list">
           {favoriteStaff.length > 0 ? (
             favoriteStaff.map((fav) => (

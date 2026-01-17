@@ -96,6 +96,9 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/staff/availability" className="nav-link">
                 가용 시간
               </Link>
+              <Link to="/favorites" className="nav-link">
+                즐겨찾기
+              </Link>
             </>
           )}
           {user?.role === 'admin' && (
@@ -105,6 +108,9 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
               <Link to="/admin/work-requests" className="nav-link">
                 보낸 요청
+              </Link>
+              <Link to="/favorites" className="nav-link">
+                즐겨찾기
               </Link>
             </>
           )}

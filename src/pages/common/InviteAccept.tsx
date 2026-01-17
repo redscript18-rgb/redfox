@@ -125,12 +125,10 @@ export default function InviteAccept() {
 
     setAccepting(true);
 
-    // 1. store_admins에 추가
+    // 1. store_admins에 추가 (database function 사용)
     const { error: insertError } = await supabase
-      .from('store_admins')
-      .insert({
-        store_id: inviteData.storeId,
-        admin_id: user.id,
+      .rpc('accept_admin_invite', {
+        p_store_id: inviteData.storeId,
       });
 
     if (insertError) {

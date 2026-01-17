@@ -107,7 +107,6 @@ export default function StaffSearch() {
         });
       }
       setRatingMap(ratingsByStaff);
-    }
 
     setLoading(false);
   };

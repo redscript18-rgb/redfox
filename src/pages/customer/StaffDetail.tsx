@@ -152,11 +152,15 @@ export default function StaffDetail() {
     setDailyPhotos(photosData || []);
 
     // 직원 평균 별점 조회 (손님/관리자 분리)
-    const { data: ratingsData } = await supabase
+    const { data: ratingsData, error: ratingsError } = await supabase
       .from('ratings')
       .select('rating, service_rating, reservation_id, schedule_id')
       .eq('target_profile_id', id)
       .eq('target_type', 'staff');
+
+    if (ratingsError) {
+      console.warn('별점 조회 오류:', ratingsError.message);
+    }
 
     if (ratingsData && ratingsData.length > 0) {
       // 손님 평가 (reservation_id가 있는 것)

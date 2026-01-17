@@ -197,6 +197,24 @@
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.store-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.store-card.clickable:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.settings-link {
+  color: #007bff;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .store-card .store-info {

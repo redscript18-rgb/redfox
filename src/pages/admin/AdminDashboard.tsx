@@ -147,12 +147,13 @@ export default function AdminDashboard() {
             <p className="empty">관리하는 가게가 없습니다.</p>
           ) : (
             stores.map((store) => (
-              <div key={store.id} className="store-card">
+              <Link key={store.id} to={`/admin/store/${store.id}/settings`} className="store-card clickable">
                 <div className="store-info">
                   <h3>{store.name}</h3>
                   <p className="address">{store.address}</p>
                 </div>
-              </div>
+                <span className="settings-link">설정 →</span>
+              </Link>
             ))
           )}
         </div>

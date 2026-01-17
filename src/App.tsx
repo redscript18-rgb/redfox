@@ -27,6 +27,7 @@ import ScheduleApproval from './pages/admin/ScheduleApproval';
 import ReservationManage from './pages/admin/ReservationManage';
 import FindAvailableStaff from './pages/admin/FindAvailableStaff';
 import WorkRequestsSent from './pages/admin/WorkRequestsSent';
+import StoreSettings from './pages/admin/StoreSettings';
 
 // 사장용 페이지
 import OwnerDashboard from './pages/owner/OwnerDashboard';
@@ -230,6 +231,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <WorkRequestsSent />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 관리자용: 가게 설정 */}
+      <Route
+        path="/admin/store/:id/settings"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreSettings />
             </Layout>
           </ProtectedRoute>
         }

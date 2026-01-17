@@ -32,11 +32,40 @@
   box-shadow: var(--shadow-md);
 }
 
+.store-card .store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
 .store-card h2 {
-  margin: 0 0 var(--spacing-sm) 0;
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.store-card .rating-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #fff8e1;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f57c00;
+}
+
+.store-card .rating-badge .star {
+  color: #ffc107;
+}
+
+.store-card .rating-badge .count {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #999;
 }
 
 .store-card .address {

@@ -11,8 +11,14 @@ interface Store {
   staffCount?: number;
 }
 
+interface StoreRating {
+  avgRating: number | null;
+  ratingCount: number;
+}
+
 export default function StoreList() {
   const [stores, setStores] = useState<Store[]>([]);
+  const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,6 +54,35 @@ export default function StoreList() {
       );
 
       setStores(storesWithCounts);
+
+      // 가게별 평균 별점 조회 (손님 평가만 - reservation_id가 있는 것)
+      const { data: ratingsData } = await supabase
+        .from('ratings')
+        .select('target_store_id, rating, reservation_id')
+        .eq('target_type', 'store')
+        .not('reservation_id', 'is', null);
+
+      if (ratingsData) {
+        const ratingsByStore: Record<number, StoreRating> = {};
+        const grouped: Record<number, number[]> = {};
+
+        ratingsData.forEach((r) => {
+          if (!r.target_store_id || r.rating === null) return;
+          if (!grouped[r.target_store_id]) {
+            grouped[r.target_store_id] = [];
+          }
+          grouped[r.target_store_id].push(r.rating);
+        });
+
+        Object.entries(grouped).forEach(([storeId, ratings]) => {
+          ratingsByStore[Number(storeId)] = {
+            avgRating: ratings.reduce((a, b) => a + b, 0) / ratings.length,
+            ratingCount: ratings.length,
+          };
+        });
+
+        setRatingMap(ratingsByStore);
+      }
     }
 
     setLoading(false);
@@ -61,16 +96,28 @@ export default function StoreList() {
     <div className="store-list">
       <h1>가게 목록</h1>
       <div className="stores">
-        {stores.map((store) => (
-          <Link to={`/store/${store.id}`} key={store.id} className="store-card">
-            <h2>{store.name}</h2>
-            <p className="address">{store.address}</p>
-            <div className="store-info">
-              <span>메뉴 {store.menuCount}개</span>
-              <span>직원 {store.staffCount}명</span>
-            </div>
-          </Link>
-        ))}
+        {stores.map((store) => {
+          const storeRating = ratingMap[store.id];
+          return (
+            <Link to={`/store/${store.id}`} key={store.id} className="store-card">
+              <div className="store-header">
+                <h2>{store.name}</h2>
+                {storeRating && storeRating.ratingCount > 0 && (
+                  <span className="rating-badge">
+                    <span className="star">★</span>
+                    {storeRating.avgRating?.toFixed(1)}
+                    <span className="count">({storeRating.ratingCount})</span>
+                  </span>
+                )}
+              </div>
+              <p className="address">{store.address}</p>
+              <div className="store-info">
+                <span>메뉴 {store.menuCount}개</span>
+                <span>직원 {store.staffCount}명</span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

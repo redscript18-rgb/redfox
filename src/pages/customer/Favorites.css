@@ -1,61 +1,61 @@
 .favorites-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .favorites-page h1 {
-  margin: 0 0 20px 0;
-  font-size: 1.5rem;
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-2xl);
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 12px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tab {
-  padding: 10px 20px;
+  padding: var(--spacing-sm) var(--spacing-lg);
   border: none;
-  background: #f5f5f5;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
 }
 
 .tab:hover {
-  background: #e8e8e8;
+  background: var(--bg-tertiary);
 }
 
 .tab.active {
-  background: #007bff;
-  color: #fff;
+  background: var(--accent-primary);
+  color: white;
 }
 
 .favorites-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .favorite-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  transition: all 0.2s;
+  padding: var(--spacing-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
 }
 
 .favorite-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .favorite-info {
@@ -65,43 +65,43 @@
 }
 
 .favorite-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 1.1rem;
-  color: #333;
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-lg);
+  color: var(--text-primary);
 }
 
 .favorite-info .address {
   margin: 0;
-  font-size: 0.85rem;
-  color: #666;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .store-type-badge {
   display: inline-block;
-  padding: 2px 8px;
-  background: #e3f2fd;
-  color: #1976d2;
-  border-radius: 10px;
-  font-size: 0.75rem;
+  padding: 2px var(--spacing-sm);
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
   font-weight: 500;
-  margin-left: 8px;
+  margin-left: var(--spacing-sm);
 }
 
 .remove-btn {
   width: 40px;
   height: 40px;
   border: none;
-  background: #fff0f0;
-  border-radius: 50%;
-  font-size: 1.2rem;
+  background: var(--favorite-light);
+  border-radius: var(--radius-full);
+  font-size: var(--font-xl);
   cursor: pointer;
-  color: #ff6b6b;
-  transition: all 0.2s;
+  color: var(--favorite);
+  transition: all var(--transition-normal);
   flex-shrink: 0;
 }
 
 .remove-btn:hover {
-  background: #ffe0e0;
+  background: var(--error-light);
   transform: scale(1.1);
 }
 
@@ -109,19 +109,19 @@
 .staff-card .favorite-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .staff-avatar {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: var(--font-2xl);
   font-weight: 600;
   flex-shrink: 0;
   overflow: hidden;
@@ -134,13 +134,13 @@
 }
 
 .staff-details h3 {
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--spacing-xs) 0;
 }
 
 .staff-details .bio {
-  margin: 0 0 8px 0;
-  font-size: 0.85rem;
-  color: #666;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -149,20 +149,20 @@
 
 .specialties {
   display: flex;
-  gap: 6px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .specialty-tag {
-  padding: 3px 10px;
-  background: #fff3e0;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: #e65100;
+  padding: 3px var(--spacing-sm);
+  background: var(--warning-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-xs);
+  color: var(--warning);
 }
 
 .empty {
   text-align: center;
-  padding: 40px 20px;
-  color: #888;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  color: var(--text-muted);
 }

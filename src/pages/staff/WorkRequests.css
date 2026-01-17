@@ -1,21 +1,30 @@
 .work-requests {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
 }
 
 .page-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .page-header h1 {
@@ -23,174 +32,178 @@
 }
 
 .pending-badge {
-  padding: 4px 12px;
-  background: #ff9800;
-  color: #fff;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--warning);
+  color: white;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-sm);
 }
 
 /* 필터 탭 */
 .filter-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 .filter-tab {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  transition: all var(--transition-normal);
 }
 
 .filter-tab:hover {
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .filter-tab.active {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
 }
 
 /* 요청 리스트 */
 .request-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .request-card {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
-  border-left: 4px solid #ccc;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border-left: 4px solid var(--text-muted);
 }
 
 .request-card.status-pending {
-  border-left-color: #ff9800;
+  border-left-color: var(--warning);
 }
 
 .request-card.status-accepted {
-  border-left-color: #4caf50;
+  border-left-color: var(--success);
 }
 
 .request-card.status-rejected {
-  border-left-color: #f44336;
+  border-left-color: var(--error);
 }
 
 .request-card.status-cancelled {
-  border-left-color: #9e9e9e;
+  border-left-color: var(--text-muted);
 }
 
 .request-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
 }
 
 .store-name {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: var(--font-lg);
 }
 
 .status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.8rem;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-xs);
 }
 
 .status-badge.pending {
-  background: #fff3e0;
-  color: #e65100;
+  background: var(--warning-light);
+  color: var(--warning);
 }
 
 .status-badge.accepted {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--success-light);
+  color: var(--success);
 }
 
 .status-badge.rejected {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--error-light);
+  color: var(--error);
 }
 
 .status-badge.cancelled {
-  background: #f5f5f5;
-  color: #757575;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
 }
 
 .request-date {
-  font-size: 1rem;
+  font-size: var(--font-base);
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .request-time {
-  font-size: 0.95rem;
-  color: #666;
-  margin-bottom: 12px;
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
 }
 
 .request-message {
-  background: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+  background: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-sm);
 }
 
 .message-label {
   font-weight: 500;
-  margin-right: 8px;
+  margin-right: var(--spacing-sm);
 }
 
 .request-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  color: #999;
-  margin-bottom: 16px;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
 }
 
 .request-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   justify-content: flex-end;
 }
 
 .reject-btn {
-  padding: 10px 24px;
-  background: #fff;
-  border: 1px solid #f44336;
-  color: #f44336;
-  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--error);
+  color: var(--error);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
+  transition: background var(--transition-normal);
 }
 
 .reject-btn:hover {
-  background: #ffebee;
+  background: var(--error-light);
 }
 
 .accept-btn {
-  padding: 10px 24px;
-  background: #4caf50;
-  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--success);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
+  transition: background var(--transition-normal);
 }
 
 .accept-btn:hover {
-  background: #43a047;
+  background: var(--success);
+  filter: brightness(0.9);
 }
 
 .schedule-link {
@@ -198,9 +211,9 @@
 }
 
 .schedule-link a {
-  color: #007bff;
+  color: var(--accent-primary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
 }
 
 .schedule-link a:hover {
@@ -209,22 +222,22 @@
 
 /* 빈 상태 */
 .empty-state {
-  padding: 60px 40px;
-  background: #f9f9f9;
-  border-radius: 12px;
+  padding: var(--spacing-2xl) var(--spacing-2xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
   text-align: center;
 }
 
 .empty-state p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 반응형 */
 @media (max-width: 480px) {
   .request-meta {
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-xs);
   }
 
   .request-actions {

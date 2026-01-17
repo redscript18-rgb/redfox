@@ -1,21 +1,30 @@
 .staff-manage {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .page-header h1 {
@@ -23,65 +32,66 @@
 }
 
 .add-btn {
-  padding: 10px 20px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: var(--font-base);
+  transition: background var(--transition-normal);
 }
 
 .add-btn:hover {
-  background: #0056b3;
+  background: var(--accent-hover);
 }
 
 .filters {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .filters select {
-  padding: 10px 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: var(--spacing-sm) 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
   min-width: 180px;
 }
 
 .staff-count {
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
 }
 
 /* 직원 카드 */
 .staff-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .staff-card {
   display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   position: relative;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
 }
 
 .staff-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
 }
 
 .staff-link {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-md);
   flex: 1;
   text-decoration: none;
   color: inherit;
@@ -90,9 +100,9 @@
 .staff-avatar {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,40 +120,40 @@
 
 .profile-summary {
   display: flex;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: #888;
+  gap: var(--spacing-sm);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 .profile-summary span {
-  padding: 2px 8px;
-  background: #f5f5f5;
-  border-radius: 10px;
+  padding: 2px var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
 }
 
 .favorite-btn {
   width: 40px;
   height: 40px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: var(--radius-full);
   font-size: 1.3rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
   flex-shrink: 0;
-  color: #ccc;
+  color: var(--text-muted);
   align-self: center;
 }
 
 .favorite-btn:hover {
-  border-color: #ff6b6b;
-  color: #ff6b6b;
+  border-color: var(--favorite);
+  color: var(--favorite);
 }
 
 .favorite-btn.active {
-  background: #fff0f0;
-  border-color: #ff6b6b;
-  color: #ff6b6b;
+  background: var(--favorite-light);
+  border-color: var(--favorite);
+  color: var(--favorite);
 }
 
 .staff-info {
@@ -153,89 +163,89 @@
 .staff-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 .staff-header h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--font-lg);
 }
 
 .working-badge {
-  padding: 3px 10px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 3px var(--spacing-sm);
+  background: var(--success-light);
+  color: var(--success);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-xs);
   font-weight: 500;
 }
 
 .staff-info .bio {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  color: #666;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .meta {
   display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  color: #888;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-sm);
+  color: var(--text-muted);
 }
 
 .specialties {
   display: flex;
-  gap: 6px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .specialty-tag {
-  padding: 4px 10px;
-  background: #fff3e0;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: #e65100;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--warning-light);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-xs);
+  color: var(--warning);
 }
 
 .staff-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .edit-btn,
 .schedule-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   min-width: 80px;
 }
 
 .edit-btn {
-  background: #fff;
-  border: 1px solid #ddd;
-  color: #333;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .edit-btn:hover {
-  background: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .schedule-btn {
-  background: #e3f2fd;
+  background: var(--info-light);
   border: none;
-  color: #1565c0;
+  color: var(--accent-primary);
 }
 
 .schedule-btn:hover {
-  background: #bbdefb;
+  background: var(--accent-light);
 }
 
 .empty-state {
-  padding: 60px;
+  padding: var(--spacing-2xl);
   text-align: center;
-  color: #888;
+  color: var(--text-muted);
 }

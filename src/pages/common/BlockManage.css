@@ -1,106 +1,115 @@
 .block-manage {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
 }
 
 .block-manage h1 {
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .page-desc {
-  margin: 0 0 24px 0;
-  color: #666;
-  font-size: 0.9rem;
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
 }
 
 .blocked-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .blocked-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  border-left: 4px solid #f44336;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--error);
 }
 
 .customer-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .customer-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: #f5f5f5;
-  color: #666;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: var(--font-xl);
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .customer-details h3 {
-  margin: 0 0 4px 0;
-  font-size: 1rem;
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-base);
 }
 
 .customer-details .email {
-  margin: 0 0 4px 0;
-  font-size: 0.85rem;
-  color: #666;
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .customer-details .blocked-date {
   margin: 0;
-  font-size: 0.8rem;
-  color: #999;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 .customer-details .reason {
-  margin: 4px 0 0 0;
-  font-size: 0.85rem;
-  color: #e65100;
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-sm);
+  color: var(--warning);
 }
 
 .unblock-btn {
-  padding: 10px 20px;
-  background: #fff;
-  color: #f44336;
-  border: 1px solid #f44336;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--bg-primary);
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
   flex-shrink: 0;
 }
 
 .unblock-btn:hover {
-  background: #ffebee;
+  background: var(--error-light);
 }
 
 .empty-state {
-  padding: 60px;
+  padding: var(--spacing-2xl);
   text-align: center;
-  color: #888;
-  background: #f9f9f9;
-  border-radius: 12px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
 }

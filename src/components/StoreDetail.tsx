@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './StoreDetail.css';
@@ -53,6 +53,7 @@ export default function StoreDetail() {
   const { id } = useParams<{ id: string }>();
   const storeId = Number(id);
   const { user } = useAuth();
+  const location = useLocation();
 
   const [store, setStore] = useState<Store | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -72,7 +73,7 @@ export default function StoreDetail() {
       checkFavorite();
       fetchBlockedByStaff();
     }
-  }, [storeId, user]);
+  }, [storeId, user, location.key]);
 
   const fetchBlockedByStaff = async () => {
     if (!user) return;
@@ -100,7 +101,7 @@ export default function StoreDetail() {
       .eq('user_id', user.id)
       .eq('target_type', 'store')
       .eq('target_store_id', storeId)
-      .single();
+      .maybeSingle();
 
     setIsFavorite(!!data);
   };

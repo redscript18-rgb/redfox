@@ -1,55 +1,60 @@
 .profile-manage {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .back-link:hover {
-  text-decoration: underline;
+  color: var(--accent-hover);
 }
 
 .profile-manage h1 {
-  margin: 0 0 24px 0;
-  font-size: 1.5rem;
-  color: #333;
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-2xl);
+  color: var(--text-primary);
 }
 
 .section {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .section h2 {
-  margin: 0 0 12px 0;
-  font-size: 1.1rem;
-  color: #333;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-lg);
+  color: var(--text-primary);
 }
 
 .section-desc {
-  margin: 0 0 16px 0;
-  font-size: 0.85rem;
-  color: #666;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 /* 프로필 사진 */
 .profile-photo-section {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--spacing-lg);
 }
 
 .profile-photo-preview {
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   overflow: hidden;
-  background: #f0f0f0;
+  background: var(--bg-tertiary);
   flex-shrink: 0;
 }
 
@@ -65,8 +70,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: var(--accent-primary);
+  color: white;
   font-size: 2.5rem;
   font-weight: 600;
 }
@@ -74,68 +79,68 @@
 .profile-photo-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .upload-btn {
-  padding: 10px 20px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-normal);
 }
 
 .upload-btn:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--accent-hover);
 }
 
 .upload-btn:disabled {
-  background: #ccc;
+  background: var(--text-muted);
   cursor: not-allowed;
 }
 
 .upload-hint {
   margin: 0;
-  font-size: 0.75rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 /* 자기소개 */
 .bio-input {
   width: 100%;
   padding: 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
   resize: vertical;
   font-family: inherit;
 }
 
 .bio-input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 /* 전문 분야 태그 */
 .specialty-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .specialty-tag {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #fff3e0;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  color: #e65100;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--warning-light);
+  border-radius: var(--radius-full);
+  font-size: var(--font-sm);
+  color: var(--warning);
 }
 
 .specialty-tag .remove-btn {
@@ -146,128 +151,128 @@
   height: 20px;
   padding: 0;
   border: none;
-  background: rgba(230, 81, 0, 0.2);
-  border-radius: 50%;
-  color: #e65100;
-  font-size: 1rem;
+  background: rgba(217, 119, 6, 0.2);
+  border-radius: var(--radius-full);
+  color: var(--warning);
+  font-size: var(--font-base);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-normal);
 }
 
 .specialty-tag .remove-btn:hover {
-  background: rgba(230, 81, 0, 0.4);
+  background: rgba(217, 119, 6, 0.4);
 }
 
 /* 새 전문 분야 추가 */
 .add-specialty {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .specialty-input {
   flex: 1;
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: var(--spacing-md) 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
 }
 
 .specialty-input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .add-btn {
-  padding: 12px 20px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-normal);
 }
 
 .add-btn:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--accent-hover);
 }
 
 .add-btn:disabled {
-  background: #ccc;
+  background: var(--text-muted);
   cursor: not-allowed;
 }
 
 .empty {
-  color: #888;
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: var(--font-sm);
 }
 
 /* 저장 버튼 */
 .actions {
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-  margin-bottom: 32px;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-xl);
 }
 
 .save-btn {
   width: 100%;
   padding: 14px;
-  background: #007bff;
-  color: #fff;
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-normal);
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--accent-hover);
 }
 
 .save-btn:disabled {
-  background: #ccc;
+  background: var(--text-muted);
   cursor: not-allowed;
 }
 
 /* 일별 사진 */
 .daily-photos-section {
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
 }
 
 .daily-photo-upload {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 .caption-input {
   flex: 1;
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: var(--spacing-md) 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
 }
 
 .caption-input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .daily-photos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .daily-photo-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .daily-photo-card img {
@@ -277,19 +282,19 @@
 }
 
 .daily-photo-card .photo-info {
-  padding: 10px;
+  padding: var(--spacing-sm);
 }
 
 .daily-photo-card .photo-date {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 .daily-photo-card .photo-caption {
   display: block;
-  margin-top: 4px;
-  font-size: 0.85rem;
-  color: #333;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -297,17 +302,17 @@
 
 .daily-photo-card .delete-photo-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px 10px;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-normal);
 }
 
 .daily-photo-card:hover .delete-photo-btn {
@@ -319,45 +324,45 @@
 }
 
 .limit-reached {
-  padding: 12px 16px;
-  background: #fff3cd;
-  color: #856404;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-bottom: 16px;
+  padding: var(--spacing-md) var(--spacing-md);
+  background: var(--warning-light);
+  color: var(--warning);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 /* 프로필 상세 정보 */
 .profile-details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .form-field label {
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   font-weight: 500;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .form-field input[type="text"],
 .form-field input[type="number"] {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
 }
 
 .form-field input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .form-field.full-width,
@@ -367,14 +372,14 @@
 
 .radio-group {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .radio-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.95rem;
+  gap: var(--spacing-sm);
+  font-size: var(--font-base);
   cursor: pointer;
 }
 

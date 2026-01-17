@@ -1,73 +1,82 @@
 .store-stats {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
 }
 
 .store-header {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .store-header h1 {
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--spacing-xs) 0;
 }
 
 .store-header .address {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .error {
-  padding: 40px;
+  padding: var(--spacing-2xl);
   text-align: center;
-  color: #888;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
 }
 
 .section {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .section h2 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-lg);
 }
 
 /* 요약 카드 */
 .summary-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .summary-item {
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  padding: var(--spacing-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   text-align: center;
 }
 
 .summary-item.highlight {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
+  color: white;
   border: none;
 }
 
 .summary-item .label {
   display: block;
-  font-size: 0.85rem;
-  color: #888;
-  margin-bottom: 6px;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
 }
 
 .summary-item.highlight .label {
@@ -86,10 +95,10 @@
   justify-content: space-between;
   align-items: flex-end;
   height: 200px;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  padding: var(--spacing-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
 }
 
 .day-column {
@@ -110,48 +119,48 @@
 
 .bar {
   width: 36px;
-  background: #e0e0e0;
-  border-radius: 4px 4px 0 0;
+  background: var(--border-color);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   min-height: 4px;
   transition: height 0.3s;
 }
 
 .bar.today {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, var(--accent-primary) 0%, #764ba2 100%);
 }
 
 .day-label {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #666;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .day-revenue {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 /* 통계 테이블 */
 .stats-table {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .table-header {
   display: flex;
-  padding: 12px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 0.85rem;
-  color: #666;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .table-row {
   display: flex;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .table-row:last-child {
@@ -166,8 +175,8 @@
 }
 
 .col-name small {
-  font-size: 0.8rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
 }
 
 .col-count {
@@ -179,23 +188,23 @@
   flex: 1;
   text-align: right;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 예약 목록 */
 .reservation-list {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .reservation-item {
   display: flex;
   align-items: center;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f0f0f0;
-  gap: 16px;
+  padding: 14px var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  gap: var(--spacing-md);
 }
 
 .reservation-item:last-child {
@@ -213,32 +222,32 @@
 
 .reservation-item .staff {
   min-width: 80px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .reservation-item .status {
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-xs);
 }
 
 .reservation-item .status.confirmed {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--success-light);
+  color: var(--success);
 }
 
 .reservation-item .status.pending {
-  background: #fff3e0;
-  color: #e65100;
+  background: var(--warning-light);
+  color: var(--warning);
 }
 
 .empty {
-  padding: 40px;
+  padding: var(--spacing-2xl);
   text-align: center;
-  color: #888;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
 }
 
 @media (max-width: 768px) {

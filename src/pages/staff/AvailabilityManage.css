@@ -1,21 +1,30 @@
 .availability-manage {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .back-link {
-  display: inline-block;
-  margin-bottom: 20px;
-  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
 }
 
 .page-header h1 {
@@ -23,49 +32,50 @@
 }
 
 .page-desc {
-  color: #666;
-  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-lg) 0;
 }
 
 .add-btn {
-  padding: 10px 20px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: var(--font-base);
+  transition: background var(--transition-normal);
 }
 
 .add-btn:hover {
-  background: #0056b3;
+  background: var(--accent-hover);
 }
 
 /* 주간 그리드 */
 .week-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .day-column {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .day-header {
-  background: #f5f5f5;
-  padding: 12px;
+  background: var(--bg-secondary);
+  padding: var(--spacing-md);
   text-align: center;
   font-weight: 600;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .time-slots {
-  padding: 12px;
+  padding: var(--spacing-md);
   min-height: 100px;
 }
 
@@ -73,68 +83,69 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
-  background: #e3f2fd;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
+  padding: var(--spacing-sm) var(--spacing-sm);
+  background: var(--info-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-sm);
 }
 
 .time-slot .time {
-  color: #1565c0;
+  color: var(--accent-primary);
 }
 
 .time-slot .delete-btn {
   width: 20px;
   height: 20px;
   padding: 0;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
-  color: #666;
+  color: var(--text-secondary);
+  transition: all var(--transition-normal);
 }
 
 .time-slot .delete-btn:hover {
-  background: #ffebee;
-  border-color: #f44336;
-  color: #f44336;
+  background: var(--error-light);
+  border-color: var(--error);
+  color: var(--error);
 }
 
 .empty-slot {
-  color: #999;
-  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-size: var(--font-sm);
   text-align: center;
-  padding: 20px 0;
+  padding: var(--spacing-lg) 0;
 }
 
 /* 섹션 */
 .section {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .section h2 {
-  margin: 0 0 16px 0;
-  font-size: 1.2rem;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-xl);
 }
 
 /* 가용 시간 리스트 */
 .availability-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .availability-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-md);
   padding: 14px 18px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .day-badge {
@@ -143,50 +154,51 @@
   height: 32px;
   line-height: 32px;
   text-align: center;
-  background: #007bff;
-  color: #fff;
-  border-radius: 50%;
+  background: var(--accent-primary);
+  color: white;
+  border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
 }
 
 .time-range {
   flex: 1;
-  font-size: 0.95rem;
+  font-size: var(--font-base);
 }
 
 .delete-btn-text {
-  padding: 6px 14px;
-  background: #fff;
-  border: 1px solid #f44336;
-  color: #f44336;
-  border-radius: 6px;
+  padding: var(--spacing-sm) 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--error);
+  color: var(--error);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
+  transition: background var(--transition-normal);
 }
 
 .delete-btn-text:hover {
-  background: #ffebee;
+  background: var(--error-light);
 }
 
 .empty-state {
-  padding: 40px;
-  background: #f9f9f9;
-  border-radius: 12px;
+  padding: var(--spacing-2xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
   text-align: center;
 }
 
 .empty-state p {
-  margin: 0 0 16px 0;
-  color: #666;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-secondary);
 }
 
 .action-btn {
-  padding: 12px 24px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
@@ -205,9 +217,9 @@
 }
 
 .modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 30px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
@@ -215,31 +227,36 @@
 }
 
 .modal h2 {
-  margin: 0 0 24px 0;
+  margin: 0 0 var(--spacing-lg) 0;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .form-group select {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
 }
 
 .form-row {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .form-row .form-group {
@@ -249,59 +266,64 @@
 /* 요일 버튼 */
 .day-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .day-btn {
   width: 44px;
   height: 44px;
-  border: 2px solid #ddd;
-  background: #fff;
-  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
 }
 
 .day-btn:hover {
-  border-color: #007bff;
+  border-color: var(--accent-primary);
 }
 
 .day-btn.selected {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
 }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: var(--spacing-lg);
 }
 
 .modal .cancel-btn {
-  padding: 12px 24px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 8px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .submit-btn {
-  padding: 12px 24px;
-  background: #007bff;
-  color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--accent-primary);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.submit-btn:hover {
+  background: var(--accent-hover);
 }
 
 .submit-btn:disabled {
-  background: #ccc;
+  background: var(--text-muted);
   cursor: not-allowed;
 }
 

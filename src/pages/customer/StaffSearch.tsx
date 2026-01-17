@@ -10,6 +10,10 @@ interface Staff {
   bio: string | null;
   specialties: string[] | null;
   profile_photo_url: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  body_size: string | null;
 }
 
 interface Schedule {
@@ -70,7 +74,7 @@ export default function StaffSearch() {
     // 직원 목록 조회 (staff role)
     const { data: staffData } = await supabase
       .from('profiles')
-      .select('id, name, bio, specialties, profile_photo_url')
+      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size')
       .eq('role', 'staff');
 
     setStaffList(staffData || []);
@@ -230,6 +234,14 @@ export default function StaffSearch() {
                     </span>
                   )}
                 </div>
+                {(staff.age || staff.height || staff.weight || staff.body_size) && (
+                  <div className="staff-stats">
+                    {staff.age && <span>{staff.age}세</span>}
+                    {staff.height && <span>{staff.height}cm</span>}
+                    {staff.weight && <span>{staff.weight}kg</span>}
+                    {staff.body_size && <span>{staff.body_size}컵</span>}
+                  </div>
+                )}
                 {staff.bio && <p className="bio">{staff.bio}</p>}
                 {staff.specialties && (
                   <div className="specialties">

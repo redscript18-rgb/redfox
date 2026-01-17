@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import './StaffDetail.css';
@@ -76,6 +76,7 @@ const getLocalToday = () => {
 export default function StaffDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const location = useLocation();
   const [staff, setStaff] = useState<Staff | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [affiliatedStores, setAffiliatedStores] = useState<Store[]>([]);
@@ -100,7 +101,7 @@ export default function StaffDetail() {
         checkBlocked();
       }
     }
-  }, [id, user]);
+  }, [id, user, location.key]);
 
   const checkBlocked = async () => {
     if (!user || !id) return;
@@ -131,7 +132,7 @@ export default function StaffDetail() {
       .eq('user_id', user.id)
       .eq('target_type', 'staff')
       .eq('target_staff_id', id)
-      .single();
+      .maybeSingle();
 
     setIsFavorite(!!data);
   };
@@ -321,6 +322,15 @@ export default function StaffDetail() {
               {isFavorite ? '♥' : '♡'}
             </button>
           </div>
+          {/* 기본 스펙 요약 */}
+          {(staff.age || staff.height || staff.weight || staff.body_size) && (
+            <div className="quick-stats">
+              {staff.age && <span className="stat">{staff.age}세</span>}
+              {staff.height && <span className="stat">{staff.height}cm</span>}
+              {staff.weight && <span className="stat">{staff.weight}kg</span>}
+              {staff.body_size && <span className="stat">{staff.body_size}컵</span>}
+            </div>
+          )}
           {(staffRating.customerCount > 0 || staffRating.adminCount > 0) && (
             <div className="rating-display">
               {staffRating.customerCount > 0 && (
@@ -365,80 +375,72 @@ export default function StaffDetail() {
       </div>
 
       {/* 프로필 상세 정보 */}
-      {(staff.age || staff.height || staff.weight || staff.body_size || staff.personality || staff.style || staff.skin_tone || staff.hair_length || staff.hair_style || staff.hair_color) && (
+      {(staff.skin_tone || staff.hair_length || staff.hair_style || staff.hair_color || staff.is_waxed !== null || staff.is_smoker !== null || staff.personality || staff.style) && (
         <section className="section profile-details-section">
-          <h2>프로필</h2>
-          <div className="profile-details-info">
-            {staff.age && (
-              <div className="detail-item">
-                <span className="detail-label">나이</span>
-                <span className="detail-value">{staff.age}세</span>
+          <h2>상세 프로필</h2>
+          <div className="profile-details-grid">
+            {/* 외모 정보 */}
+            {(staff.skin_tone || staff.hair_length || staff.hair_style || staff.hair_color || staff.is_waxed !== null) && (
+              <div className="detail-group">
+                <h3 className="detail-group-title">외모</h3>
+                <div className="detail-items">
+                  {staff.skin_tone && (
+                    <div className="detail-item">
+                      <span className="detail-label">피부톤</span>
+                      <span className="detail-value">{staff.skin_tone}</span>
+                    </div>
+                  )}
+                  {staff.hair_length && (
+                    <div className="detail-item">
+                      <span className="detail-label">머리길이</span>
+                      <span className="detail-value">{staff.hair_length}</span>
+                    </div>
+                  )}
+                  {staff.hair_style && (
+                    <div className="detail-item">
+                      <span className="detail-label">헤어스타일</span>
+                      <span className="detail-value">{staff.hair_style}</span>
+                    </div>
+                  )}
+                  {staff.hair_color && (
+                    <div className="detail-item">
+                      <span className="detail-label">머리색</span>
+                      <span className="detail-value">{staff.hair_color}</span>
+                    </div>
+                  )}
+                  {staff.is_waxed !== null && (
+                    <div className="detail-item">
+                      <span className="detail-label">왁싱</span>
+                      <span className="detail-value">{staff.is_waxed ? '함' : '안함'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-            {staff.height && (
-              <div className="detail-item">
-                <span className="detail-label">키</span>
-                <span className="detail-value">{staff.height}cm</span>
-              </div>
-            )}
-            {staff.weight && (
-              <div className="detail-item">
-                <span className="detail-label">몸무게</span>
-                <span className="detail-value">{staff.weight}kg</span>
-              </div>
-            )}
-            {staff.body_size && (
-              <div className="detail-item">
-                <span className="detail-label">B-Size</span>
-                <span className="detail-value">{staff.body_size}</span>
-              </div>
-            )}
-            {staff.skin_tone && (
-              <div className="detail-item">
-                <span className="detail-label">피부톤</span>
-                <span className="detail-value">{staff.skin_tone}</span>
-              </div>
-            )}
-            {staff.hair_length && (
-              <div className="detail-item">
-                <span className="detail-label">머리길이</span>
-                <span className="detail-value">{staff.hair_length}</span>
-              </div>
-            )}
-            {staff.hair_style && (
-              <div className="detail-item">
-                <span className="detail-label">헤어스타일</span>
-                <span className="detail-value">{staff.hair_style}</span>
-              </div>
-            )}
-            {staff.hair_color && (
-              <div className="detail-item">
-                <span className="detail-label">머리색</span>
-                <span className="detail-value">{staff.hair_color}</span>
-              </div>
-            )}
-            {staff.is_waxed !== null && (
-              <div className="detail-item">
-                <span className="detail-label">왁싱</span>
-                <span className="detail-value">{staff.is_waxed ? '함' : '안함'}</span>
-              </div>
-            )}
-            {staff.is_smoker !== null && (
-              <div className="detail-item">
-                <span className="detail-label">흡연</span>
-                <span className="detail-value">{staff.is_smoker ? '흡연' : '비흡연'}</span>
-              </div>
-            )}
-            {staff.personality && (
-              <div className="detail-item">
-                <span className="detail-label">성격</span>
-                <span className="detail-value">{staff.personality}</span>
-              </div>
-            )}
-            {staff.style && (
-              <div className="detail-item">
-                <span className="detail-label">스타일</span>
-                <span className="detail-value">{staff.style}</span>
+            {/* 성격 & 스타일 */}
+            {(staff.personality || staff.style || staff.is_smoker !== null) && (
+              <div className="detail-group">
+                <h3 className="detail-group-title">성격 & 스타일</h3>
+                <div className="detail-items">
+                  {staff.personality && (
+                    <div className="detail-item">
+                      <span className="detail-label">성격</span>
+                      <span className="detail-value">{staff.personality}</span>
+                    </div>
+                  )}
+                  {staff.style && (
+                    <div className="detail-item">
+                      <span className="detail-label">스타일</span>
+                      <span className="detail-value">{staff.style}</span>
+                    </div>
+                  )}
+                  {staff.is_smoker !== null && (
+                    <div className="detail-item">
+                      <span className="detail-label">흡연</span>
+                      <span className="detail-value">{staff.is_smoker ? '흡연' : '비흡연'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

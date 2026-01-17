@@ -122,6 +122,22 @@
   margin-bottom: 4px;
 }
 
+.staff-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.staff-stats span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  padding: 2px 8px;
+  background: var(--accent-light);
+  border-radius: var(--radius-sm);
+}
+
 .staff-info h3 {
   margin: 0;
   font-size: 0.95rem;
@@ -134,15 +150,15 @@
   align-items: center;
   gap: 2px;
   padding: 2px 8px;
-  background: #fff8e1;
+  background: var(--rating-bg);
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: var(--font-xs);
   font-weight: 600;
-  color: #f59e0b;
+  color: var(--rating-star);
 }
 
 .rating-badge .star {
-  color: #ffc107;
+  color: var(--rating-star);
 }
 
 .staff-info .bio {

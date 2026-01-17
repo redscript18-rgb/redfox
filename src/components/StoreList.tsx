@@ -20,6 +20,7 @@ export default function StoreList() {
   const [stores, setStores] = useState<Store[]>([]);
   const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
 
   useEffect(() => {
     fetchStores();
@@ -92,11 +93,36 @@ export default function StoreList() {
     return <div className="store-list"><p>로딩 중...</p></div>;
   }
 
+  // 정렬된 가게 목록
+  const sortedStores = [...stores].sort((a, b) => {
+    if (sortBy === 'rating') {
+      const ratingA = ratingMap[a.id]?.avgRating ?? 0;
+      const ratingB = ratingMap[b.id]?.avgRating ?? 0;
+      return ratingB - ratingA;
+    } else if (sortBy === 'reviewCount') {
+      const countA = ratingMap[a.id]?.ratingCount ?? 0;
+      const countB = ratingMap[b.id]?.ratingCount ?? 0;
+      return countB - countA;
+    }
+    return a.name.localeCompare(b.name, 'ko');
+  });
+
   return (
     <div className="store-list">
-      <h1>가게 목록</h1>
+      <div className="list-header">
+        <h1>가게 목록</h1>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
+          className="sort-select"
+        >
+          <option value="name">이름순</option>
+          <option value="rating">별점순</option>
+          <option value="reviewCount">리뷰 많은순</option>
+        </select>
+      </div>
       <div className="stores">
-        {stores.map((store) => {
+        {sortedStores.map((store) => {
           const storeRating = ratingMap[store.id];
           return (
             <Link to={`/store/${store.id}`} key={store.id} className="store-card">

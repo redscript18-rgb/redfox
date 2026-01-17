@@ -10,14 +10,16 @@ export default function CustomerHome() {
 
   return (
     <div className="customer-home">
-      <h1 className="page-title">
-        {activeTab === 'staff' ? '직원 찾기' : '가게 목록'}
-      </h1>
-      <p className="page-subtitle">
-        {activeTab === 'staff'
-          ? '원하는 직원을 찾아 예약하세요'
-          : '가게를 둘러보고 방문하세요'}
-      </p>
+      <div className="page-header">
+        <h1 className="page-title">
+          {activeTab === 'staff' ? '직원 찾기' : '가게 목록'}
+        </h1>
+        <p className="page-subtitle">
+          {activeTab === 'staff'
+            ? '원하는 직원을 찾아 예약하세요'
+            : '가게를 둘러보고 방문하세요'}
+        </p>
+      </div>
 
       <div className="tabs">
         <button

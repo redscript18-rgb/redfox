@@ -2,6 +2,10 @@
   padding: 0;
 }
 
+.page-header {
+  margin-bottom: 24px;
+}
+
 .page-title {
   font-size: 24px;
   font-weight: 700;
@@ -12,55 +16,52 @@
 .page-subtitle {
   font-size: 14px;
   color: #666;
-  margin: 0 0 20px 0;
+  margin: 0;
 }
 
 .tabs {
-  display: flex;
-  gap: 8px;
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
   margin-bottom: 24px;
-  border-bottom: 1px solid #e5e5e5;
-  padding-bottom: 0;
 }
 
 .tab {
-  padding: 12px 20px;
+  padding: 10px 24px;
   border: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: #888;
+  color: #6b7280;
   cursor: pointer;
-  position: relative;
-  transition: color 0.2s;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .tab:hover {
-  color: #333;
+  color: #374151;
 }
 
 .tab.active {
+  background: white;
   color: #7c3aed;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #7c3aed;
-  border-radius: 2px 2px 0 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .tab-content {
   min-height: 400px;
 }
 
-/* 탭 안의 컴포넌트 제목 숨기기 */
+/* 탭 안의 컴포넌트 제목/부제목 숨기기 */
 .tab-content .staff-search > h1,
 .tab-content .staff-search > .subtitle,
 .tab-content .store-list > h1 {
   display: none;
+}
+
+/* 탭 컨텐츠 내부 패딩 조정 */
+.tab-content .staff-search,
+.tab-content .store-list {
+  padding: 0;
 }

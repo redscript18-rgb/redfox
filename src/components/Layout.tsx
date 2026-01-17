@@ -11,6 +11,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingWorkRequests, setPendingWorkRequests] = useState(0);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user || user.role !== 'customer') return;
@@ -25,13 +26,29 @@ export default function Layout({ children }: LayoutProps) {
     setUnreadCount(count || 0);
   }, [user]);
 
+  const fetchPendingWorkRequests = useCallback(async () => {
+    if (!user || user.role !== 'staff') return;
+
+    const { count } = await supabase
+      .from('work_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('staff_id', user.id)
+      .eq('status', 'pending');
+
+    setPendingWorkRequests(count || 0);
+  }, [user]);
+
   useEffect(() => {
     fetchUnreadCount();
+    fetchPendingWorkRequests();
 
     // 30초 폴링
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+      fetchPendingWorkRequests();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+  }, [fetchUnreadCount, fetchPendingWorkRequests]);
 
   const getRoleName = (role: string) => {
     switch (role) {
@@ -62,6 +79,29 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="notification-badge">{unreadCount}</span>
               )}
             </Link>
+          )}
+          {user?.role === 'staff' && (
+            <>
+              <Link to="/staff/work-requests" className="nav-link">
+                출근 요청
+                {pendingWorkRequests > 0 && (
+                  <span className="notification-badge">{pendingWorkRequests}</span>
+                )}
+              </Link>
+              <Link to="/staff/availability" className="nav-link">
+                가용 시간
+              </Link>
+            </>
+          )}
+          {user?.role === 'admin' && (
+            <>
+              <Link to="/admin/find-staff" className="nav-link">
+                직원 찾기
+              </Link>
+              <Link to="/admin/work-requests" className="nav-link">
+                보낸 요청
+              </Link>
+            </>
           )}
         </nav>
         <div className="user-info">

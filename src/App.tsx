@@ -16,12 +16,16 @@ import CustomerReservations from './pages/customer/CustomerReservations';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import ScheduleManage from './pages/staff/ScheduleManage';
 import MyReservations from './pages/staff/MyReservations';
+import AvailabilityManage from './pages/staff/AvailabilityManage';
+import WorkRequests from './pages/staff/WorkRequests';
 
 // 관리자용 페이지
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StaffManage from './pages/admin/StaffManage';
 import ScheduleApproval from './pages/admin/ScheduleApproval';
 import ReservationManage from './pages/admin/ReservationManage';
+import FindAvailableStaff from './pages/admin/FindAvailableStaff';
+import WorkRequestsSent from './pages/admin/WorkRequestsSent';
 
 // 사장용 페이지
 import OwnerDashboard from './pages/owner/OwnerDashboard';
@@ -134,6 +138,30 @@ function AppRoutes() {
         }
       />
 
+      {/* 직원용: 가용 시간 관리 */}
+      <Route
+        path="/staff/availability"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AvailabilityManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 출근 요청 */}
+      <Route
+        path="/staff/work-requests"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WorkRequests />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 관리자용: 직원 관리 */}
       <Route
         path="/admin/staff"
@@ -165,6 +193,30 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <ReservationManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 관리자용: 가용 직원 찾기 */}
+      <Route
+        path="/admin/find-staff"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <FindAvailableStaff />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 관리자용: 보낸 출근 요청 */}
+      <Route
+        path="/admin/work-requests"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WorkRequestsSent />
             </Layout>
           </ProtectedRoute>
         }

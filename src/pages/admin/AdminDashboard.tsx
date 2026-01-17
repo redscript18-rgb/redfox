@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   const [pendingReservations, setPendingReservations] = useState(0);
   const [todayReservations, setTodayReservations] = useState(0);
   const [todayStaff, setTodayStaff] = useState(0);
+  const [pendingWorkRequests, setPendingWorkRequests] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
@@ -79,6 +80,14 @@ export default function AdminDashboard() {
         .eq('date', today)
         .eq('status', 'approved');
       setTodayStaff(todayStaffCount || 0);
+
+      // 대기 중인 출근 요청
+      const { count: workRequestCount } = await supabase
+        .from('work_requests')
+        .select('*', { count: 'exact', head: true })
+        .in('store_id', storeIds)
+        .eq('status', 'pending');
+      setPendingWorkRequests(workRequestCount || 0);
     }
 
     setLoading(false);
@@ -164,6 +173,15 @@ export default function AdminDashboard() {
           <Link to="/admin/reservations" className="quick-link">
             <span className="icon">📋</span>
             <span className="text">예약 관리</span>
+          </Link>
+          <Link to="/admin/find-staff" className="quick-link highlight">
+            <span className="icon">🔍</span>
+            <span className="text">직원 찾기</span>
+          </Link>
+          <Link to="/admin/work-requests" className="quick-link">
+            <span className="icon">📨</span>
+            <span className="text">보낸 요청</span>
+            {pendingWorkRequests > 0 && <span className="badge">{pendingWorkRequests}</span>}
           </Link>
         </div>
       </section>

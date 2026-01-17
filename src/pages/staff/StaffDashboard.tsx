@@ -37,6 +37,7 @@ export default function StaffDashboard() {
   const [myTodaySchedules, setMyTodaySchedules] = useState<Schedule[]>([]);
   const [myTodayReservations, setMyTodayReservations] = useState<Reservation[]>([]);
   const [storeDemand, setStoreDemand] = useState<Record<number, number>>({});
+  const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
   const today = new Date().toISOString().split('T')[0];
 
@@ -116,6 +117,15 @@ export default function StaffDashboard() {
       setStoreDemand(demand);
     }
 
+    // 대기 중인 출근 요청 수
+    const { count: pendingCount } = await supabase
+      .from('work_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('staff_id', user.id)
+      .eq('status', 'pending');
+
+    setPendingRequests(pendingCount || 0);
+
     setLoading(false);
   };
 
@@ -133,6 +143,39 @@ export default function StaffDashboard() {
   return (
     <div className="staff-dashboard">
       <h1>안녕하세요, {user?.name}님</h1>
+
+      {/* 알림 영역 */}
+      {pendingRequests > 0 && (
+        <div className="alerts">
+          <Link to="/staff/work-requests" className="alert-card">
+            <span className="alert-count">{pendingRequests}</span>
+            <span className="alert-text">출근 요청 대기중</span>
+          </Link>
+        </div>
+      )}
+
+      {/* 빠른 메뉴 */}
+      <section className="section quick-menu">
+        <div className="quick-links">
+          <Link to="/staff/availability" className="quick-link">
+            <span className="icon">🕐</span>
+            <span className="text">가용 시간 관리</span>
+          </Link>
+          <Link to="/staff/work-requests" className="quick-link">
+            <span className="icon">📨</span>
+            <span className="text">출근 요청</span>
+            {pendingRequests > 0 && <span className="badge">{pendingRequests}</span>}
+          </Link>
+          <Link to="/staff/schedule" className="quick-link">
+            <span className="icon">📅</span>
+            <span className="text">스케줄 관리</span>
+          </Link>
+          <Link to="/staff/reservations" className="quick-link">
+            <span className="icon">📋</span>
+            <span className="text">내 예약</span>
+          </Link>
+        </div>
+      </section>
 
       {/* 오늘 내 스케줄 */}
       <section className="section">

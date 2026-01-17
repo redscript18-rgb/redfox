@@ -8,6 +8,101 @@
   margin: 0 0 24px 0;
 }
 
+/* 알림 */
+.alerts {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: #fff;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.alert-card:hover {
+  transform: translateY(-2px);
+}
+
+.alert-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.alert-text {
+  font-size: 0.95rem;
+}
+
+/* 빠른 메뉴 */
+.quick-menu {
+  margin-bottom: 28px;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.quick-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.quick-link:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.quick-link .icon {
+  font-size: 1.5rem;
+}
+
+.quick-link .text {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.quick-link .badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #f44336;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .section {
   margin-bottom: 32px;
 }

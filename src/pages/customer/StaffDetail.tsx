@@ -522,12 +522,21 @@ function ReservationModal({
 
   if (!schedule) return null;
 
-  // 시간 슬롯 생성 (1시간 단위)
+  // 시간 슬롯 생성 (1시간 단위, 오늘이면 지난 시간 제외)
   const generateTimeSlots = () => {
     const slots: string[] = [];
     const start = parseInt(schedule.start_time.split(':')[0]);
     const end = parseInt(schedule.end_time.split(':')[0]);
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+
     for (let h = start; h < end; h++) {
+      // 오늘 날짜면 현재 시간 이후만 표시
+      if (schedule.date === today && h <= currentHour) {
+        continue;
+      }
       slots.push(`${h.toString().padStart(2, '0')}:00`);
     }
     return slots;

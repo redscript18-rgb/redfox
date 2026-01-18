@@ -81,7 +81,7 @@ export default function StaffDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<DailyPhoto | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [staffRating, setStaffRating] = useState<StaffRating>({ customerAvgRating: null, customerAvgServiceRating: null, customerCount: 0, adminAvgRating: null, adminAvgServiceRating: null, adminCount: 0 });
   const [isFavorite, setIsFavorite] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -303,8 +303,8 @@ export default function StaffDetail() {
           <h2 className="text-lg font-semibold text-slate-900 mb-1">오늘의 사진</h2>
           <p className="text-sm text-slate-500 mb-4">매일 0시 기준으로 리셋됩니다</p>
           <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
-            {dailyPhotos.filter(p => p.date === today).map((photo) => (
-              <div key={photo.id} className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedPhoto(photo)}>
+            {dailyPhotos.filter(p => p.date === today).map((photo, index) => (
+              <div key={photo.id} className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedPhotoIndex(index)}>
                 <img src={photo.photo_url} alt={photo.caption || '작업 사진'} className="w-full h-full object-cover" />
               </div>
             ))}
@@ -373,14 +373,13 @@ export default function StaffDetail() {
         <ReservationModal scheduleId={selectedSchedule} staffId={staff.id} customerId={user?.id} schedules={schedules} onClose={() => setShowReservationModal(false)} onSuccess={() => { setShowReservationModal(false); fetchData(); }} />
       )}
 
-      {selectedPhoto && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setSelectedPhoto(null)}>
-          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedPhoto.photo_url} alt={selectedPhoto.caption || '사진'} className="w-full rounded-xl" />
-            {selectedPhoto.caption && <p className="mt-3 text-center text-white">{selectedPhoto.caption}</p>}
-            <button className="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-600 text-xl hover:bg-slate-100" onClick={() => setSelectedPhoto(null)}>×</button>
-          </div>
-        </div>
+      {selectedPhotoIndex !== null && (
+        <PhotoGalleryModal
+          photos={dailyPhotos.filter(p => p.date === today)}
+          currentIndex={selectedPhotoIndex}
+          onClose={() => setSelectedPhotoIndex(null)}
+          onNavigate={setSelectedPhotoIndex}
+        />
       )}
     </div>
   );
@@ -499,6 +498,75 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
             {submitting ? '예약 중...' : '예약 신청'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PhotoGalleryModal({ photos, currentIndex, onClose, onNavigate }: { photos: DailyPhoto[]; currentIndex: number; onClose: () => void; onNavigate: (index: number) => void; }) {
+  const currentPhoto = photos[currentIndex];
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < photos.length - 1;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft' && hasPrev) onNavigate(currentIndex - 1);
+      if (e.key === 'ArrowRight' && hasNext) onNavigate(currentIndex + 1);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, hasPrev, hasNext, onClose, onNavigate]);
+
+  if (!currentPhoto) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="relative w-full h-full flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+        {/* Close button */}
+        <button
+          className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors z-10"
+          onClick={onClose}
+        >
+          ×
+        </button>
+
+        {/* Counter */}
+        <div className="absolute top-4 left-4 px-3 py-1 bg-black/50 rounded-full text-white text-sm">
+          {currentIndex + 1} / {photos.length}
+        </div>
+
+        {/* Previous button */}
+        {hasPrev && (
+          <button
+            className="absolute left-2 md:left-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+            onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex - 1); }}
+          >
+            ‹
+          </button>
+        )}
+
+        {/* Image */}
+        <div className="max-w-4xl max-h-[80vh] flex flex-col items-center">
+          <img
+            src={currentPhoto.photo_url}
+            alt={currentPhoto.caption || '사진'}
+            className="max-w-full max-h-[70vh] object-contain rounded-lg"
+          />
+          {currentPhoto.caption && (
+            <p className="mt-4 text-center text-white text-sm">{currentPhoto.caption}</p>
+          )}
+        </div>
+
+        {/* Next button */}
+        {hasNext && (
+          <button
+            className="absolute right-2 md:right-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+            onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex + 1); }}
+          >
+            ›
+          </button>
+        )}
       </div>
     </div>
   );

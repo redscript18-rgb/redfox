@@ -97,7 +97,7 @@ export default function StaffSearch() {
     const virtualStaff: Staff[] = (virtualStaffData || []).map(s => ({
       ...s,
       isVirtual: true,
-      store: s.store as { id: number; name: string } | undefined,
+      store: s.store as unknown as { id: number; name: string } | undefined,
     }));
 
     setStaffList([...realStaff, ...virtualStaff]);
@@ -111,7 +111,7 @@ export default function StaffSearch() {
 
       const storesMap: Record<string, StoreInfo[]> = {};
       storeStaffData?.forEach(ss => {
-        const store = ss.store as { id: number; name: string } | null;
+        const store = ss.store as unknown as { id: number; name: string } | null;
         if (store) {
           if (!storesMap[ss.staff_id]) {
             storesMap[ss.staff_id] = [];

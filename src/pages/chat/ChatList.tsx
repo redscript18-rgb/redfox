@@ -122,7 +122,7 @@ export default function ChatList() {
 
       if (adminStoresData && adminStoresData.length > 0) {
         const storeIds = adminStoresData.map(s => s.store_id);
-        const storesMap = new Map(adminStoresData.map(s => [s.store_id, (s.store as { id: number; name: string })?.name || '']));
+        const storesMap = new Map(adminStoresData.map(s => [s.store_id, (s.store as unknown as { id: number; name: string })?.name || '']));
 
         // Fetch staff from store_staff
         const { data: storeStaffData } = await supabase

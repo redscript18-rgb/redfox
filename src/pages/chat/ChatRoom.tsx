@@ -52,26 +52,26 @@ export default function ChatRoom() {
       return;
     }
 
-    const promises: Promise<any>[] = [
+    const [storeRes, adminRes] = await Promise.all([
       supabase.from('stores').select('id, name').eq('id', convData.store_id).single(),
       supabase.from('profiles').select('id, name').eq('id', convData.admin_id).single(),
-    ];
+    ]);
 
+    let customerRes = null;
+    let staffRes = null;
     if (convData.customer_id) {
-      promises.push(supabase.from('profiles').select('id, name').eq('id', convData.customer_id).single());
+      customerRes = await supabase.from('profiles').select('id, name').eq('id', convData.customer_id).single();
     }
     if (convData.staff_id) {
-      promises.push(supabase.from('profiles').select('id, name').eq('id', convData.staff_id).single());
+      staffRes = await supabase.from('profiles').select('id, name').eq('id', convData.staff_id).single();
     }
-
-    const results = await Promise.all(promises);
 
     setConversation({
       ...convData,
-      store: results[0].data || undefined,
-      admin: results[1].data || undefined,
-      customer: convData.customer_id ? results[2]?.data || undefined : undefined,
-      staff: convData.staff_id ? (convData.customer_id ? results[3]?.data : results[2]?.data) || undefined : undefined
+      store: storeRes.data || undefined,
+      admin: adminRes.data || undefined,
+      customer: customerRes?.data || undefined,
+      staff: staffRes?.data || undefined
     });
   }, [conversationId]);
 

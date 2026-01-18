@@ -1362,7 +1362,7 @@ const getLocalToday = () => {
 function VirtualStaffReservationModal({
   virtualStaffId,
   virtualStaffName,
-  storeId,
+  storeId: _storeId,
   storeName,
   menus,
   schedules,

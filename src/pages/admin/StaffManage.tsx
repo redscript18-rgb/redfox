@@ -21,19 +21,6 @@ interface Staff {
   stores?: { id: number; name: string }[];
 }
 
-interface VirtualStaff {
-  id: string;
-  store_id: number;
-  name: string;
-  phone: string | null;
-  bio: string | null;
-  specialties: string[] | null;
-  profile_photo_url: string | null;
-  age: number | null;
-  height: number | null;
-  weight: number | null;
-  created_by_admin_id: string | null;
-}
 
 interface Store {
   id: number;
@@ -171,7 +158,7 @@ export default function StaffManage() {
       // Group stores by staff_id
       const staffStoresMap: Record<string, { id: number; name: string }[]> = {};
       storeStaff?.forEach(ss => {
-        const storeInfo = ss.store as { id: number; name: string };
+        const storeInfo = ss.store as unknown as { id: number; name: string };
         if (!staffStoresMap[ss.staff_id]) {
           staffStoresMap[ss.staff_id] = [];
         }

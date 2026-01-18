@@ -50,7 +50,6 @@ export default function StaffSearch() {
   const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
 
@@ -200,9 +199,8 @@ export default function StaffSearch() {
   const filteredStaffs = staffList
     .filter((staff) => {
       if (blockedByStaff.has(staff.id)) return false;
-      const matchesSearch = staff.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecialty = !selectedSpecialty || staff.specialties?.includes(selectedSpecialty);
-      return matchesSearch && matchesSpecialty;
+      return matchesSpecialty;
     })
     .sort((a, b) => {
       if (sortBy === 'rating') {
@@ -228,13 +226,6 @@ export default function StaffSearch() {
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-slate-50 rounded-xl max-md:flex-col">
-        <input
-          type="text"
-          placeholder="이름으로 검색"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 min-w-[160px] h-[42px] px-4 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors max-md:w-full"
-        />
         <select
           value={selectedSpecialty}
           onChange={(e) => setSelectedSpecialty(e.target.value)}
@@ -262,13 +253,29 @@ export default function StaffSearch() {
           const todaySchedule = scheduleMap[staff.id];
           const staffRating = ratingMap[staff.id];
           return (
-            <Link
-              to={staff.isVirtual ? `/virtual-staff/${staff.id}` : `/staff/${staff.id}`}
+            <div
               key={staff.id}
-              className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl no-underline text-inherit transition-all hover:border-red-600 hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
+              className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl transition-all hover:border-red-600 hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
             >
               {/* Left accent bar on hover */}
               <div className="absolute top-0 left-0 w-1 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              {/* Reservation Button */}
+              <div className="absolute top-3 right-3 z-10">
+                {todaySchedule ? (
+                  <Link
+                    to={staff.isVirtual ? `/virtual-staff/${staff.id}` : `/staff/${staff.id}`}
+                    className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    예약하기
+                  </Link>
+                ) : (
+                  <span className="px-3 py-1.5 bg-slate-200 text-slate-400 text-xs font-medium rounded-lg cursor-not-allowed">
+                    예약불가
+                  </span>
+                )}
+              </div>
 
               {/* Avatar + Schedule Status */}
               <div className="flex flex-col items-center gap-2 flex-shrink-0">
@@ -357,14 +364,20 @@ export default function StaffSearch() {
                   </div>
                 )}
               </div>
-            </Link>
+
+              {/* Clickable overlay for profile navigation */}
+              <Link
+                to={staff.isVirtual ? `/virtual-staff/${staff.id}` : `/staff/${staff.id}`}
+                className="absolute inset-0 z-0"
+              />
+            </div>
           );
         })}
       </div>
 
       {filteredStaffs.length === 0 && (
         <p className="text-center py-12 text-slate-400 bg-slate-50 rounded-xl">
-          검색 결과가 없습니다.
+          해당 조건의 매니저가 없습니다.
         </p>
       )}
     </div>

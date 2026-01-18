@@ -27,7 +27,6 @@ export default function StoreList() {
   const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
   const [blockedStoreIds, setBlockedStoreIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
   const [filterType, setFilterType] = useState('');
   const [filterRegion, setFilterRegion] = useState('');
@@ -90,10 +89,9 @@ export default function StoreList() {
   const filteredStores = stores
     .filter((store) => {
       if (blockedStoreIds.has(store.id)) return false;
-      const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) || store.address.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = !filterType || store.store_type === filterType;
       const matchesRegion = !filterRegion || store.region === filterRegion;
-      return matchesSearch && matchesType && matchesRegion;
+      return matchesType && matchesRegion;
     })
     .sort((a, b) => {
       if (sortBy === 'rating') return (ratingMap[b.id]?.avgRating ?? 0) - (ratingMap[a.id]?.avgRating ?? 0);
@@ -106,7 +104,6 @@ export default function StoreList() {
       <h1 className="text-2xl font-bold text-slate-900 mb-4">가게 목록</h1>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        <input type="text" placeholder="가게명 또는 주소로 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[200px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
         <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
           <option value="">전체 지역</option>
           {REGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
@@ -153,7 +150,7 @@ export default function StoreList() {
 
       {filteredStores.length === 0 && (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
-          <p className="text-slate-500">검색 결과가 없습니다.</p>
+          <p className="text-slate-500">해당 조건의 가게가 없습니다.</p>
         </div>
       )}
     </div>

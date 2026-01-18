@@ -214,22 +214,24 @@ export default function StoreDetail() {
 
       {/* Header */}
       <header className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
-            {store.region && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{store.region}</span>}
-            {store.store_type && <span className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{store.store_type}</span>}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 mb-2">{store.name}</h1>
+            <div className="flex flex-wrap gap-1.5">
+              {store.region && <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded">{store.region}</span>}
+              {store.store_type && <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs font-medium rounded">{store.store_type}</span>}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {user?.role === 'customer' && storeAdminId && (
               <button
                 onClick={startConversation}
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
               >
                 문의하기
               </button>
             )}
-            <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
+            <button className={`w-8 h-8 flex items-center justify-center text-lg rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
               {isFavorite ? '♥' : '♡'}
             </button>
           </div>

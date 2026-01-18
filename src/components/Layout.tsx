@@ -106,6 +106,12 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/superadmin/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 가게
               </Link>
+              <Link to="/superadmin/virtual-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                매니저
+              </Link>
+              <Link to="/superadmin/users?role=customer" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                손님
+              </Link>
               <Link to="/superadmin/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 예약
               </Link>
@@ -136,6 +142,12 @@ export default function Layout({ children }: LayoutProps) {
           )}
           {user?.role === 'staff' && (
             <>
+              <Link to="/staff/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                내 예약
+              </Link>
+              <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                가게 탐색
+              </Link>
               <Link to="/staff/work-requests" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 출근 요청
                 {pendingWorkRequests > 0 && (

@@ -17,6 +17,7 @@ import Favorites from './pages/customer/Favorites';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import ScheduleManage from './pages/staff/ScheduleManage';
 import MyReservations from './pages/staff/MyReservations';
+import StoreSearch from './pages/staff/StoreSearch';
 import AvailabilityManage from './pages/staff/AvailabilityManage';
 import WorkRequests from './pages/staff/WorkRequests';
 import ProfileManage from './pages/staff/ProfileManage';
@@ -50,6 +51,7 @@ import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import UserManagement from './pages/superadmin/UserManagement';
 import SuperAdminStoreManagement from './pages/superadmin/StoreManagement';
 import ReservationOverview from './pages/superadmin/ReservationOverview';
+import VirtualStaffManagement from './pages/superadmin/VirtualStaffManagement';
 
 import './App.css';
 
@@ -175,6 +177,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <MyReservations />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 가게 탐색 */}
+      <Route
+        path="/staff/stores"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreSearch />
             </Layout>
           </ProtectedRoute>
         }
@@ -415,6 +429,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <ReservationOverview />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 등록 매니저 관리 */}
+      <Route
+        path="/superadmin/virtual-staff"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VirtualStaffManagement />
             </Layout>
           </ProtectedRoute>
         }

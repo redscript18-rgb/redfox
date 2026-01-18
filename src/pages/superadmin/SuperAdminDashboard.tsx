@@ -7,16 +7,62 @@ interface Stats {
   totalUsers: number;
   usersByRole: { role: string; count: number }[];
   totalStores: number;
+  storesByType: { type: string; count: number }[];
+  totalVirtualStaff: number;
   totalReservations: number;
   reservationsByStatus: { status: string; count: number }[];
   todayReservations: number;
   recentUsers: { id: string; name: string; email: string; role: string; created_at: string }[];
+  recentVirtualStaff: { id: string; name: string; store_name: string; created_at: string }[];
+}
+
+interface UserDetail {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  created_at: string;
+  stores?: { id: number; name: string }[];
+  reservationCount?: number;
+  favoriteCount?: number;
+}
+
+interface VirtualStaffDetail {
+  id: string;
+  name: string;
+  phone: string | null;
+  bio: string | null;
+  store_id: number;
+  store_name: string;
+  created_at: string;
+  profile_photo_url: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  body_size: string | null;
+  job: string | null;
+  mbti: string | null;
+  is_smoker: boolean | null;
+  personality: string | null;
+  style: string | null;
+  skin_tone: string | null;
+  hair_length: string | null;
+  hair_style: string | null;
+  hair_color: string | null;
+  is_waxed: boolean | null;
+  specialties: string[] | null;
+  nationalities: string[] | null;
+  languages: string[] | null;
 }
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<VirtualStaffDetail | null>(null);
+  const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.role === 'superadmin') {
@@ -45,6 +91,42 @@ export default function SuperAdminDashboard() {
     const { count: totalStores } = await supabase
       .from('stores')
       .select('*', { count: 'exact', head: true });
+
+    // Stores by type - get distinct types and count each
+    const { data: distinctTypes } = await supabase
+      .from('stores')
+      .select('store_type');
+
+    // Count occurrences (handle 1000 limit by using count queries)
+    const typeSet = new Set<string>();
+    distinctTypes?.forEach(s => {
+      if (s.store_type) typeSet.add(s.store_type);
+    });
+
+    const storesByType: { type: string; count: number }[] = [];
+
+    // Count each distinct type
+    for (const type of typeSet) {
+      const { count } = await supabase
+        .from('stores')
+        .select('*', { count: 'exact', head: true })
+        .eq('store_type', type);
+      if (count && count > 0) {
+        storesByType.push({ type, count });
+      }
+    }
+
+    // Count unclassified (null store_type)
+    const { count: nullCount } = await supabase
+      .from('stores')
+      .select('*', { count: 'exact', head: true })
+      .is('store_type', null);
+    if (nullCount && nullCount > 0) {
+      storesByType.push({ type: '미분류', count: nullCount });
+    }
+
+    // Sort by count descending
+    storesByType.sort((a, b) => b.count - a.count);
 
     // Total reservations
     const { count: totalReservations } = await supabase
@@ -76,24 +158,44 @@ export default function SuperAdminDashboard() {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    // Total virtual staff (admin-registered managers)
+    const { count: totalVirtualStaff } = await supabase
+      .from('virtual_staff')
+      .select('*', { count: 'exact', head: true });
+
+    // Recent virtual staff
+    const { data: recentVirtualStaff } = await supabase
+      .from('virtual_staff')
+      .select('id, name, created_at, store:stores(name)')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
     setStats({
       totalUsers: totalUsers || 0,
       usersByRole,
       totalStores: totalStores || 0,
+      storesByType,
+      totalVirtualStaff: totalVirtualStaff || 0,
       totalReservations: totalReservations || 0,
       reservationsByStatus,
       todayReservations: todayReservations || 0,
-      recentUsers: recentUsers || []
+      recentUsers: recentUsers || [],
+      recentVirtualStaff: (recentVirtualStaff || []).map(vs => ({
+        id: vs.id,
+        name: vs.name,
+        store_name: (vs.store as unknown as { name: string } | null)?.name || '알 수 없음',
+        created_at: vs.created_at
+      }))
     });
     setLoading(false);
   };
 
   const getRoleName = (role: string) => {
     switch (role) {
-      case 'superadmin': return '서비스관리자';
+      case 'superadmin': return 'ADMIN';
       case 'owner': return '사장';
       case 'admin': return '관리자';
-      case 'staff': return '매니저';
+      case 'staff': return '프리 매니저';
       case 'customer': return '손님';
       default: return role;
     }
@@ -107,6 +209,97 @@ export default function SuperAdminDashboard() {
       case 'completed': return '완료';
       default: return status;
     }
+  };
+
+  const openUserDetail = async (userId: string) => {
+    // Basic user info
+    const { data: userData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (!userData) return;
+
+    // Get stores for owner/admin
+    let stores: { id: number; name: string }[] = [];
+    if (userData.role === 'owner' || userData.role === 'admin') {
+      const { data: ownedStores } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('owner_id', userId);
+
+      const { data: adminStores } = await supabase
+        .from('store_admins')
+        .select('store:stores(id, name)')
+        .eq('admin_id', userId);
+
+      stores = [
+        ...(ownedStores || []),
+        ...(adminStores || []).map(s => s.store as unknown as { id: number; name: string }).filter(Boolean)
+      ];
+    }
+
+    // Get reservation count for customer
+    let reservationCount = 0;
+    if (userData.role === 'customer') {
+      const { count } = await supabase
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', userId);
+      reservationCount = count || 0;
+    }
+
+    // Get favorite count
+    const { count: favoriteCount } = await supabase
+      .from('favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    setSelectedUser({
+      ...userData,
+      stores,
+      reservationCount,
+      favoriteCount: favoriteCount || 0
+    });
+  };
+
+  const openStaffDetail = async (staffId: string) => {
+    const { data } = await supabase
+      .from('virtual_staff')
+      .select('*, store:stores(name)')
+      .eq('id', staffId)
+      .single();
+
+    if (!data) return;
+
+    setSelectedStaff({
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      bio: data.bio,
+      store_id: data.store_id,
+      store_name: (data.store as { name: string } | null)?.name || '알 수 없음',
+      created_at: data.created_at,
+      profile_photo_url: data.profile_photo_url,
+      age: data.age,
+      height: data.height,
+      weight: data.weight,
+      body_size: data.body_size,
+      job: data.job,
+      mbti: data.mbti,
+      is_smoker: data.is_smoker,
+      personality: data.personality,
+      style: data.style,
+      skin_tone: data.skin_tone,
+      hair_length: data.hair_length,
+      hair_style: data.hair_style,
+      hair_color: data.hair_color,
+      is_waxed: data.is_waxed,
+      specialties: data.specialties,
+      nationalities: data.nationalities,
+      languages: data.languages
+    });
   };
 
   if (user?.role !== 'superadmin') {
@@ -124,38 +317,27 @@ export default function SuperAdminDashboard() {
       <h1 className="text-2xl font-bold text-slate-900 mb-6">서비스 관리자 대시보드</h1>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <Link to="/superadmin/users" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
           <p className="text-sm text-slate-500 mb-1">전체 사용자</p>
           <p className="text-3xl font-bold text-slate-900">{stats?.totalUsers}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+        </Link>
+        <Link to="/superadmin/virtual-staff" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+          <p className="text-sm text-slate-500 mb-1">등록 매니저</p>
+          <p className="text-3xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
+          <p className="text-xs text-slate-400 mt-1">관리자가 등록</p>
+        </Link>
+        <Link to="/superadmin/stores" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
           <p className="text-sm text-slate-500 mb-1">전체 가게</p>
           <p className="text-3xl font-bold text-slate-900">{stats?.totalStores}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+        </Link>
+        <Link to="/superadmin/reservations" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
           <p className="text-sm text-slate-500 mb-1">전체 예약</p>
           <p className="text-3xl font-bold text-slate-900">{stats?.totalReservations}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+        </Link>
+        <Link to="/superadmin/reservations" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
           <p className="text-sm text-slate-500 mb-1">오늘 예약</p>
           <p className="text-3xl font-bold text-orange-600">{stats?.todayReservations}</p>
-        </div>
-      </div>
-
-      {/* Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Link to="/superadmin/users" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-red-600 transition-colors">
-          <h3 className="font-semibold text-slate-900 mb-2">사용자 관리</h3>
-          <p className="text-sm text-slate-500">회원 목록, 역할 변경, 계정 관리</p>
-        </Link>
-        <Link to="/superadmin/stores" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-red-600 transition-colors">
-          <h3 className="font-semibold text-slate-900 mb-2">가게 관리</h3>
-          <p className="text-sm text-slate-500">가게 목록, 정보 수정, 삭제</p>
-        </Link>
-        <Link to="/superadmin/reservations" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-red-600 transition-colors">
-          <h3 className="font-semibold text-slate-900 mb-2">예약 현황</h3>
-          <p className="text-sm text-slate-500">전체 예약 조회, 상태별 필터</p>
         </Link>
       </div>
 
@@ -165,11 +347,23 @@ export default function SuperAdminDashboard() {
           <h2 className="text-lg font-semibold text-slate-900 mb-4">역할별 사용자</h2>
           <div className="space-y-2">
             {stats?.usersByRole.map(({ role, count }) => (
-              <div key={role} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <Link
+                key={role}
+                to={`/superadmin/users?role=${role}`}
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+              >
                 <span className="text-slate-700">{getRoleName(role)}</span>
-                <span className="font-semibold text-slate-900">{count}명</span>
-              </div>
+                <span className="font-semibold text-slate-900">{count}명 →</span>
+              </Link>
             ))}
+            {/* 등록 매니저 (virtual_staff) */}
+            <Link
+              to="/superadmin/virtual-staff"
+              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <span className="text-slate-700">등록 매니저</span>
+              <span className="font-semibold text-slate-900">{stats?.totalVirtualStaff}명 →</span>
+            </Link>
           </div>
         </div>
 
@@ -178,10 +372,14 @@ export default function SuperAdminDashboard() {
           <h2 className="text-lg font-semibold text-slate-900 mb-4">예약 상태별 현황</h2>
           <div className="space-y-2">
             {stats?.reservationsByStatus.map(({ status, count }) => (
-              <div key={status} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <Link
+                key={status}
+                to={`/superadmin/reservations?status=${status}`}
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+              >
                 <span className="text-slate-700">{getStatusName(status)}</span>
-                <span className="font-semibold text-slate-900">{count}건</span>
-              </div>
+                <span className="font-semibold text-slate-900">{count}건 →</span>
+              </Link>
             ))}
             {stats?.reservationsByStatus.length === 0 && (
               <p className="text-slate-500 text-sm">예약 데이터가 없습니다.</p>
@@ -189,8 +387,28 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
+        {/* Stores by Type */}
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">업종별 가게 현황</h2>
+          <div className="space-y-2">
+            {stats?.storesByType.map(({ type, count }) => (
+              <Link
+                key={type}
+                to={`/superadmin/stores?type=${encodeURIComponent(type)}`}
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <span className="text-slate-700">{type}</span>
+                <span className="font-semibold text-slate-900">{count}개 →</span>
+              </Link>
+            ))}
+            {stats?.storesByType.length === 0 && (
+              <p className="text-slate-500 text-sm">가게 데이터가 없습니다.</p>
+            )}
+          </div>
+        </div>
+
         {/* Recent Users */}
-        <div className="p-5 bg-white border border-slate-200 rounded-xl md:col-span-2">
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">최근 가입 사용자</h2>
             <Link to="/superadmin/users" className="text-sm text-orange-600 hover:underline">
@@ -209,7 +427,11 @@ export default function SuperAdminDashboard() {
               </thead>
               <tbody>
                 {stats?.recentUsers.map((u) => (
-                  <tr key={u.id} className="border-b border-slate-100">
+                  <tr
+                    key={u.id}
+                    onClick={() => openUserDetail(u.id)}
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                  >
                     <td className="py-3 px-3 text-slate-900">{u.name}</td>
                     <td className="py-3 px-3 text-slate-600 text-sm">{u.email}</td>
                     <td className="py-3 px-3">
@@ -226,7 +448,340 @@ export default function SuperAdminDashboard() {
             </table>
           </div>
         </div>
+
+        {/* Recent Virtual Staff (Admin-registered) */}
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900">최근 등록된 매니저</h2>
+            <Link to="/superadmin/virtual-staff" className="text-sm text-orange-600 hover:underline">
+              전체 보기 →
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">이름</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">소속 가게</th>
+                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">등록일</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats?.recentVirtualStaff.map((vs) => (
+                  <tr
+                    key={vs.id}
+                    onClick={() => openStaffDetail(vs.id)}
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                  >
+                    <td className="py-3 px-3 text-slate-900">{vs.name}</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded">
+                        {vs.store_name}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-500 text-sm">
+                      {new Date(vs.created_at).toLocaleDateString('ko-KR')}
+                    </td>
+                  </tr>
+                ))}
+                {stats?.recentVirtualStaff.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="py-4 text-center text-slate-500 text-sm">
+                      등록된 매니저가 없습니다.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-lg font-bold text-white">
+                  {selectedUser.name?.charAt(0) || '?'}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{selectedUser.name}</h2>
+                  <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded">
+                    {getRoleName(selectedUser.role)}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="text-slate-400 hover:text-slate-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">기본 정보</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">이메일</span>
+                    <span className="text-slate-900">{selectedUser.email}</span>
+                  </div>
+                  {selectedUser.phone && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">전화번호</span>
+                      <span className="text-slate-900">{selectedUser.phone}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">가입일</span>
+                    <span className="text-slate-900">
+                      {new Date(selectedUser.created_at).toLocaleDateString('ko-KR')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stores for owner/admin */}
+              {selectedUser.stores && selectedUser.stores.length > 0 && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">소속 가게</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUser.stores.map(store => (
+                      <Link
+                        key={store.id}
+                        to={`/store/${store.id}`}
+                        onClick={() => setSelectedUser(null)}
+                        className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 hover:border-orange-300 hover:text-orange-600"
+                      >
+                        {store.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Activity for customer */}
+              {selectedUser.role === 'customer' && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">활동</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-white rounded-lg text-center">
+                      <p className="text-2xl font-bold text-slate-900">{selectedUser.reservationCount}</p>
+                      <p className="text-xs text-slate-500">총 예약</p>
+                    </div>
+                    <div className="p-3 bg-white rounded-lg text-center">
+                      <p className="text-2xl font-bold text-slate-900">{selectedUser.favoriteCount}</p>
+                      <p className="text-xs text-slate-500">즐겨찾기</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link
+                to={`/superadmin/users?role=${selectedUser.role}`}
+                onClick={() => setSelectedUser(null)}
+                className="block w-full px-4 py-2 text-center text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors font-medium"
+              >
+                {getRoleName(selectedUser.role)} 목록 보기
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Virtual Staff Detail Modal */}
+      {selectedStaff && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-16 h-16 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xl font-bold text-white overflow-hidden flex-shrink-0 ${selectedStaff.profile_photo_url ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                  onClick={() => selectedStaff.profile_photo_url && setViewingPhoto(selectedStaff.profile_photo_url)}
+                >
+                  {selectedStaff.profile_photo_url ? (
+                    <img src={selectedStaff.profile_photo_url} alt={selectedStaff.name} className="w-full h-full object-cover" />
+                  ) : (
+                    selectedStaff.name.charAt(0)
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">{selectedStaff.name}</h2>
+                  <Link
+                    to={`/store/${selectedStaff.store_id}`}
+                    onClick={() => setSelectedStaff(null)}
+                    className="text-sm text-slate-500 hover:text-orange-600"
+                  >
+                    {selectedStaff.store_name} →
+                  </Link>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedStaff(null)}
+                className="text-slate-400 hover:text-slate-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Basic Info Tags */}
+              {(selectedStaff.age || selectedStaff.height || selectedStaff.weight || selectedStaff.body_size || selectedStaff.job || selectedStaff.mbti) && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedStaff.job && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{selectedStaff.job}</span>}
+                  {selectedStaff.mbti && <span className="px-2 py-1 bg-purple-50 text-purple-600 text-sm rounded">{selectedStaff.mbti}</span>}
+                  {selectedStaff.age && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{selectedStaff.age}세</span>}
+                  {selectedStaff.height && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{selectedStaff.height}cm</span>}
+                  {selectedStaff.weight && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{selectedStaff.weight}kg</span>}
+                  {selectedStaff.body_size && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{selectedStaff.body_size}컵</span>}
+                </div>
+              )}
+
+              {/* Specialties */}
+              {selectedStaff.specialties && selectedStaff.specialties.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {selectedStaff.specialties.map((s) => (
+                    <span key={s} className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{s}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Nationalities & Languages */}
+              {((selectedStaff.nationalities && selectedStaff.nationalities.length > 0) || (selectedStaff.languages && selectedStaff.languages.length > 0)) && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">국적 & 언어</h3>
+                  <div className="space-y-2">
+                    {selectedStaff.nationalities && selectedStaff.nationalities.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500 w-12">국적</span>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedStaff.nationalities.map((n) => (
+                            <span key={n} className="px-2 py-1 bg-green-50 text-green-600 text-sm rounded">{n}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedStaff.languages && selectedStaff.languages.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500 w-12">언어</span>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedStaff.languages.map((l) => (
+                            <span key={l} className="px-2 py-1 bg-indigo-50 text-indigo-600 text-sm rounded">{l}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Contact & Date */}
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <h3 className="text-sm font-medium text-slate-700 mb-3">연락처 및 등록일</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-slate-500">전화번호</span>
+                    <p className="font-medium text-slate-900">{selectedStaff.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">등록일</span>
+                    <p className="font-medium text-slate-900">
+                      {new Date(selectedStaff.created_at).toLocaleDateString('ko-KR')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {selectedStaff.bio && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">소개</h3>
+                  <p className="text-sm text-slate-600 whitespace-pre-wrap">{selectedStaff.bio}</p>
+                </div>
+              )}
+
+              {/* Appearance */}
+              {(selectedStaff.skin_tone || selectedStaff.hair_length || selectedStaff.hair_style || selectedStaff.hair_color || selectedStaff.is_waxed !== null) && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">외모</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {selectedStaff.skin_tone && (
+                      <div className="flex justify-between"><span className="text-slate-500">피부톤</span><span className="text-slate-900">{selectedStaff.skin_tone}</span></div>
+                    )}
+                    {selectedStaff.hair_length && (
+                      <div className="flex justify-between"><span className="text-slate-500">머리길이</span><span className="text-slate-900">{selectedStaff.hair_length}</span></div>
+                    )}
+                    {selectedStaff.hair_style && (
+                      <div className="flex justify-between"><span className="text-slate-500">헤어스타일</span><span className="text-slate-900">{selectedStaff.hair_style}</span></div>
+                    )}
+                    {selectedStaff.hair_color && (
+                      <div className="flex justify-between"><span className="text-slate-500">머리색</span><span className="text-slate-900">{selectedStaff.hair_color}</span></div>
+                    )}
+                    {selectedStaff.is_waxed !== null && (
+                      <div className="flex justify-between"><span className="text-slate-500">왁싱</span><span className="text-slate-900">{selectedStaff.is_waxed ? '함' : '안함'}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Personality & Style */}
+              {(selectedStaff.personality || selectedStaff.style || selectedStaff.is_smoker !== null) && (
+                <div className="p-4 bg-slate-50 rounded-xl">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">성격 & 스타일</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {selectedStaff.personality && (
+                      <div className="flex justify-between"><span className="text-slate-500">성격</span><span className="text-slate-900">{selectedStaff.personality}</span></div>
+                    )}
+                    {selectedStaff.style && (
+                      <div className="flex justify-between"><span className="text-slate-500">스타일</span><span className="text-slate-900">{selectedStaff.style}</span></div>
+                    )}
+                    {selectedStaff.is_smoker !== null && (
+                      <div className="flex justify-between"><span className="text-slate-500">흡연</span><span className="text-slate-900">{selectedStaff.is_smoker ? '흡연' : '비흡연'}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <Link
+                to="/superadmin/virtual-staff"
+                onClick={() => setSelectedStaff(null)}
+                className="block w-full px-4 py-2 text-center text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors font-medium"
+              >
+                등록 매니저 목록 보기
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Viewer Modal */}
+      {viewingPhoto && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4"
+          onClick={() => setViewingPhoto(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+            onClick={() => setViewingPhoto(null)}
+          >
+            ×
+          </button>
+          <img
+            src={viewingPhoto}
+            alt="프로필 사진"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

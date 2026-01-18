@@ -1,0 +1,63 @@
+-- Auto-classify stores with null region based on name
+
+-- Longer/specific names first to avoid partial matches
+UPDATE stores SET region = '서울대입구역' WHERE region IS NULL AND name ILIKE '%서울대입구%';
+UPDATE stores SET region = '동대문' WHERE region IS NULL AND name ILIKE '%동대문%';
+UPDATE stores SET region = '문래동' WHERE region IS NULL AND name ILIKE '%문래동%';
+UPDATE stores SET region = '북창동' WHERE region IS NULL AND name ILIKE '%북창동%';
+UPDATE stores SET region = '장안동' WHERE region IS NULL AND name ILIKE '%장안동%';
+UPDATE stores SET region = '제주도' WHERE region IS NULL AND name ILIKE '%제주도%';
+UPDATE stores SET region = '연신내' WHERE region IS NULL AND name ILIKE '%연신내%';
+UPDATE stores SET region = '영등포' WHERE region IS NULL AND name ILIKE '%영등포%';
+UPDATE stores SET region = '의정부' WHERE region IS NULL AND name ILIKE '%의정부%';
+
+-- Regular regions
+UPDATE stores SET region = '강남' WHERE region IS NULL AND name ILIKE '%강남%';
+UPDATE stores SET region = '강서' WHERE region IS NULL AND name ILIKE '%강서%';
+UPDATE stores SET region = '강동' WHERE region IS NULL AND name ILIKE '%강동%';
+UPDATE stores SET region = '가락' WHERE region IS NULL AND name ILIKE '%가락%';
+UPDATE stores SET region = '가산' WHERE region IS NULL AND name ILIKE '%가산%';
+UPDATE stores SET region = '계양' WHERE region IS NULL AND name ILIKE '%계양%';
+UPDATE stores SET region = '고양' WHERE region IS NULL AND name ILIKE '%고양%';
+UPDATE stores SET region = '구로' WHERE region IS NULL AND name ILIKE '%구로%';
+UPDATE stores SET region = '구미' WHERE region IS NULL AND name ILIKE '%구미%';
+UPDATE stores SET region = '군포' WHERE region IS NULL AND name ILIKE '%군포%';
+UPDATE stores SET region = '김포' WHERE region IS NULL AND name ILIKE '%김포%';
+UPDATE stores SET region = '당산' WHERE region IS NULL AND name ILIKE '%당산%';
+UPDATE stores SET region = '대구' WHERE region IS NULL AND name ILIKE '%대구%';
+UPDATE stores SET region = '대전' WHERE region IS NULL AND name ILIKE '%대전%';
+UPDATE stores SET region = '동탄' WHERE region IS NULL AND name ILIKE '%동탄%';
+UPDATE stores SET region = '동암' WHERE region IS NULL AND name ILIKE '%동암%';
+UPDATE stores SET region = '마곡' WHERE region IS NULL AND name ILIKE '%마곡%';
+UPDATE stores SET region = '마포' WHERE region IS NULL AND name ILIKE '%마포%';
+UPDATE stores SET region = '부산' WHERE region IS NULL AND name ILIKE '%부산%';
+UPDATE stores SET region = '부천' WHERE region IS NULL AND name ILIKE '%부천%';
+UPDATE stores SET region = '부평' WHERE region IS NULL AND name ILIKE '%부평%';
+UPDATE stores SET region = '분당' WHERE region IS NULL AND name ILIKE '%분당%';
+UPDATE stores SET region = '상봉' WHERE region IS NULL AND name ILIKE '%상봉%';
+UPDATE stores SET region = '상동' WHERE region IS NULL AND name ILIKE '%상동%';
+UPDATE stores SET region = '선릉' WHERE region IS NULL AND name ILIKE '%선릉%';
+UPDATE stores SET region = '수원' WHERE region IS NULL AND name ILIKE '%수원%';
+UPDATE stores SET region = '시흥' WHERE region IS NULL AND name ILIKE '%시흥%';
+UPDATE stores SET region = '신대방' WHERE region IS NULL AND name ILIKE '%신대방%';
+UPDATE stores SET region = '신림' WHERE region IS NULL AND name ILIKE '%신림%';
+UPDATE stores SET region = '안양' WHERE region IS NULL AND name ILIKE '%안양%';
+UPDATE stores SET region = '역곡' WHERE region IS NULL AND name ILIKE '%역곡%';
+UPDATE stores SET region = '역삼' WHERE region IS NULL AND name ILIKE '%역삼%';
+UPDATE stores SET region = '오산' WHERE region IS NULL AND name ILIKE '%오산%';
+UPDATE stores SET region = '용인' WHERE region IS NULL AND name ILIKE '%용인%';
+UPDATE stores SET region = '인천' WHERE region IS NULL AND name ILIKE '%인천%';
+UPDATE stores SET region = '일산' WHERE region IS NULL AND name ILIKE '%일산%';
+UPDATE stores SET region = '잠실' WHERE region IS NULL AND name ILIKE '%잠실%';
+UPDATE stores SET region = '전주' WHERE region IS NULL AND name ILIKE '%전주%';
+UPDATE stores SET region = '주안' WHERE region IS NULL AND name ILIKE '%주안%';
+UPDATE stores SET region = '중랑' WHERE region IS NULL AND name ILIKE '%중랑%';
+UPDATE stores SET region = '천안' WHERE region IS NULL AND name ILIKE '%천안%';
+UPDATE stores SET region = '철산' WHERE region IS NULL AND name ILIKE '%철산%';
+UPDATE stores SET region = '청주' WHERE region IS NULL AND name ILIKE '%청주%';
+UPDATE stores SET region = '평택' WHERE region IS NULL AND name ILIKE '%평택%';
+UPDATE stores SET region = '하남' WHERE region IS NULL AND name ILIKE '%하남%';
+UPDATE stores SET region = '홍대' WHERE region IS NULL AND name ILIKE '%홍대%';
+UPDATE stores SET region = '화곡' WHERE region IS NULL AND name ILIKE '%화곡%';
+UPDATE stores SET region = '화정' WHERE region IS NULL AND name ILIKE '%화정%';
+UPDATE stores SET region = '제주' WHERE region IS NULL AND name ILIKE '%제주%';

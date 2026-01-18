@@ -8,8 +8,14 @@ interface Menu { id: number; name: string; price: number; description: string | 
 interface Holiday { id: number; date: string; reason: string | null; }
 interface VirtualStaff { id: string; name: string; phone: string | null; bio: string | null; }
 
-const STORE_TYPES = ['1인샵', '커플관리샵', '왁싱샵', '스웨디시', '타이마사지', '중국마사지', '스포츠마사지', '발마사지', '네일샵', '피부관리샵', '기타'];
-const REGIONS = ['서울', '서울 강남', '경기 북부', '경기 남부', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
+const STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
+const REGIONS = [
+  '강남', '강서', '강동', '가락', '가산', '계양', '고양', '구로', '구미', '군포', '김포',
+  '당산', '대구', '대전', '동탄', '동대문', '동암', '마곡', '마포', '문래동', '부산', '부천', '부평', '분당', '북창동',
+  '상봉', '상동', '선릉', '서울대입구역', '수원', '시흥', '신대방', '신림', '안양',
+  '역곡', '역삼', '연신내', '영등포', '오산', '용인', '의정부', '인천', '일산',
+  '잠실', '장안동', '전주', '제주도', '주안', '중랑', '천안', '철산', '청주', '평택', '하남', '홍대', '화곡', '화정'
+];
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 export default function StoreSettings() {

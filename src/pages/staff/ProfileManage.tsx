@@ -15,6 +15,10 @@ export default function ProfileManage() {
   const [bio, setBio] = useState('');
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState('');
+  const [nationalities, setNationalities] = useState<string[]>([]);
+  const [newNationality, setNewNationality] = useState('');
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [newLanguage, setNewLanguage] = useState('');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
   const [dailyPhotos, setDailyPhotos] = useState<DailyPhoto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +57,7 @@ export default function ProfileManage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('bio, specialties, profile_photo_url, age, height, weight, body_size, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed, job, mbti')
+      .select('bio, specialties, profile_photo_url, age, height, weight, body_size, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed, job, mbti, nationalities, languages')
       .eq('id', user.id)
       .single();
 
@@ -75,6 +79,8 @@ export default function ProfileManage() {
       setIsWaxed(data.is_waxed || false);
       setJob(data.job || '');
       setMbti(data.mbti || '');
+      setNationalities(data.nationalities || []);
+      setLanguages(data.languages || []);
     }
 
     setLoading(false);
@@ -103,6 +109,30 @@ export default function ProfileManage() {
 
   const handleRemoveSpecialty = (specialty: string) => {
     setSpecialties(specialties.filter((s) => s !== specialty));
+  };
+
+  const handleAddNationality = () => {
+    const trimmed = newNationality.trim();
+    if (trimmed && !nationalities.includes(trimmed)) {
+      setNationalities([...nationalities, trimmed]);
+      setNewNationality('');
+    }
+  };
+
+  const handleRemoveNationality = (nationality: string) => {
+    setNationalities(nationalities.filter((n) => n !== nationality));
+  };
+
+  const handleAddLanguage = () => {
+    const trimmed = newLanguage.trim();
+    if (trimmed && !languages.includes(trimmed)) {
+      setLanguages([...languages, trimmed]);
+      setNewLanguage('');
+    }
+  };
+
+  const handleRemoveLanguage = (language: string) => {
+    setLanguages(languages.filter((l) => l !== language));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -254,6 +284,8 @@ export default function ProfileManage() {
         is_waxed: isWaxed,
         job: job || null,
         mbti: mbti || null,
+        nationalities: nationalities.length > 0 ? nationalities : null,
+        languages: languages.length > 0 ? languages : null,
       })
       .eq('id', user.id);
 
@@ -569,6 +601,90 @@ export default function ProfileManage() {
               placeholder="예: 캐주얼, 시크, 청순..."
               className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* 국적 & 언어 */}
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">국적 & 언어</h2>
+        <div className="grid grid-cols-2 gap-6 max-sm:grid-cols-1">
+          {/* 국적 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">국적</label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {nationalities.map((nationality) => (
+                <div key={nationality} className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 rounded-full text-sm">
+                  <span>{nationality}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNationality(nationality)}
+                    className="w-4 h-4 flex items-center justify-center text-green-400 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            {nationalities.length < 5 && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newNationality}
+                  onChange={(e) => setNewNationality(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNationality())}
+                  placeholder="예: 한국, 일본, 미국..."
+                  className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddNationality}
+                  disabled={!newNationality.trim()}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                >
+                  추가
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 언어 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">언어</label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {languages.map((language) => (
+                <div key={language} className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-sm">
+                  <span>{language}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLanguage(language)}
+                    className="w-4 h-4 flex items-center justify-center text-indigo-400 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            {languages.length < 5 && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newLanguage}
+                  onChange={(e) => setNewLanguage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLanguage())}
+                  placeholder="예: 한국어, 영어, 일본어..."
+                  className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddLanguage}
+                  disabled={!newLanguage.trim()}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                >
+                  추가
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>

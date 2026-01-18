@@ -26,6 +26,8 @@ interface VirtualStaff {
   hair_color: string | null;
   is_waxed: boolean | null;
   created_by_admin_id: string | null;
+  nationalities: string[] | null;
+  languages: string[] | null;
   store?: { name: string; address: string };
 }
 
@@ -559,8 +561,19 @@ export default function VirtualStaffDetail() {
     );
   }
 
-  const backLink = user?.role === 'customer' ? '/' : '/admin/staff';
-  const backText = user?.role === 'customer' ? '← 돌아가기' : '← 매니저 관리';
+  const getBackLink = () => {
+    if (user?.role === 'customer') return '/';
+    if (user?.role === 'superadmin') return '/superadmin/virtual-staff';
+    // admin/owner - go to store page
+    return staff?.store_id ? `/store/${staff.store_id}` : '/';
+  };
+  const getBackText = () => {
+    if (user?.role === 'customer') return '← 돌아가기';
+    if (user?.role === 'superadmin') return '← 등록 매니저 관리';
+    return '← 가게로 돌아가기';
+  };
+  const backLink = getBackLink();
+  const backText = getBackText();
   const isCustomer = user?.role === 'customer';
 
   // Helper function for date formatting
@@ -633,6 +646,18 @@ export default function VirtualStaffDetail() {
               <div className="flex flex-wrap gap-1 max-sm:justify-center">
                 {staff.specialties.map((s) => (
                   <span key={s} className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{s}</span>
+                ))}
+              </div>
+            )}
+
+            {/* Nationalities & Languages */}
+            {((staff.nationalities && staff.nationalities.length > 0) || (staff.languages && staff.languages.length > 0)) && (
+              <div className="flex flex-wrap gap-2 mt-3 max-sm:justify-center">
+                {staff.nationalities && staff.nationalities.map((n) => (
+                  <span key={n} className="px-2 py-1 bg-green-50 text-green-600 text-sm rounded">{n}</span>
+                ))}
+                {staff.languages && staff.languages.map((l) => (
+                  <span key={l} className="px-2 py-1 bg-indigo-50 text-indigo-600 text-sm rounded">{l}</span>
                 ))}
               </div>
             )}

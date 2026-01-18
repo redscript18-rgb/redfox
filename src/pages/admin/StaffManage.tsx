@@ -42,6 +42,10 @@ export default function StaffManage() {
   const [newStaffPhone, setNewStaffPhone] = useState('');
   const [newStaffBio, setNewStaffBio] = useState('');
   const [newStaffSpecialties, setNewStaffSpecialties] = useState<string[]>([]);
+  const [newStaffNationalities, setNewStaffNationalities] = useState<string[]>([]);
+  const [newStaffLanguages, setNewStaffLanguages] = useState<string[]>([]);
+  const [newNationalityInput, setNewNationalityInput] = useState('');
+  const [newLanguageInput, setNewLanguageInput] = useState('');
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -225,6 +229,8 @@ export default function StaffManage() {
         phone: newStaffPhone.trim() || null,
         bio: newStaffBio.trim() || null,
         specialties: newStaffSpecialties.length > 0 ? newStaffSpecialties : null,
+        nationalities: newStaffNationalities.length > 0 ? newStaffNationalities : null,
+        languages: newStaffLanguages.length > 0 ? newStaffLanguages : null,
         created_by_admin_id: user.id,
       });
 
@@ -239,6 +245,10 @@ export default function StaffManage() {
     setNewStaffPhone('');
     setNewStaffBio('');
     setNewStaffSpecialties([]);
+    setNewStaffNationalities([]);
+    setNewStaffLanguages([]);
+    setNewNationalityInput('');
+    setNewLanguageInput('');
     setShowAddModal(false);
     setAdding(false);
     fetchStaff();
@@ -499,6 +509,92 @@ export default function StaffManage() {
                       {spec}
                     </button>
                   ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">국적</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {newStaffNationalities.map((n) => (
+                    <span key={n} className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 text-sm rounded">
+                      {n}
+                      <button type="button" onClick={() => setNewStaffNationalities(prev => prev.filter(x => x !== n))} className="text-green-400 hover:text-red-500">×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newNationalityInput}
+                    onChange={(e) => setNewNationalityInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const v = newNationalityInput.trim();
+                        if (v && !newStaffNationalities.includes(v)) {
+                          setNewStaffNationalities([...newStaffNationalities, v]);
+                          setNewNationalityInput('');
+                        }
+                      }
+                    }}
+                    placeholder="예: 한국, 일본..."
+                    className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const v = newNationalityInput.trim();
+                      if (v && !newStaffNationalities.includes(v)) {
+                        setNewStaffNationalities([...newStaffNationalities, v]);
+                        setNewNationalityInput('');
+                      }
+                    }}
+                    className="px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors"
+                  >
+                    추가
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">언어</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {newStaffLanguages.map((l) => (
+                    <span key={l} className="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-600 text-sm rounded">
+                      {l}
+                      <button type="button" onClick={() => setNewStaffLanguages(prev => prev.filter(x => x !== l))} className="text-indigo-400 hover:text-red-500">×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newLanguageInput}
+                    onChange={(e) => setNewLanguageInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const v = newLanguageInput.trim();
+                        if (v && !newStaffLanguages.includes(v)) {
+                          setNewStaffLanguages([...newStaffLanguages, v]);
+                          setNewLanguageInput('');
+                        }
+                      }
+                    }}
+                    placeholder="예: 한국어, 영어..."
+                    className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const v = newLanguageInput.trim();
+                      if (v && !newStaffLanguages.includes(v)) {
+                        setNewStaffLanguages([...newStaffLanguages, v]);
+                        setNewLanguageInput('');
+                      }
+                    }}
+                    className="px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors"
+                  >
+                    추가
+                  </button>
                 </div>
               </div>
             </div>

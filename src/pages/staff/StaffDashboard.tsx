@@ -32,10 +32,9 @@ interface Reservation {
 export default function StaffDashboard() {
   const { user } = useAuth();
   const [myStores, setMyStores] = useState<Store[]>([]);
-  const [allStores, setAllStores] = useState<Store[]>([]);
   const [myTodaySchedules, setMyTodaySchedules] = useState<Schedule[]>([]);
   const [myTodayReservations, setMyTodayReservations] = useState<Reservation[]>([]);
-  const [storeDemand, setStoreDemand] = useState<Record<number, number>>({});
+  const [myStoreDemand, setMyStoreDemand] = useState<Record<number, number>>({});
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
   const now = new Date();
@@ -61,10 +60,20 @@ export default function StaffDashboard() {
         .select('*')
         .in('id', myStoreIds);
       setMyStores(storesData || []);
-    }
 
-    const { data: allStoresData } = await supabase.from('stores').select('*');
-    setAllStores(allStoresData || []);
+      // Fetch demand only for my stores
+      const demand: Record<number, number> = {};
+      for (const storeId of myStoreIds) {
+        const { count } = await supabase
+          .from('reservations')
+          .select('*', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .eq('date', today)
+          .neq('status', 'cancelled');
+        demand[storeId] = count || 0;
+      }
+      setMyStoreDemand(demand);
+    }
 
     const { data: schedulesData } = await supabase
       .from('schedules')
@@ -82,20 +91,6 @@ export default function StaffDashboard() {
       .neq('status', 'cancelled');
     setMyTodayReservations(reservationsData || []);
 
-    if (allStoresData) {
-      const demand: Record<number, number> = {};
-      for (const store of allStoresData) {
-        const { count } = await supabase
-          .from('reservations')
-          .select('*', { count: 'exact', head: true })
-          .eq('store_id', store.id)
-          .eq('date', today)
-          .neq('status', 'cancelled');
-        demand[store.id] = count || 0;
-      }
-      setStoreDemand(demand);
-    }
-
     const { count: pendingCount } = await supabase
       .from('work_requests')
       .select('*', { count: 'exact', head: true })
@@ -107,7 +102,7 @@ export default function StaffDashboard() {
   };
 
   const getWeeklyAverage = (storeId: number) => {
-    const todayCount = storeDemand[storeId] || 0;
+    const todayCount = myStoreDemand[storeId] || 0;
     return Math.max(Math.floor(todayCount * 0.8), 1);
   };
 
@@ -217,7 +212,7 @@ export default function StaffDashboard() {
         <p className="text-sm text-slate-500 mb-3">예약이 많은 가게에 출근하면 더 많이 벌 수 있어요!</p>
         <div className="flex flex-col gap-3">
           {myStores.map((store) => {
-            const todayCount = storeDemand[store.id] || 0;
+            const todayCount = myStoreDemand[store.id] || 0;
             const weeklyAvg = getWeeklyAverage(store.id);
             const isHot = todayCount >= weeklyAvg;
             const hasSchedule = myTodaySchedules.some((s) => s.store_id === store.id);
@@ -260,26 +255,18 @@ export default function StaffDashboard() {
         </div>
       </section>
 
-      {/* Other Stores */}
+      {/* Other Stores Link */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-900 mb-1">다른 가게 탐색</h2>
-        <p className="text-sm text-slate-500 mb-3">새로운 가게에서 일해보세요</p>
-        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-          {allStores
-            .filter((s) => !myStores.some(ms => ms.id === s.id))
-            .map((store) => (
-              <div key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl">
-                <h3 className="font-semibold text-slate-900">{store.name}</h3>
-                <p className="text-sm text-slate-500 mb-3">{store.address}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">오늘 예약 {storeDemand[store.id] || 0}건</span>
-                  <button className="px-3 py-1.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
-                    지원하기
-                  </button>
-                </div>
-              </div>
-            ))}
-        </div>
+        <Link
+          to="/staff/stores"
+          className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all"
+        >
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">다른 가게 탐색</h2>
+            <p className="text-sm text-slate-500">새로운 가게에서 일해보세요</p>
+          </div>
+          <span className="text-orange-600 text-xl">→</span>
+        </Link>
       </section>
     </div>
   );

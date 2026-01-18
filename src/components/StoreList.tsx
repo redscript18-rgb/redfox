@@ -9,36 +9,51 @@ interface Store {
   address: string;
   store_type: string | null;
   region: string | null;
-  menuCount?: number;
-  staffCount?: number;
 }
-
-const STORE_TYPES = ['키스', '소프트룸', '하드코어룸', '1인샵', '커플관리샵', '왁싱샵', '스웨디시', '타이마사지', '중국마사지', '스포츠마사지', '발마사지', '네일샵', '피부관리샵', '기타'];
-const REGIONS = [
-  // 서울
-  '강남', '강서', '구로', '당산', '마포', '문래동', '북창동', '상봉', '서울대입구역', '선릉', '신대방', '신림', '역삼', '연신내', '영등포', '잠실', '장안동', '중랑', '홍대',
-  // 경기/인천
-  '가락', '계양', '구의', '군포', '동암', '마곡', '부천', '부평', '분당', '상동', '안양', '역곡', '일산', '주안', '철산', '화곡',
-  // 기타 지역
-  '부산', '아산', '인천', '천안',
-];
 
 interface StoreRating {
   avgRating: number | null;
   ratingCount: number;
 }
 
+const REGIONS = [
+  '강남', '강서', '강동', '가락', '가산', '계양', '고양', '구로', '구미', '군포', '김포',
+  '당산', '대구', '대전', '동탄', '동대문', '동암', '마곡', '마포', '문래동', '부산', '부천', '부평', '분당', '북창동',
+  '상봉', '상동', '선릉', '서울대입구역', '수원', '시흥', '신대방', '신림', '안양',
+  '역곡', '역삼', '연신내', '영등포', '오산', '용인', '의정부', '인천', '일산',
+  '잠실', '장안동', '전주', '제주도', '주안', '중랑', '천안', '철산', '청주', '평택', '하남', '홍대', '화곡', '화정',
+  '기타'
+];
+
+const STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
+
 export default function StoreList() {
   const { user } = useAuth();
   const [stores, setStores] = useState<Store[]>([]);
   const [ratingMap, setRatingMap] = useState<Record<number, StoreRating>>({});
   const [blockedStoreIds, setBlockedStoreIds] = useState<Set<number>>(new Set());
+  const [favoriteStoreIds, setFavoriteStoreIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
-  const [filterType, setFilterType] = useState('');
-  const [filterRegion, setFilterRegion] = useState('');
+  const [sortBy, setSortBy] = useState<'rating' | 'reviewCount'>('rating');
+  const [filterType, setFilterType] = useState('룸');
+  const [filterRegion, setFilterRegion] = useState('강남');
 
-  useEffect(() => { fetchStores(); if (user) fetchBlockedStores(); }, [user]);
+  useEffect(() => {
+    if (user) {
+      fetchBlockedStores();
+      fetchFavorites();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchStores();
+  }, [filterRegion, filterType]);
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('favorites').select('target_store_id').eq('user_id', user.id).eq('target_type', 'store');
+    if (data) setFavoriteStoreIds(new Set(data.map(f => f.target_store_id).filter(Boolean)));
+  };
 
   const fetchBlockedStores = async () => {
     if (!user) return;
@@ -58,34 +73,48 @@ export default function StoreList() {
   };
 
   const fetchStores = async () => {
-    const { data: storesData } = await supabase.from('stores').select('*');
+    setLoading(true);
+
+    let query = supabase.from('stores').select('*');
+
+    if (filterRegion && filterRegion !== '기타') {
+      query = query.eq('region', filterRegion);
+    } else if (filterRegion === '기타') {
+      query = query.is('region', null);
+    }
+
+    if (filterType) {
+      query = query.eq('store_type', filterType);
+    }
+
+    const { data: storesData } = await query;
 
     if (storesData) {
-      const storesWithCounts = await Promise.all(
-        storesData.map(async (store) => {
-          const { count: menuCount } = await supabase.from('menus').select('*', { count: 'exact', head: true }).eq('store_id', store.id);
-          const { count: staffCount } = await supabase.from('store_staff').select('*', { count: 'exact', head: true }).eq('store_id', store.id);
-          return { ...store, menuCount: menuCount || 0, staffCount: staffCount || 0 };
-        })
-      );
-      setStores(storesWithCounts);
+      setStores(storesData);
 
-      const { data: ratingsData } = await supabase.from('ratings').select('target_store_id, rating, reservation_id').eq('target_type', 'store').not('reservation_id', 'is', null);
+      if (storesData.length > 0) {
+        const { data: ratingsData } = await supabase
+          .from('ratings')
+          .select('target_store_id, rating, reservation_id')
+          .eq('target_type', 'store')
+          .not('reservation_id', 'is', null)
+          .in('target_store_id', storesData.map(s => s.id));
 
-      if (ratingsData) {
-        const ratingsByStore: Record<number, StoreRating> = {};
-        const grouped: Record<number, number[]> = {};
+        if (ratingsData) {
+          const ratingsByStore: Record<number, StoreRating> = {};
+          const grouped: Record<number, number[]> = {};
 
-        ratingsData.forEach((r) => {
-          if (!r.target_store_id || r.rating === null) return;
-          if (!grouped[r.target_store_id]) grouped[r.target_store_id] = [];
-          grouped[r.target_store_id].push(r.rating);
-        });
+          ratingsData.forEach((r) => {
+            if (!r.target_store_id || r.rating === null) return;
+            if (!grouped[r.target_store_id]) grouped[r.target_store_id] = [];
+            grouped[r.target_store_id].push(r.rating);
+          });
 
-        Object.entries(grouped).forEach(([storeId, ratings]) => {
-          ratingsByStore[Number(storeId)] = { avgRating: ratings.reduce((a, b) => a + b, 0) / ratings.length, ratingCount: ratings.length };
-        });
-        setRatingMap(ratingsByStore);
+          Object.entries(grouped).forEach(([storeId, ratings]) => {
+            ratingsByStore[Number(storeId)] = { avgRating: ratings.reduce((a, b) => a + b, 0) / ratings.length, ratingCount: ratings.length };
+          });
+          setRatingMap(ratingsByStore);
+        }
       }
     }
     setLoading(false);
@@ -94,36 +123,56 @@ export default function StoreList() {
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   const filteredStores = stores
-    .filter((store) => {
-      if (blockedStoreIds.has(store.id)) return false;
-      const matchesType = !filterType || store.store_type === filterType;
-      const matchesRegion = !filterRegion || store.region === filterRegion;
-      return matchesType && matchesRegion;
-    })
+    .filter((store) => !blockedStoreIds.has(store.id))
     .sort((a, b) => {
-      if (sortBy === 'rating') return (ratingMap[b.id]?.avgRating ?? 0) - (ratingMap[a.id]?.avgRating ?? 0);
-      if (sortBy === 'reviewCount') return (ratingMap[b.id]?.ratingCount ?? 0) - (ratingMap[a.id]?.ratingCount ?? 0);
+      const aFav = favoriteStoreIds.has(a.id) ? 1 : 0;
+      const bFav = favoriteStoreIds.has(b.id) ? 1 : 0;
+      if (bFav !== aFav) return bFav - aFav;
+
+      if (sortBy === 'rating') {
+        const ratingDiff = (ratingMap[b.id]?.avgRating ?? 0) - (ratingMap[a.id]?.avgRating ?? 0);
+        if (ratingDiff !== 0) return ratingDiff;
+      }
+      if (sortBy === 'reviewCount') {
+        const countDiff = (ratingMap[b.id]?.ratingCount ?? 0) - (ratingMap[a.id]?.ratingCount ?? 0);
+        if (countDiff !== 0) return countDiff;
+      }
+
       return a.name.localeCompare(b.name, 'ko');
     });
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">가게 목록</h1>
-
       <div className="flex gap-2 mb-6 flex-wrap">
-        <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
-          <option value="">전체 지역</option>
-          {REGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
+        <select
+          value={filterRegion}
+          onChange={(e) => setFilterRegion(e.target.value)}
+          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+        >
+          {REGIONS.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
         </select>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
-          <option value="">전체 업종</option>
-          {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+        >
+          {STORE_TYPES.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
-          <option value="name">이름순</option>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'rating' | 'reviewCount')}
+          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+        >
           <option value="rating">별점순</option>
           <option value="reviewCount">리뷰 많은순</option>
         </select>
+        <span className="flex items-center text-sm text-slate-500 ml-2">
+          {filteredStores.length}개
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
@@ -132,9 +181,8 @@ export default function StoreList() {
           return (
             <Link to={`/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-semibold text-slate-900">{store.name}</h2>
-                  {store.region && <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded">{store.region}</span>}
                   {store.store_type && <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs font-medium rounded">{store.store_type}</span>}
                 </div>
                 {storeRating && storeRating.ratingCount > 0 && (
@@ -145,11 +193,7 @@ export default function StoreList() {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-slate-500 mb-2">{store.address}</p>
-              <div className="flex gap-3 text-xs text-slate-400">
-                <span>메뉴 {store.menuCount}개</span>
-                <span>매니저 {store.staffCount}명</span>
-              </div>
+              <p className="text-sm text-slate-500">{store.address}</p>
             </Link>
           );
         })}

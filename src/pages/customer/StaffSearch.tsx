@@ -48,17 +48,36 @@ export default function StaffSearch() {
   const [ratingMap, setRatingMap] = useState<Record<string, StaffRating>>({});
   const [affiliatedStoresMap, setAffiliatedStoresMap] = useState<Record<string, StoreInfo[]>>({});
   const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
+  const [favoriteStaffIds, setFavoriteStaffIds] = useState<Set<string>>(new Set());
   const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
+  const [sortBy, setSortBy] = useState<'rating' | 'reviewCount'>('rating');
 
   useEffect(() => {
     fetchData();
     if (user) {
       fetchBlockedByStaff();
+      fetchFavorites();
     }
   }, [user]);
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('favorites')
+      .select('target_staff_id, target_virtual_staff_id')
+      .eq('user_id', user.id)
+      .in('target_type', ['staff', 'virtual_staff']);
+    if (data) {
+      const ids = new Set<string>();
+      data.forEach(f => {
+        if (f.target_staff_id) ids.add(f.target_staff_id);
+        if (f.target_virtual_staff_id) ids.add(f.target_virtual_staff_id);
+      });
+      setFavoriteStaffIds(ids);
+    }
+  };
 
   const fetchBlockedByStaff = async () => {
     if (!user) return;
@@ -203,15 +222,31 @@ export default function StaffSearch() {
       return matchesSpecialty;
     })
     .sort((a, b) => {
+      // 1. 즐겨찾기 우선
+      const aFav = favoriteStaffIds.has(a.id) ? 1 : 0;
+      const bFav = favoriteStaffIds.has(b.id) ? 1 : 0;
+      if (bFav !== aFav) return bFav - aFav;
+
+      // 2. 오늘 출근 우선
+      const aWorking = scheduleMap[a.id] ? 1 : 0;
+      const bWorking = scheduleMap[b.id] ? 1 : 0;
+      if (bWorking !== aWorking) return bWorking - aWorking;
+
+      // 3. 프로필 사진 있는 사람 우선
+      const aPhoto = a.profile_photo_url ? 1 : 0;
+      const bPhoto = b.profile_photo_url ? 1 : 0;
+      if (bPhoto !== aPhoto) return bPhoto - aPhoto;
+
+      // 4. 선택한 정렬 기준
       if (sortBy === 'rating') {
-        const ratingA = ratingMap[a.id]?.avgRating ?? 0;
-        const ratingB = ratingMap[b.id]?.avgRating ?? 0;
-        return ratingB - ratingA;
+        const ratingDiff = (ratingMap[b.id]?.avgRating ?? 0) - (ratingMap[a.id]?.avgRating ?? 0);
+        if (ratingDiff !== 0) return ratingDiff;
       } else if (sortBy === 'reviewCount') {
-        const countA = ratingMap[a.id]?.totalCount ?? 0;
-        const countB = ratingMap[b.id]?.totalCount ?? 0;
-        return countB - countA;
+        const countDiff = (ratingMap[b.id]?.totalCount ?? 0) - (ratingMap[a.id]?.totalCount ?? 0);
+        if (countDiff !== 0) return countDiff;
       }
+
+      // 5. 기본: 이름순
       return a.name.localeCompare(b.name, 'ko');
     });
 
@@ -238,10 +273,9 @@ export default function StaffSearch() {
         </select>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
+          onChange={(e) => setSortBy(e.target.value as 'rating' | 'reviewCount')}
           className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
         >
-          <option value="name">이름순</option>
           <option value="rating">별점순</option>
           <option value="reviewCount">리뷰 많은순</option>
         </select>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -20,9 +20,11 @@ type StatusFilter = 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
 export default function ReservationOverview() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const initialStatus = searchParams.get('status') as StatusFilter || 'all';
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
   const [dateFilter, setDateFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -152,7 +154,7 @@ export default function ReservationOverview() {
         </select>
         {(dateFilter || statusFilter !== 'all' || searchQuery) && (
           <button
-            onClick={() => { setDateFilter(''); setStatusFilter('all'); setSearchQuery(''); }}
+            onClick={() => { setDateFilter(''); setStatusFilter('all'); setSearchQuery(''); setSearchParams({}); }}
             className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700"
           >
             필터 초기화

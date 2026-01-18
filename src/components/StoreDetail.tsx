@@ -10,6 +10,7 @@ interface Store {
   store_type: string | null;
   region: string | null;
   phone: string | null;
+  contact_name: string | null;
   description: string | null;
   open_time: string | null;
   close_time: string | null;
@@ -259,7 +260,13 @@ export default function StoreDetail() {
         )}
 
         <p className="text-slate-600 mb-1">{store.address}</p>
-        {store.phone && <p className="text-slate-500 text-sm">{store.phone}</p>}
+        {(store.contact_name || store.phone) && (
+          <p className="text-slate-500 text-sm">
+            {store.contact_name && <span className="font-medium text-slate-700">{store.contact_name}</span>}
+            {store.contact_name && store.phone && ' · '}
+            {store.phone}
+          </p>
+        )}
         {store.open_time && store.close_time && (
           <p className="text-slate-500 text-sm">영업시간: {store.open_time.slice(0, 5)} - {store.close_time.slice(0, 5)}</p>
         )}

@@ -339,10 +339,9 @@ export default function StaffSearch() {
                   )
                 )}
 
-                {(staff.age || staff.height || staff.weight || staff.body_size || staff.job || staff.mbti) && (
+                {(staff.age || staff.height || staff.weight || staff.body_size || staff.job) && (
                   <div className="flex gap-1.5 flex-wrap">
                     {staff.job && <span className="text-xs font-semibold text-blue-600 px-2.5 py-1 bg-blue-50 rounded-md">{staff.job}</span>}
-                    {staff.mbti && <span className="text-xs font-semibold text-purple-600 px-2.5 py-1 bg-purple-50 rounded-md">{staff.mbti}</span>}
                     {staff.age && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.age}세</span>}
                     {staff.height && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.height}cm</span>}
                     {staff.weight && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.weight}kg</span>}
@@ -352,16 +351,6 @@ export default function StaffSearch() {
 
                 {staff.bio && (
                   <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">{staff.bio}</p>
-                )}
-
-                {staff.specialties && staff.specialties.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {staff.specialties.map((s) => (
-                      <span key={s} className="px-3 py-1 bg-orange-50 rounded-full text-xs font-semibold text-orange-600 border border-transparent group-hover:border-red-600 transition-colors">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
                 )}
               </div>
 

@@ -134,7 +134,7 @@ export default function CustomerReservations() {
         )}
         <div className="flex gap-4">
           <div className="text-center">
-            <span className="block text-lg font-bold text-slate-900">{reservation.start_time}</span>
+            <span className="block text-lg font-bold text-slate-900">{reservation.start_time.slice(0, 5)}</span>
             <span className="text-xs text-slate-500">{formatDate(reservation.date)}</span>
           </div>
           <div className="flex-1">

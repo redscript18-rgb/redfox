@@ -194,7 +194,7 @@ export default function ScheduleManage() {
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-slate-900">{schedule.store?.name}</div>
-                  <div className="text-sm text-slate-600">{schedule.start_time} - {schedule.end_time}</div>
+                  <div className="text-sm text-slate-600">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -243,7 +243,7 @@ export default function ScheduleManage() {
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-slate-700">{schedule.store?.name}</div>
-                  <div className="text-sm text-slate-500">{schedule.start_time} - {schedule.end_time}</div>
+                  <div className="text-sm text-slate-500">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   {!hasRated(schedule.id) ? (

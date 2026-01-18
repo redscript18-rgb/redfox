@@ -164,7 +164,7 @@ export default function StaffDashboard() {
             {myTodaySchedules.map((schedule) => (
               <div key={schedule.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
                 <span className="font-semibold text-green-800">{schedule.store?.name}</span>
-                <span className="text-sm text-green-600">{schedule.start_time} - {schedule.end_time}</span>
+                <span className="text-sm text-green-600">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</span>
               </div>
             ))}
           </div>
@@ -188,7 +188,7 @@ export default function StaffDashboard() {
           <div className="flex flex-col gap-2">
             {myTodayReservations.map((reservation) => (
               <div key={reservation.id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl">
-                <span className="text-lg font-bold text-slate-900">{reservation.start_time}</span>
+                <span className="text-lg font-bold text-slate-900">{reservation.start_time.slice(0, 5)}</span>
                 <div className="flex-1">
                   <span className="font-medium text-slate-900">{reservation.menu?.name}</span>
                   <span className="text-sm text-slate-500 ml-2">{reservation.store?.name}</span>

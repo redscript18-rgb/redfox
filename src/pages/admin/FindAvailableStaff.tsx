@@ -75,13 +75,13 @@ export default function FindAvailableStaff() {
     return `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')} (${DAY_NAMES[date.getDay()]})`;
   };
 
-  const dateOptions = Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d.toISOString().split('T')[0]; });
+  const dateOptions = Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
 
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-1">가용 직원 찾기</h1>
       <p className="text-sm text-slate-500 mb-6">날짜를 선택하면 해당 요일에 근무 가능한 직원을 찾을 수 있습니다.</p>
 
@@ -89,20 +89,20 @@ export default function FindAvailableStaff() {
         <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">가게 선택</label>
-            <select value={selectedStoreId} onChange={(e) => setSelectedStoreId(Number(e.target.value))} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+            <select value={selectedStoreId} onChange={(e) => setSelectedStoreId(Number(e.target.value))} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               <option value="">가게를 선택하세요</option>
               {stores.map((store) => (<option key={store.id} value={store.id}>{store.name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">날짜 선택</label>
-            <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+            <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               <option value="">날짜를 선택하세요</option>
               {dateOptions.map((d) => (<option key={d} value={d}>{formatDate(d)}</option>))}
             </select>
           </div>
           <div className="flex items-end">
-            <button className="w-full h-11 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400" onClick={handleSearch} disabled={!selectedStoreId || !selectedDate || searching}>
+            <button className="w-full h-11 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400" onClick={handleSearch} disabled={!selectedStoreId || !selectedDate || searching}>
               {searching ? '검색 중...' : '검색'}
             </button>
           </div>
@@ -130,7 +130,7 @@ export default function FindAvailableStaff() {
                     ))}
                   </div>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" onClick={() => handleRequestClick(staff)}>출근 요청</button>
+                <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => handleRequestClick(staff)}>출근 요청</button>
               </div>
             ))}
           </div>
@@ -181,13 +181,13 @@ function SendRequestModal({ staff, storeId, storeName, date, adminId, onClose, o
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
-            <select value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+            <select value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               {Array.from({ length: 15 }, (_, i) => i + 7).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
-            <select value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+            <select value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               {Array.from({ length: 15 }, (_, i) => i + 8).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
             </select>
           </div>
@@ -195,12 +195,12 @@ function SendRequestModal({ staff, storeId, storeName, date, adminId, onClose, o
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">메시지 (선택)</label>
-          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="직원에게 전달할 메시지를 입력하세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="직원에게 전달할 메시지를 입력하세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
         </div>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400">{submitting ? '전송 중...' : '요청 보내기'}</button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">{submitting ? '전송 중...' : '요청 보내기'}</button>
         </div>
       </div>
     </div>

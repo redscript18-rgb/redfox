@@ -89,7 +89,8 @@ export default function StoreDetail() {
   };
 
   const fetchData = async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
     if (!storeData) { setLoading(false); return; }
@@ -133,21 +134,21 @@ export default function StoreDetail() {
     return (
       <div>
         <p className="text-slate-500 mb-4">가게를 찾을 수 없습니다.</p>
-        <Link to="/" className="text-blue-600 text-sm hover:underline">← 목록으로</Link>
+        <Link to="/" className="text-orange-600 text-sm hover:underline">← 목록으로</Link>
       </div>
     );
   }
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 목록으로</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 목록으로</Link>
 
       {/* Header */}
       <header className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
-            {store.store_type && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{store.store_type}</span>}
+            {store.store_type && <span className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{store.store_type}</span>}
           </div>
           <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
             {isFavorite ? '♥' : '♡'}
@@ -192,7 +193,7 @@ export default function StoreDetail() {
               <div key={schedule.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-slate-900">{schedule.staff?.name}</span>
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${schedule.type === 'assigned' ? 'bg-green-100 text-green-600' : schedule.type === 'requested' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${schedule.type === 'assigned' ? 'bg-green-100 text-green-600' : schedule.type === 'requested' ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-600'}`}>
                     {schedule.type === 'assigned' ? '배정' : schedule.type === 'requested' ? '신청' : '자율'}
                   </span>
                 </div>
@@ -217,12 +218,12 @@ export default function StoreDetail() {
                 {staff.specialties && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {staff.specialties.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded">{s}</span>
                     ))}
                   </div>
                 )}
               </div>
-              <span className="text-sm text-blue-600">프로필 보기 →</span>
+              <span className="text-sm text-orange-600">프로필 보기 →</span>
             </Link>
           ))}
         </div>
@@ -238,7 +239,7 @@ export default function StoreDetail() {
                 <h3 className="font-medium text-slate-900">{menu.name}</h3>
                 {menu.description && <p className="text-sm text-slate-500">{menu.description}</p>}
               </div>
-              <span className="font-semibold text-blue-600">{menu.price.toLocaleString()}원</span>
+              <span className="font-semibold text-orange-600">{menu.price.toLocaleString()}원</span>
             </div>
           ))}
         </div>

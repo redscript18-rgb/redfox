@@ -37,7 +37,8 @@ export default function OwnerDashboard() {
   const [todaySchedules, setTodaySchedules] = useState<Schedule[]>([]);
   const [storeStaffCounts, setStoreStaffCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => { if (user) fetchData(); }, [user]);
 
@@ -126,9 +127,9 @@ export default function OwnerDashboard() {
             return (
               <div key={day} className="flex flex-col items-center flex-1">
                 <div className="w-full flex-1 flex items-end">
-                  <div className={`w-full rounded-t transition-all ${isToday ? 'bg-blue-600' : 'bg-slate-200'}`} style={{ height: `${height}%` }} />
+                  <div className={`w-full rounded-t transition-all ${isToday ? 'bg-red-600' : 'bg-slate-200'}`} style={{ height: `${height}%` }} />
                 </div>
-                <span className={`text-xs mt-2 ${isToday ? 'text-blue-600 font-semibold' : 'text-slate-500'}`}>{day}</span>
+                <span className={`text-xs mt-2 ${isToday ? 'text-orange-600 font-semibold' : 'text-slate-500'}`}>{day}</span>
               </div>
             );
           })}
@@ -139,23 +140,23 @@ export default function OwnerDashboard() {
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-slate-900">가게별 현황</h2>
-          <Link to="/owner/stores" className="text-sm text-blue-600 hover:underline">가게 관리 →</Link>
+          <Link to="/owner/stores" className="text-sm text-orange-600 hover:underline">가게 관리 →</Link>
         </div>
         <div className="flex flex-col gap-3">
           {stores.map((store) => {
             const stats = getStoreStats(store.id);
             return (
-              <Link to={`/owner/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+              <Link to={`/owner/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-slate-900">{store.name}</h3>
                     <p className="text-sm text-slate-500">{store.address}</p>
                   </div>
-                  <span className="text-sm text-blue-600">상세 보기 →</span>
+                  <span className="text-sm text-orange-600">상세 보기 →</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 pt-3 border-t border-slate-100">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">{stats.revenue.toLocaleString()}원</div>
+                    <div className="text-lg font-bold text-orange-600">{stats.revenue.toLocaleString()}원</div>
                     <div className="text-xs text-slate-500">오늘 매출</div>
                   </div>
                   <div className="text-center">

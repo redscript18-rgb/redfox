@@ -93,12 +93,12 @@ export default function Favorites() {
 
       <div className="flex gap-2 mb-6">
         {canShowStores && (
-          <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'stores' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('stores')}>
+          <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'stores' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('stores')}>
             가게 ({favoriteStores.length})
           </button>
         )}
         {canShowStaff && (
-          <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('staff')}>
+          <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('staff')}>
             직원 ({favoriteStaff.length})
           </button>
         )}
@@ -108,12 +108,12 @@ export default function Favorites() {
         <div className="flex flex-col gap-3">
           {favoriteStores.length > 0 ? (
             favoriteStores.map((fav) => (
-              <div key={fav.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 transition-colors">
+              <div key={fav.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 transition-colors">
                 <Link to={`/store/${fav.store.id}`} className="block">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-slate-900">{fav.store.name}</h3>
                     {fav.store.store_type && (
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded">{fav.store.store_type}</span>
+                      <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded">{fav.store.store_type}</span>
                     )}
                   </div>
                   <p className="text-sm text-slate-500">{fav.store.address}</p>
@@ -135,7 +135,7 @@ export default function Favorites() {
         <div className="flex flex-col gap-3">
           {favoriteStaff.length > 0 ? (
             favoriteStaff.map((fav) => (
-              <div key={fav.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 transition-colors">
+              <div key={fav.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 transition-colors">
                 <Link to={`/staff/${fav.staff.id}`} className="flex gap-4">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
                     {fav.staff.profile_photo_url ? (
@@ -150,7 +150,7 @@ export default function Favorites() {
                     {fav.staff.specialties && fav.staff.specialties.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {fav.staff.specialties.slice(0, 3).map((s) => (
-                          <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded">{s}</span>
+                          <span key={s} className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded">{s}</span>
                         ))}
                       </div>
                     )}

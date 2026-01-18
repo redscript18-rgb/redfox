@@ -30,7 +30,8 @@ export default function ScheduleApproval() {
   const [filter, setFilter] = useState<'pending' | 'approved' | 'all'>('pending');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) fetchSchedules();
@@ -96,20 +97,20 @@ export default function ScheduleApproval() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">출근 관리</h1>
 
       <div className="flex gap-2 mb-6">
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('pending')}>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'pending' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('pending')}>
           승인 대기 {pendingCount > 0 && <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">{pendingCount}</span>}
         </button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'approved' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('approved')}>승인됨</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('all')}>전체</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'approved' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('approved')}>승인됨</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('all')}>전체</button>
       </div>
 
       <div className="flex flex-col gap-3">
         {filteredSchedules.map((schedule) => (
-          <div key={schedule.id} className={`p-4 bg-white border rounded-xl ${schedule.status === 'approved' ? 'border-green-300' : schedule.status === 'pending' ? 'border-blue-300' : 'border-red-200 opacity-60'}`}>
+          <div key={schedule.id} className={`p-4 bg-white border rounded-xl ${schedule.status === 'approved' ? 'border-green-300' : schedule.status === 'pending' ? 'border-orange-300' : 'border-red-200 opacity-60'}`}>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="font-semibold text-slate-900">{schedule.staff?.name}</div>
@@ -122,7 +123,7 @@ export default function ScheduleApproval() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                {schedule.type === 'requested' && <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">신청</span>}
+                {schedule.type === 'requested' && <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs font-medium rounded-full">신청</span>}
                 {schedule.type === 'self' && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">자율</span>}
                 {schedule.type === 'assigned' && <span className="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full">배정</span>}
               </div>
@@ -211,12 +212,12 @@ function RatingModal({ schedule, raterId, onClose, onSuccess }: { schedule: Sche
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">코멘트 (선택)</label>
-          <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+          <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
         </div>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400">{submitting ? '등록 중...' : '별점 등록'}</button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">{submitting ? '등록 중...' : '별점 등록'}</button>
         </div>
       </div>
     </div>

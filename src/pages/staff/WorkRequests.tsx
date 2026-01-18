@@ -130,13 +130,15 @@ export default function WorkRequests() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
     let prefix = '';
-    if (dateStr === today.toISOString().split('T')[0]) {
+    if (dateStr === todayStr) {
       prefix = '오늘 ';
-    } else if (dateStr === tomorrow.toISOString().split('T')[0]) {
+    } else if (dateStr === tomorrowStr) {
       prefix = '내일 ';
     }
 
@@ -166,7 +168,7 @@ export default function WorkRequests() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold text-slate-900">출근 요청</h1>
@@ -181,7 +183,7 @@ export default function WorkRequests() {
         <button
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             filter === 'pending'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setFilter('pending')}
@@ -191,7 +193,7 @@ export default function WorkRequests() {
         <button
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             filter === 'all'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setFilter('all')}
@@ -206,7 +208,7 @@ export default function WorkRequests() {
             <div
               key={request.id}
               className={`p-4 bg-white border rounded-xl ${
-                request.status === 'pending' ? 'border-blue-300' :
+                request.status === 'pending' ? 'border-orange-300' :
                 request.status === 'accepted' ? 'border-green-300' :
                 request.status === 'rejected' ? 'border-red-200 opacity-60' : 'border-slate-200'
               }`}
@@ -214,7 +216,7 @@ export default function WorkRequests() {
               <div className="flex items-start justify-between mb-3">
                 <span className="font-semibold text-slate-900">{request.store?.name}</span>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  request.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+                  request.status === 'pending' ? 'bg-orange-100 text-orange-600' :
                   request.status === 'accepted' ? 'bg-green-100 text-green-600' :
                   request.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'
                 }`}>
@@ -248,7 +250,7 @@ export default function WorkRequests() {
                     거절
                   </button>
                   <button
-                    className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    className="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
                     onClick={() => handleAccept(request)}
                   >
                     수락
@@ -259,7 +261,7 @@ export default function WorkRequests() {
               {request.status === 'accepted' && request.schedule_id && (
                 <Link
                   to="/staff/schedule"
-                  className="block mt-4 text-center text-sm text-blue-600 hover:underline"
+                  className="block mt-4 text-center text-sm text-orange-600 hover:underline"
                 >
                   스케줄 확인 →
                 </Link>

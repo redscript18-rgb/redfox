@@ -19,7 +19,8 @@ export default function AdminDashboard() {
   const [pendingWorkRequests, setPendingWorkRequests] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) {
@@ -104,9 +105,9 @@ export default function AdminDashboard() {
             </Link>
           )}
           {pendingReservations > 0 && (
-            <Link to="/admin/reservations" className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors">
-              <span className="text-2xl font-bold text-blue-600">{pendingReservations}</span>
-              <span className="text-sm font-medium text-blue-700">예약 승인 대기</span>
+            <Link to="/admin/reservations" className="flex items-center gap-4 p-4 bg-orange-50 border border-blue-200 rounded-xl hover:bg-orange-100 transition-colors">
+              <span className="text-2xl font-bold text-orange-600">{pendingReservations}</span>
+              <span className="text-sm font-medium text-orange-700">예약 승인 대기</span>
             </Link>
           )}
         </div>
@@ -142,13 +143,13 @@ export default function AdminDashboard() {
               <Link
                 key={store.id}
                 to={`/admin/store/${store.id}/settings`}
-                className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all"
+                className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all"
               >
                 <div>
                   <h3 className="font-semibold text-slate-900">{store.name}</h3>
                   <p className="text-sm text-slate-500">{store.address}</p>
                 </div>
-                <span className="text-sm text-blue-600 font-medium">설정 →</span>
+                <span className="text-sm text-orange-600 font-medium">설정 →</span>
               </Link>
             ))
           )}
@@ -159,23 +160,23 @@ export default function AdminDashboard() {
       <section>
         <h2 className="text-lg font-semibold text-slate-900 mb-3">관리 메뉴</h2>
         <div className="grid grid-cols-3 gap-3 max-md:grid-cols-2">
-          <Link to="/admin/staff" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/admin/staff" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">👥</span>
             <span className="text-sm font-medium text-slate-700">직원 관리</span>
           </Link>
-          <Link to="/admin/schedules" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/admin/schedules" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📅</span>
             <span className="text-sm font-medium text-slate-700">출근 관리</span>
           </Link>
-          <Link to="/admin/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/admin/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📋</span>
             <span className="text-sm font-medium text-slate-700">예약 관리</span>
           </Link>
-          <Link to="/admin/find-staff" className="flex flex-col items-center gap-2 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all">
+          <Link to="/admin/find-staff" className="flex flex-col items-center gap-2 p-4 bg-orange-50 border border-blue-200 rounded-xl hover:bg-orange-100 transition-all">
             <span className="text-2xl">🔍</span>
-            <span className="text-sm font-medium text-blue-700">직원 찾기</span>
+            <span className="text-sm font-medium text-orange-700">직원 찾기</span>
           </Link>
-          <Link to="/admin/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/admin/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📨</span>
             <span className="text-sm font-medium text-slate-700">보낸 요청</span>
             {pendingWorkRequests > 0 && (

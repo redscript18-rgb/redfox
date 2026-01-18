@@ -105,7 +105,7 @@ export default function StaffManage() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">직원 관리</h1>
@@ -117,7 +117,7 @@ export default function StaffManage() {
 
       <div className="flex flex-col gap-3">
         {staffList.map((staff) => (
-          <div key={staff.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <div key={staff.id} className="relative p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <Link to={`/staff/${staff.id}`} className="flex gap-4">
               <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden flex-shrink-0">
                 {staff.profile_photo_url ? (
@@ -140,7 +140,7 @@ export default function StaffManage() {
                 {staff.specialties && staff.specialties.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {staff.specialties.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">{s}</span>
+                      <span key={s} className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded text-xs">{s}</span>
                     ))}
                   </div>
                 )}

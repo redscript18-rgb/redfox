@@ -30,7 +30,8 @@ export default function ReservationManage() {
   const [blockedCustomers, setBlockedCustomers] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'all'>('pending');
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) {
@@ -198,7 +199,7 @@ export default function ReservationManage() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <Link to="/" className="inline-block mb-3 text-blue-600 text-sm hover:underline">
+      <Link to="/" className="inline-block mb-3 text-orange-600 text-sm hover:underline">
         ← 대시보드
       </Link>
 
@@ -208,7 +209,7 @@ export default function ReservationManage() {
       <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
         <button
           className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
-            filter === 'pending' ? 'bg-blue-600 text-white' : 'text-slate-500'
+            filter === 'pending' ? 'bg-red-600 text-white' : 'text-slate-500'
           }`}
           onClick={() => setFilter('pending')}
         >
@@ -223,7 +224,7 @@ export default function ReservationManage() {
         </button>
         <button
           className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
-            filter === 'confirmed' ? 'bg-blue-600 text-white' : 'text-slate-500'
+            filter === 'confirmed' ? 'bg-red-600 text-white' : 'text-slate-500'
           }`}
           onClick={() => setFilter('confirmed')}
         >
@@ -231,7 +232,7 @@ export default function ReservationManage() {
         </button>
         <button
           className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
-            filter === 'all' ? 'bg-blue-600 text-white' : 'text-slate-500'
+            filter === 'all' ? 'bg-red-600 text-white' : 'text-slate-500'
           }`}
           onClick={() => setFilter('all')}
         >
@@ -251,7 +252,7 @@ export default function ReservationManage() {
               key={reservation.id}
               className={`bg-white border rounded-xl overflow-hidden ${
                 reservation.status === 'pending'
-                  ? 'border-blue-600 border-2'
+                  ? 'border-red-600 border-2'
                   : isLowRating
                   ? 'border-amber-500'
                   : 'border-slate-200'
@@ -260,7 +261,7 @@ export default function ReservationManage() {
               {/* Card Top */}
               <div className={`p-3 border-b border-slate-100 ${
                 reservation.status === 'pending'
-                  ? 'bg-blue-50'
+                  ? 'bg-orange-50'
                   : isLowRating
                   ? 'bg-amber-50'
                   : 'bg-slate-50'
@@ -274,7 +275,7 @@ export default function ReservationManage() {
                   </span>
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                     reservation.status === 'pending'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-orange-100 text-orange-600'
                       : reservation.status === 'confirmed'
                       ? 'bg-green-100 text-green-600'
                       : 'bg-slate-100 text-slate-500'
@@ -288,7 +289,7 @@ export default function ReservationManage() {
                   <span className="text-sm font-semibold text-slate-900">
                     {reservation.menu?.name}
                   </span>
-                  <span className="text-sm font-semibold text-blue-600">
+                  <span className="text-sm font-semibold text-orange-600">
                     {reservation.menu?.price?.toLocaleString()}원
                   </span>
                 </div>

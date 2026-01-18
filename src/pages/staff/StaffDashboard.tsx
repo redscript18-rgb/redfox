@@ -38,7 +38,8 @@ export default function StaffDashboard() {
   const [storeDemand, setStoreDemand] = useState<Record<number, number>>({});
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) fetchData();
@@ -129,15 +130,15 @@ export default function StaffDashboard() {
       {/* Quick Menu */}
       <section className="mb-8">
         <div className="grid grid-cols-5 gap-3 max-md:grid-cols-3 max-sm:grid-cols-2">
-          <Link to="/staff/profile" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/staff/profile" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">👤</span>
             <span className="text-xs font-medium text-slate-700">프로필 관리</span>
           </Link>
-          <Link to="/staff/availability" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/staff/availability" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">🕐</span>
             <span className="text-xs font-medium text-slate-700">가용 시간</span>
           </Link>
-          <Link to="/staff/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/staff/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📨</span>
             <span className="text-xs font-medium text-slate-700">출근 요청</span>
             {pendingRequests > 0 && (
@@ -146,11 +147,11 @@ export default function StaffDashboard() {
               </span>
             )}
           </Link>
-          <Link to="/staff/schedule" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/staff/schedule" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📅</span>
             <span className="text-xs font-medium text-slate-700">스케줄 관리</span>
           </Link>
-          <Link to="/staff/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+          <Link to="/staff/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📋</span>
             <span className="text-xs font-medium text-slate-700">내 예약</span>
           </Link>
@@ -161,7 +162,7 @@ export default function StaffDashboard() {
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-slate-900">오늘 내 스케줄</h2>
-          <Link to="/staff/schedule" className="text-sm text-blue-600 hover:underline">스케줄 관리 →</Link>
+          <Link to="/staff/schedule" className="text-sm text-orange-600 hover:underline">스케줄 관리 →</Link>
         </div>
         {myTodaySchedules.length > 0 ? (
           <div className="flex flex-col gap-2">
@@ -175,7 +176,7 @@ export default function StaffDashboard() {
         ) : (
           <div className="p-6 bg-slate-50 rounded-xl text-center">
             <p className="text-slate-500 mb-3">오늘 등록된 출근이 없습니다.</p>
-            <Link to="/staff/schedule" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <Link to="/staff/schedule" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
               출근 등록하기
             </Link>
           </div>
@@ -186,7 +187,7 @@ export default function StaffDashboard() {
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-slate-900">오늘 내 예약 ({myTodayReservations.length}건)</h2>
-          <Link to="/staff/reservations" className="text-sm text-blue-600 hover:underline">전체 보기 →</Link>
+          <Link to="/staff/reservations" className="text-sm text-orange-600 hover:underline">전체 보기 →</Link>
         </div>
         {myTodayReservations.length > 0 ? (
           <div className="flex flex-col gap-2">
@@ -198,7 +199,7 @@ export default function StaffDashboard() {
                   <span className="text-sm text-slate-500 ml-2">{reservation.store?.name}</span>
                 </div>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                  reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
                 }`}>
                   {reservation.status === 'confirmed' ? '확정' : '대기'}
                 </span>
@@ -248,7 +249,7 @@ export default function StaffDashboard() {
                   {hasSchedule ? (
                     <span className="px-3 py-1.5 bg-green-100 text-green-600 text-sm font-medium rounded-lg">출근 예정</span>
                   ) : (
-                    <Link to={`/staff/schedule?store=${store.id}`} className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <Link to={`/staff/schedule?store=${store.id}`} className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
                       출근 등록
                     </Link>
                   )}

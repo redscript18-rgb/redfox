@@ -31,7 +31,8 @@ export default function CustomerReservations() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [ratingTargetType, setRatingTargetType] = useState<'staff' | 'store'>('staff');
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const fetchReservations = useCallback(async () => {
     if (!user) return;
@@ -123,11 +124,11 @@ export default function CustomerReservations() {
     return (
       <div className={`relative p-4 bg-white border rounded-xl ${
         reservation.status === 'confirmed' ? 'border-green-300' :
-        reservation.status === 'pending' ? 'border-blue-300 border-2' :
+        reservation.status === 'pending' ? 'border-orange-300 border-2' :
         reservation.status === 'cancelled' ? 'border-slate-200 opacity-60' : 'border-slate-200'
       } ${isNew ? 'ring-2 ring-blue-500' : ''}`}>
         {isNew && (
-          <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">NEW</span>
+          <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded-full">NEW</span>
         )}
         <div className="flex gap-4">
           <div className="text-center">
@@ -137,7 +138,7 @@ export default function CustomerReservations() {
           <div className="flex-1">
             <div className="flex items-baseline gap-2 mb-1">
               <span className="font-semibold text-slate-900">{reservation.menu?.name}</span>
-              <span className="text-sm font-medium text-blue-600">{reservation.menu?.price?.toLocaleString()}원</span>
+              <span className="text-sm font-medium text-orange-600">{reservation.menu?.price?.toLocaleString()}원</span>
             </div>
             <div className="text-sm text-slate-600">{reservation.store?.name}</div>
             <div className="text-xs text-slate-500">담당: {reservation.staff?.name || '미정'}</div>
@@ -145,7 +146,7 @@ export default function CustomerReservations() {
           <div className="flex flex-col items-end gap-2">
             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
               reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' :
-              reservation.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+              reservation.status === 'pending' ? 'bg-orange-100 text-orange-600' :
               reservation.status === 'cancelled' ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-600'
             }`}>
               {getStatusText(reservation.status)}
@@ -183,7 +184,7 @@ export default function CustomerReservations() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 홈</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 홈</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">내 예약</h1>
 
       <section className="mb-8">
@@ -282,12 +283,12 @@ function RatingModal({
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">코멘트 (선택)</label>
           <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
         </div>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400">
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">
             {submitting ? '등록 중...' : '별점 등록'}
           </button>
         </div>

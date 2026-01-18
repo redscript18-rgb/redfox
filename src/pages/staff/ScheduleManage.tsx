@@ -43,6 +43,7 @@ export default function ScheduleManage() {
   );
 
   const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) {
@@ -69,10 +70,10 @@ export default function ScheduleManage() {
       setMyStores(storesData || []);
     }
 
-    const currentTodayStr = today.toISOString().split('T')[0];
+    const currentTodayStr = todayStr;
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
-    const nextWeekStr = nextWeek.toISOString().split('T')[0];
+    const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth() + 1).padStart(2, '0')}-${String(nextWeek.getDate()).padStart(2, '0')}`;
 
     const { data: schedulesData } = await supabase
       .from('schedules')
@@ -87,7 +88,7 @@ export default function ScheduleManage() {
 
     const pastMonth = new Date();
     pastMonth.setDate(pastMonth.getDate() - 30);
-    const pastMonthStr = pastMonth.toISOString().split('T')[0];
+    const pastMonthStr = `${pastMonth.getFullYear()}-${String(pastMonth.getMonth() + 1).padStart(2, '0')}-${String(pastMonth.getDate()).padStart(2, '0')}`;
 
     const { data: pastData } = await supabase
       .from('schedules')
@@ -112,7 +113,7 @@ export default function ScheduleManage() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const isToday = dateStr === today.toISOString().split('T')[0];
+    const isToday = dateStr === todayStr;
     return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})${isToday ? ' 오늘' : ''}`;
   };
 
@@ -163,12 +164,12 @@ export default function ScheduleManage() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">출근 스케줄 관리</h1>
         <button
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
           onClick={() => setShowAddModal(true)}
         >
           + 출근 등록
@@ -184,7 +185,7 @@ export default function ScheduleManage() {
                 key={schedule.id}
                 className={`flex items-center gap-4 p-4 bg-white border rounded-xl ${
                   schedule.status === 'approved' ? 'border-green-300' :
-                  schedule.status === 'pending' ? 'border-blue-300' :
+                  schedule.status === 'pending' ? 'border-orange-300' :
                   'border-red-300'
                 }`}
               >
@@ -198,7 +199,7 @@ export default function ScheduleManage() {
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     schedule.status === 'approved' ? 'bg-green-100 text-green-600' :
-                    schedule.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+                    schedule.status === 'pending' ? 'bg-orange-100 text-orange-600' :
                     'bg-red-100 text-red-600'
                   }`}>
                     {getStatusText(schedule.status)}
@@ -222,7 +223,7 @@ export default function ScheduleManage() {
           <div className="p-6 bg-slate-50 rounded-xl text-center">
             <p className="text-slate-500 mb-3">등록된 스케줄이 없습니다.</p>
             <button
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
               onClick={() => setShowAddModal(true)}
             >
               출근 등록하기
@@ -299,7 +300,7 @@ function AddScheduleModal({
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    return d.toISOString().split('T')[0];
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   });
 
   const formatDateOption = (dateStr: string) => {
@@ -338,7 +339,7 @@ function AddScheduleModal({
         <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center" onClick={(e) => e.stopPropagation()}>
           <h2 className="text-xl font-bold text-slate-900 mb-2">출근 신청 완료!</h2>
           <p className="text-slate-600 mb-4">관리자 승인 후 확정됩니다.</p>
-          <button onClick={onSuccess} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={onSuccess} className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
             확인
           </button>
         </div>
@@ -356,7 +357,7 @@ function AddScheduleModal({
           <select
             value={storeId}
             onChange={(e) => setStoreId(Number(e.target.value))}
-            className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+            className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
           >
             <option value="">가게를 선택하세요</option>
             {stores.map((store) => (
@@ -374,8 +375,8 @@ function AddScheduleModal({
                 type="button"
                 className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
                   date === d
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-slate-700 border-slate-200 hover:border-blue-600'
+                    ? 'bg-red-600 text-white border-red-600'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-red-600'
                 }`}
                 onClick={() => setDate(d)}
               >
@@ -391,7 +392,7 @@ function AddScheduleModal({
             <select
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             >
               {Array.from({ length: 14 }, (_, i) => i + 8).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
@@ -405,7 +406,7 @@ function AddScheduleModal({
             <select
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             >
               {Array.from({ length: 14 }, (_, i) => i + 9).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
@@ -423,7 +424,7 @@ function AddScheduleModal({
           <button
             onClick={handleSubmit}
             disabled={!storeId || !date || submitting}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400"
+            className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400"
           >
             {submitting ? '신청 중...' : '신청하기'}
           </button>
@@ -493,7 +494,7 @@ function RatingModal({
             onChange={(e) => setComment(e.target.value)}
             placeholder="코멘트를 남겨주세요..."
             rows={3}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
           />
         </div>
 
@@ -504,7 +505,7 @@ function RatingModal({
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400"
+            className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400"
           >
             {submitting ? '등록 중...' : '별점 등록'}
           </button>

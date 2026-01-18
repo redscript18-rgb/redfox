@@ -66,7 +66,8 @@ export default function StaffSearch() {
   };
 
   const fetchData = async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     const { data: staffData } = await supabase
       .from('profiles')
@@ -164,12 +165,12 @@ export default function StaffSearch() {
           placeholder="이름으로 검색"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 min-w-[160px] h-[42px] px-4 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors max-md:w-full"
+          className="flex-1 min-w-[160px] h-[42px] px-4 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors max-md:w-full"
         />
         <select
           value={selectedSpecialty}
           onChange={(e) => setSelectedSpecialty(e.target.value)}
-          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-blue-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
+          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
         >
           <option value="">전체 분야</option>
           {allSpecialties.map((specialty) => (
@@ -179,7 +180,7 @@ export default function StaffSearch() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')}
-          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-blue-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
+          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
         >
           <option value="name">이름순</option>
           <option value="rating">별점순</option>
@@ -196,10 +197,10 @@ export default function StaffSearch() {
             <Link
               to={`/staff/${staff.id}`}
               key={staff.id}
-              className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl no-underline text-inherit transition-all hover:border-blue-600 hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
+              className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl no-underline text-inherit transition-all hover:border-red-600 hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
             >
               {/* Left accent bar on hover */}
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
               {/* Avatar */}
               <div className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xl font-bold text-white overflow-hidden flex-shrink-0 max-md:w-14 max-md:h-14">
@@ -238,7 +239,7 @@ export default function StaffSearch() {
                 {staff.specialties && staff.specialties.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {staff.specialties.map((s) => (
-                      <span key={s} className="px-3 py-1 bg-blue-50 rounded-full text-xs font-semibold text-blue-600 border border-transparent group-hover:border-blue-600 transition-colors">
+                      <span key={s} className="px-3 py-1 bg-orange-50 rounded-full text-xs font-semibold text-orange-600 border border-transparent group-hover:border-red-600 transition-colors">
                         {s}
                       </span>
                     ))}

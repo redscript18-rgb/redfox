@@ -183,7 +183,7 @@ export default function StaffDetail() {
     return (
       <div>
         <p className="text-slate-500 mb-4">직원을 찾을 수 없습니다.</p>
-        <Link to="/" className="text-blue-600 text-sm hover:underline">← 돌아가기</Link>
+        <Link to="/" className="text-orange-600 text-sm hover:underline">← 돌아가기</Link>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export default function StaffDetail() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 직원 목록</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 직원 목록</Link>
 
       {/* Profile Header */}
       <div className="flex gap-5 p-5 bg-white border border-slate-200 rounded-xl mb-6 max-sm:flex-col max-sm:items-center max-sm:text-center">
@@ -249,7 +249,7 @@ export default function StaffDetail() {
           {staff.specialties && (
             <div className="flex flex-wrap gap-1 max-sm:justify-center">
               {staff.specialties.map((s) => (
-                <span key={s} className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{s}</span>
+                <span key={s} className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{s}</span>
               ))}
             </div>
           )}
@@ -310,13 +310,13 @@ export default function StaffDetail() {
             {schedules.map((schedule) => {
               const isToday = schedule.date === today;
               return (
-                <div key={schedule.id} className={`p-4 border rounded-xl ${isToday ? 'border-blue-300 bg-blue-50/50' : 'border-slate-200'}`}>
+                <div key={schedule.id} className={`p-4 border rounded-xl ${isToday ? 'border-orange-300 bg-orange-50/50' : 'border-slate-200'}`}>
                   <div className="flex items-start justify-between mb-3 max-sm:flex-col max-sm:gap-2">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-slate-900">{formatDate(schedule.date)}</span>
-                      {isToday && <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">오늘</span>}
+                      {isToday && <span className="px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">오늘</span>}
                     </div>
-                    <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" onClick={() => handleReserve(schedule.id)}>
+                    <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => handleReserve(schedule.id)}>
                       예약하기
                     </button>
                   </div>
@@ -438,7 +438,7 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">예약 신청 완료!</h2>
           <p className="text-slate-600 mb-6">가게에서 확인 후 연락드릴 예정입니다.</p>
-          <button onClick={onSuccess} className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">확인</button>
+          <button onClick={onSuccess} className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">확인</button>
         </div>
       </div>
     );
@@ -459,12 +459,12 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
           <label className="block text-sm font-medium text-slate-700 mb-2">서비스 선택</label>
           <div className="flex flex-col gap-2">
             {menus.map((menu) => (
-              <label key={menu.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedMenu === menu.id ? 'border-blue-600 bg-blue-50' : 'border-slate-200 hover:border-slate-300'}`}>
+              <label key={menu.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedMenu === menu.id ? 'border-red-600 bg-orange-50' : 'border-slate-200 hover:border-slate-300'}`}>
                 <div className="flex items-center gap-3">
-                  <input type="radio" name="menu" value={menu.id} checked={selectedMenu === menu.id} onChange={() => setSelectedMenu(menu.id)} className="w-4 h-4 text-blue-600" />
+                  <input type="radio" name="menu" value={menu.id} checked={selectedMenu === menu.id} onChange={() => setSelectedMenu(menu.id)} className="w-4 h-4 text-orange-600" />
                   <span className="font-medium text-slate-900">{menu.name}</span>
                 </div>
-                <span className="text-blue-600 font-medium">{menu.price.toLocaleString()}원</span>
+                <span className="text-orange-600 font-medium">{menu.price.toLocaleString()}원</span>
               </label>
             ))}
           </div>
@@ -474,7 +474,7 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
           <label className="block text-sm font-medium text-slate-700 mb-2">시간 선택</label>
           <div className="grid grid-cols-4 gap-2">
             {generateTimeSlots().map((time) => (
-              <button key={time} type="button" className={`py-2 text-sm font-medium rounded-lg transition-colors ${selectedTime === time ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`} onClick={() => setSelectedTime(time)}>
+              <button key={time} type="button" className={`py-2 text-sm font-medium rounded-lg transition-colors ${selectedTime === time ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`} onClick={() => setSelectedTime(time)}>
                 {time}
               </button>
             ))}
@@ -483,7 +483,7 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400" disabled={!selectedMenu || !selectedTime || submitting}>
+          <button onClick={handleSubmit} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400" disabled={!selectedMenu || !selectedTime || submitting}>
             {submitting ? '예약 중...' : '예약 신청'}
           </button>
         </div>

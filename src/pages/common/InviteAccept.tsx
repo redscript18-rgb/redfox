@@ -90,7 +90,7 @@ export default function InviteAccept() {
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
           <h1 className="text-2xl font-bold text-slate-900 mb-2">관리자 초대</h1>
           <p className="text-slate-500 mb-6">초대를 수락하려면 먼저 로그인해주세요.</p>
-          <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors" onClick={goToLogin}>로그인하기</button>
+          <button className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors" onClick={goToLogin}>로그인하기</button>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export default function InviteAccept() {
             <h3 className="font-semibold text-slate-900">{store?.name}</h3>
             <p className="text-sm text-slate-500">{store?.address}</p>
           </div>
-          <button className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors" onClick={() => navigate('/')}>홈으로 돌아가기</button>
+          <button className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors" onClick={() => navigate('/')}>홈으로 돌아가기</button>
         </div>
       </div>
     );
@@ -152,13 +152,13 @@ export default function InviteAccept() {
           {store?.owner && <p className="text-sm text-slate-400 mt-1">사장: {store.owner.name}</p>}
         </div>
 
-        <div className="p-4 bg-blue-50 rounded-lg mb-6">
-          <p className="text-sm text-blue-700">수락 계정: <strong>{user?.name}</strong> ({user?.email})</p>
+        <div className="p-4 bg-orange-50 rounded-lg mb-6">
+          <p className="text-sm text-orange-700">수락 계정: <strong>{user?.name}</strong> ({user?.email})</p>
         </div>
 
         <div className="flex gap-3">
           <button className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors" onClick={() => navigate('/')}>거절</button>
-          <button className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400" onClick={handleAccept} disabled={accepting}>
+          <button className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400" onClick={handleAccept} disabled={accepting}>
             {accepting ? '처리 중...' : '수락하기'}
           </button>
         </div>

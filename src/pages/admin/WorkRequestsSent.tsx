@@ -50,10 +50,12 @@ export default function WorkRequestsSent() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
     let prefix = '';
-    if (dateStr === today.toISOString().split('T')[0]) prefix = '오늘 ';
-    else if (dateStr === tomorrow.toISOString().split('T')[0]) prefix = '내일 ';
+    if (dateStr === todayStr) prefix = '오늘 ';
+    else if (dateStr === tomorrowStr) prefix = '내일 ';
     return `${prefix}${date.getMonth() + 1}/${date.getDate()} (${DAY_NAMES[date.getDay()]})`;
   };
 
@@ -73,30 +75,30 @@ export default function WorkRequestsSent() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">보낸 출근 요청</h1>
-        <Link to="/admin/find-staff" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">+ 새 요청</Link>
+        <Link to="/admin/find-staff" className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">+ 새 요청</Link>
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('all')}>전체 ({statusCounts.all})</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('pending')}>대기중 ({statusCounts.pending})</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'accepted' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('accepted')}>수락됨 ({statusCounts.accepted})</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'rejected' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('rejected')}>거절됨 ({statusCounts.rejected})</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('all')}>전체 ({statusCounts.all})</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'pending' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('pending')}>대기중 ({statusCounts.pending})</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'accepted' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('accepted')}>수락됨 ({statusCounts.accepted})</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === 'rejected' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setFilter('rejected')}>거절됨 ({statusCounts.rejected})</button>
       </div>
 
       {filteredRequests.length > 0 ? (
         <div className="flex flex-col gap-3">
           {filteredRequests.map((request) => (
-            <div key={request.id} className={`p-4 bg-white border rounded-xl ${request.status === 'pending' ? 'border-blue-300' : request.status === 'accepted' ? 'border-green-300' : request.status === 'rejected' ? 'border-red-200 opacity-60' : 'border-slate-200 opacity-60'}`}>
+            <div key={request.id} className={`p-4 bg-white border rounded-xl ${request.status === 'pending' ? 'border-orange-300' : request.status === 'accepted' ? 'border-green-300' : request.status === 'rejected' ? 'border-red-200 opacity-60' : 'border-slate-200 opacity-60'}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <span className="font-semibold text-slate-900">{request.staff?.name}</span>
                   <span className="text-sm text-slate-500 ml-2">{request.staff?.email}</span>
                 </div>
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'pending' ? 'bg-blue-100 text-blue-600' : request.status === 'accepted' ? 'bg-green-100 text-green-600' : request.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>{getStatusText(request.status)}</span>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'pending' ? 'bg-orange-100 text-orange-600' : request.status === 'accepted' ? 'bg-green-100 text-green-600' : request.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>{getStatusText(request.status)}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-sm mb-3 max-sm:grid-cols-1">
@@ -123,7 +125,7 @@ export default function WorkRequestsSent() {
       ) : (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
           <p className="text-slate-500 mb-4">{filter === 'all' ? '보낸 출근 요청이 없습니다.' : `${getStatusText(filter)} 상태의 요청이 없습니다.`}</p>
-          <Link to="/admin/find-staff" className="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">가용 직원 찾기</Link>
+          <Link to="/admin/find-staff" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">가용 직원 찾기</Link>
         </div>
       )}
     </div>

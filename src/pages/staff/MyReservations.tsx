@@ -36,7 +36,8 @@ export default function MyReservations() {
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (user) {
@@ -192,7 +193,7 @@ export default function MyReservations() {
     return (
       <div className={`p-4 bg-white border rounded-xl ${
         reservation.status === 'confirmed' ? 'border-green-300' :
-        reservation.status === 'pending' ? 'border-blue-300' :
+        reservation.status === 'pending' ? 'border-orange-300' :
         reservation.status === 'cancelled' ? 'border-slate-200 opacity-60' : 'border-slate-200'
       }`}>
         <div className="flex gap-4">
@@ -203,7 +204,7 @@ export default function MyReservations() {
           <div className="flex-1">
             <div className="flex items-baseline gap-2 mb-1">
               <span className="font-semibold text-slate-900">{reservation.menu?.name}</span>
-              <span className="text-sm font-medium text-blue-600">{reservation.menu?.price?.toLocaleString()}원</span>
+              <span className="text-sm font-medium text-orange-600">{reservation.menu?.price?.toLocaleString()}원</span>
             </div>
             <div className="text-sm text-slate-600">{reservation.store?.name}</div>
             <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
@@ -224,7 +225,7 @@ export default function MyReservations() {
           <div className="flex flex-col items-end gap-2">
             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
               reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' :
-              reservation.status === 'pending' ? 'bg-blue-100 text-blue-600' :
+              reservation.status === 'pending' ? 'bg-orange-100 text-orange-600' :
               reservation.status === 'cancelled' ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-600'
             }`}>
               {getStatusText(reservation.status)}
@@ -240,7 +241,7 @@ export default function MyReservations() {
               </div>
             )}
             {reservation.status === 'confirmed' && (
-              <button className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700" onClick={() => handleComplete(reservation.id)}>
+              <button className="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700" onClick={() => handleComplete(reservation.id)}>
                 서비스 완료
               </button>
             )}
@@ -264,7 +265,7 @@ export default function MyReservations() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">내 예약 관리</h1>
 
       <section className="mb-8">
@@ -363,13 +364,13 @@ function RatingModal({
             onChange={(e) => setComment(e.target.value)}
             placeholder="코멘트를 남겨주세요..."
             rows={3}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
           />
         </div>
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400">
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">
             {submitting ? '등록 중...' : '별점 등록'}
           </button>
         </div>

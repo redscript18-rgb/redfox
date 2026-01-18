@@ -49,8 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // 초기 세션 확인
+    // 초기 세션 확인 (타임아웃 포함)
     const initAuth = async () => {
+      const timeout = setTimeout(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }, 1500);
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -65,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('인증 초기화 에러:', err);
       } finally {
+        clearTimeout(timeout);
         if (isMounted) {
           setLoading(false);
         }

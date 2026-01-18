@@ -151,7 +151,8 @@ export default function ProfileManage() {
     setUploadingProfile(false);
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayPhotos = dailyPhotos.filter(p => p.date === today);
   const canUploadMore = todayPhotos.length < 5;
 
@@ -172,7 +173,8 @@ export default function ProfileManage() {
     setUploadingDaily(true);
 
     const fileExt = file.name.split('.').pop();
-    const uploadDate = new Date().toISOString().split('T')[0];
+    const uploadNow = new Date();
+    const uploadDate = `${uploadNow.getFullYear()}-${String(uploadNow.getMonth() + 1).padStart(2, '0')}-${String(uploadNow.getDate()).padStart(2, '0')}`;
     const fileName = `daily_${user.id}_${Date.now()}.${fileExt}`;
     const filePath = `daily/${fileName}`;
 
@@ -264,7 +266,7 @@ export default function ProfileManage() {
 
   return (
     <div>
-      <Link to="/staff" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/staff" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">프로필 관리</h1>
 
       {/* 프로필 사진 */}
@@ -289,7 +291,7 @@ export default function ProfileManage() {
             <button
               type="button"
               onClick={() => profileInputRef.current?.click()}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
               disabled={uploadingProfile}
             >
               {uploadingProfile ? '업로드 중...' : '사진 변경'}
@@ -307,7 +309,7 @@ export default function ProfileManage() {
           onChange={(e) => setBio(e.target.value)}
           placeholder="간단한 자기소개를 입력하세요"
           rows={4}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
         />
       </section>
 
@@ -324,7 +326,7 @@ export default function ProfileManage() {
               placeholder="나이"
               min={18}
               max={99}
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -336,7 +338,7 @@ export default function ProfileManage() {
               placeholder="키"
               min={100}
               max={250}
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -348,7 +350,7 @@ export default function ProfileManage() {
               placeholder="몸무게"
               min={30}
               max={200}
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -358,7 +360,7 @@ export default function ProfileManage() {
               value={bodySize}
               onChange={(e) => setBodySize(e.target.value)}
               placeholder="예: A, B, C..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -394,7 +396,7 @@ export default function ProfileManage() {
               value={skinTone}
               onChange={(e) => setSkinTone(e.target.value)}
               placeholder="예: 밝은편, 중간, 어두운편..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -404,7 +406,7 @@ export default function ProfileManage() {
               value={hairLength}
               onChange={(e) => setHairLength(e.target.value)}
               placeholder="예: 숏컷, 단발, 중간, 장발..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -414,7 +416,7 @@ export default function ProfileManage() {
               value={hairStyle}
               onChange={(e) => setHairStyle(e.target.value)}
               placeholder="예: 생머리, 웨이브..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -424,7 +426,7 @@ export default function ProfileManage() {
               value={hairColor}
               onChange={(e) => setHairColor(e.target.value)}
               placeholder="예: 검정, 갈색, 금발..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
         </div>
@@ -441,7 +443,7 @@ export default function ProfileManage() {
               value={personality}
               onChange={(e) => setPersonality(e.target.value)}
               placeholder="예: 활발함, 차분함, 친근함..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
           <div>
@@ -451,7 +453,7 @@ export default function ProfileManage() {
               value={style}
               onChange={(e) => setStyle(e.target.value)}
               placeholder="예: 캐주얼, 시크, 청순..."
-              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
           </div>
         </div>
@@ -464,7 +466,7 @@ export default function ProfileManage() {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {specialties.map((specialty) => (
-            <div key={specialty} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm">
+            <div key={specialty} className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full text-sm">
               <span>{specialty}</span>
               <button
                 type="button"
@@ -485,7 +487,7 @@ export default function ProfileManage() {
               onChange={(e) => setNewSpecialty(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="새 전문 분야 입력"
-              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
             <button
               type="button"
@@ -507,7 +509,7 @@ export default function ProfileManage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400"
+          className="w-full py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
         >
           {saving ? '저장 중...' : '저장하기'}
         </button>
@@ -525,7 +527,7 @@ export default function ProfileManage() {
               value={newPhotoCaption}
               onChange={(e) => setNewPhotoCaption(e.target.value)}
               placeholder="사진 설명 (선택)"
-              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600"
+              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
             <input
               type="file"
@@ -538,7 +540,7 @@ export default function ProfileManage() {
               type="button"
               onClick={() => dailyInputRef.current?.click()}
               disabled={uploadingDaily}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
             >
               {uploadingDaily ? '업로드 중...' : '사진 업로드'}
             </button>

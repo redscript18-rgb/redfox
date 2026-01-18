@@ -45,7 +45,8 @@ export default function StoreStats() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const storeId = Number(id);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const [store, setStore] = useState<Store | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -90,7 +91,7 @@ export default function StoreStats() {
   if (!hasAccess || !store) {
     return (
       <div>
-        <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+        <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
         <p className="text-slate-500">가게를 찾을 수 없거나 접근 권한이 없습니다.</p>
       </div>
     );
@@ -119,7 +120,7 @@ export default function StoreStats() {
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const dayReservations = reservations.filter((r) => r.date === dateStr && r.status !== 'cancelled');
     return { date: dateStr, dayLabel: ['일', '월', '화', '수', '목', '금', '토'][date.getDay()], count: dayReservations.length, revenue: calculateRevenue(dayReservations) };
   });
@@ -128,7 +129,7 @@ export default function StoreStats() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
@@ -139,9 +140,9 @@ export default function StoreStats() {
       <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">오늘 현황</h2>
         <div className="grid grid-cols-4 gap-4 max-sm:grid-cols-2">
-          <div className="p-3 bg-blue-50 rounded-lg text-center">
-            <div className="text-sm text-blue-600">오늘 매출</div>
-            <div className="text-xl font-bold text-blue-700">{todayRevenue.toLocaleString()}원</div>
+          <div className="p-3 bg-orange-50 rounded-lg text-center">
+            <div className="text-sm text-orange-600">오늘 매출</div>
+            <div className="text-xl font-bold text-orange-700">{todayRevenue.toLocaleString()}원</div>
           </div>
           <div className="p-3 bg-slate-50 rounded-lg text-center">
             <div className="text-sm text-slate-500">오늘 예약</div>
@@ -180,9 +181,9 @@ export default function StoreStats() {
           {last7Days.map((day) => (
             <div key={day.date} className="flex flex-col items-center flex-1">
               <div className="w-full flex-1 flex items-end">
-                <div className={`w-full rounded-t transition-all ${day.date === today ? 'bg-blue-600' : 'bg-slate-200'}`} style={{ height: `${(day.revenue / maxDayRevenue) * 100}%` }} />
+                <div className={`w-full rounded-t transition-all ${day.date === today ? 'bg-red-600' : 'bg-slate-200'}`} style={{ height: `${(day.revenue / maxDayRevenue) * 100}%` }} />
               </div>
-              <span className={`text-xs mt-2 ${day.date === today ? 'text-blue-600 font-semibold' : 'text-slate-500'}`}>{day.dayLabel}</span>
+              <span className={`text-xs mt-2 ${day.date === today ? 'text-orange-600 font-semibold' : 'text-slate-500'}`}>{day.dayLabel}</span>
               <span className="text-xs text-slate-400">{(day.revenue / 10000).toFixed(0)}만</span>
             </div>
           ))}

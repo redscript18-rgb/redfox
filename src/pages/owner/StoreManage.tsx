@@ -132,7 +132,7 @@ export default function StoreManage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">가게 관리</h1>
-        <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" onClick={() => openStoreForm()}>+ 가게 추가</button>
+        <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => openStoreForm()}>+ 가게 추가</button>
       </div>
 
       {/* Store Form Modal */}
@@ -142,15 +142,15 @@ export default function StoreManage() {
             <h3 className="text-xl font-bold text-slate-900 mb-4">{editingStore ? '가게 수정' : '새 가게 추가'}</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-2">가게명</label>
-              <input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="가게 이름을 입력하세요" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+              <input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="가게 이름을 입력하세요" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 mb-2">주소</label>
-              <input type="text" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} placeholder="가게 주소를 입력하세요" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+              <input type="text" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} placeholder="가게 주소를 입력하세요" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
             </div>
             <div className="flex gap-3">
               <button className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors" onClick={closeStoreForm}>취소</button>
-              <button className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400" onClick={handleSaveStore} disabled={savingStore || !storeName.trim() || !storeAddress.trim()}>
+              <button className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400" onClick={handleSaveStore} disabled={savingStore || !storeName.trim() || !storeAddress.trim()}>
                 {savingStore ? '저장 중...' : '저장'}
               </button>
             </div>
@@ -165,8 +165,8 @@ export default function StoreManage() {
             <h3 className="text-xl font-bold text-slate-900 mb-2">관리자 추가</h3>
             <p className="text-sm text-slate-500 mb-4">이메일 또는 이름으로 검색하세요</p>
             <div className="flex gap-2 mb-4">
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="이메일 또는 이름 검색" className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()} />
-              <button className="px-4 h-11 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400" onClick={handleSearchUser} disabled={searching}>
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="이메일 또는 이름 검색" className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()} />
+              <button className="px-4 h-11 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400" onClick={handleSearchUser} disabled={searching}>
                 {searching ? '검색 중...' : '검색'}
               </button>
             </div>
@@ -179,7 +179,7 @@ export default function StoreManage() {
                       <div className="font-medium text-slate-900">{result.name}</div>
                       <div className="text-sm text-slate-500">{result.email}</div>
                     </div>
-                    <button className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-400" onClick={() => handleAddAdmin(result.id)} disabled={addingAdmin}>추가</button>
+                    <button className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:bg-slate-400" onClick={() => handleAddAdmin(result.id)} disabled={addingAdmin}>추가</button>
                   </div>
                 ))}
               </div>
@@ -202,7 +202,7 @@ export default function StoreManage() {
             <p className="text-sm text-slate-500 mb-4">이 링크를 관리자에게 공유하세요</p>
             <div className="flex gap-2 mb-4">
               <input type="text" value={inviteLink} readOnly className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm bg-slate-50" />
-              <button className="px-4 h-11 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" onClick={copyInviteLink}>복사</button>
+              <button className="px-4 h-11 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={copyInviteLink}>복사</button>
             </div>
             <button className="w-full py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors" onClick={() => setInviteLinkStoreId(null)}>닫기</button>
           </div>
@@ -236,7 +236,7 @@ export default function StoreManage() {
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-slate-900">관리자</h4>
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100 transition-colors" onClick={() => { setAddAdminStoreId(store.id); setSearchQuery(''); setSearchResults([]); }}>+ 검색으로 추가</button>
+                      <button className="px-3 py-1.5 bg-orange-50 text-orange-600 text-xs font-medium rounded-lg hover:bg-orange-100 transition-colors" onClick={() => { setAddAdminStoreId(store.id); setSearchQuery(''); setSearchResults([]); }}>+ 검색으로 추가</button>
                       <button className="px-3 py-1.5 bg-green-50 text-green-600 text-xs font-medium rounded-lg hover:bg-green-100 transition-colors" onClick={() => generateInviteLink(store.id)}>초대 링크</button>
                     </div>
                   </div>

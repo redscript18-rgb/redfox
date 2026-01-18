@@ -58,7 +58,7 @@ export default function BlockManage() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">차단 관리</h1>
       <p className="text-sm text-slate-500 mb-6">차단한 손님은 당신의 프로필과 스케줄을 볼 수 없습니다.</p>

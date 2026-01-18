@@ -102,12 +102,12 @@ export default function StoreList() {
       <h1 className="text-2xl font-bold text-slate-900 mb-4">가게 목록</h1>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        <input type="text" placeholder="가게명 또는 주소로 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[200px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+        <input type="text" placeholder="가게명 또는 주소로 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[200px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
           <option value="">전체 업종</option>
           {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount')} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
           <option value="name">이름순</option>
           <option value="rating">별점순</option>
           <option value="reviewCount">리뷰 많은순</option>
@@ -118,7 +118,7 @@ export default function StoreList() {
         {filteredStores.map((store) => {
           const storeRating = ratingMap[store.id];
           return (
-            <Link to={`/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-600 hover:shadow-md transition-all">
+            <Link to={`/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-2">
                 <h2 className="font-semibold text-slate-900">{store.name}</h2>
                 {storeRating && storeRating.ratingCount > 0 && (
@@ -129,7 +129,7 @@ export default function StoreList() {
                   </span>
                 )}
               </div>
-              {store.store_type && <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded mb-2">{store.store_type}</span>}
+              {store.store_type && <span className="inline-block px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded mb-2">{store.store_type}</span>}
               <p className="text-sm text-slate-500 mb-2">{store.address}</p>
               <div className="flex gap-3 text-xs text-slate-400">
                 <span>메뉴 {store.menuCount}개</span>

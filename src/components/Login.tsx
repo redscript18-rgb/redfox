@@ -114,7 +114,7 @@ export default function Login() {
                 <button
                   key={account.email}
                   type="button"
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-blue-600 hover:text-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-red-600 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() => handleQuickLogin(account)}
                   disabled={loading}
                 >
@@ -138,7 +138,7 @@ export default function Login() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="이름을 입력하세요"
                 required={isSignup}
-                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
               />
             </div>
           )}
@@ -154,7 +154,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일을 입력하세요"
               required
-              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
+              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
             />
           </div>
 
@@ -170,7 +170,7 @@ export default function Login() {
               placeholder="비밀번호를 입력하세요"
               required
               minLength={6}
-              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 transition-colors"
+              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
             />
           </div>
 
@@ -183,7 +183,7 @@ export default function Login() {
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-blue-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2371717a%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2371717a%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]"
               >
                 <option value="customer">손님</option>
                 <option value="staff">직원</option>
@@ -198,7 +198,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-4 mt-2 bg-blue-600 text-white rounded-lg text-base font-semibold hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+            className="w-full py-4 mt-2 bg-red-600 text-white rounded-lg text-base font-semibold hover:bg-red-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
@@ -208,7 +208,7 @@ export default function Login() {
         <div className="mt-6 text-center">
           <button
             type="button"
-            className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-blue-600 transition-colors"
+            className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-orange-600 transition-colors"
             onClick={() => {
               setIsSignup(!isSignup);
               setError('');

@@ -14,7 +14,7 @@ export default function CustomerHome() {
         <button
           className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
             activeView === 'staff'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setActiveView('staff')}
@@ -24,7 +24,7 @@ export default function CustomerHome() {
         <button
           className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
             activeView === 'store'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setActiveView('store')}

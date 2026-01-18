@@ -37,6 +37,9 @@ export default function StoreSettings() {
   const [newHolidayDate, setNewHolidayDate] = useState('');
   const [newHolidayReason, setNewHolidayReason] = useState('');
 
+  const minDateNow = new Date();
+  const minDate = `${minDateNow.getFullYear()}-${String(minDateNow.getMonth() + 1).padStart(2, '0')}-${String(minDateNow.getDate()).padStart(2, '0')}`;
+
   useEffect(() => { if (user && storeId) fetchData(); }, [user, storeId]);
 
   const fetchData = async () => {
@@ -52,7 +55,8 @@ export default function StoreSettings() {
     }
     const { data: menusData } = await supabase.from('menus').select('*').eq('store_id', storeId).order('name');
     setMenus(menusData || []);
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const { data: holidaysData } = await supabase.from('store_holidays').select('*').eq('store_id', storeId).gte('date', today).order('date');
     setHolidays(holidaysData || []);
     setLoading(false);
@@ -106,25 +110,25 @@ export default function StoreSettings() {
   const formatDate = (dateStr: string) => { const date = new Date(dateStr); return `${date.getMonth() + 1}/${date.getDate()} (${DAY_NAMES[date.getDay()]})`; };
 
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
-  if (!store) return <div><p className="text-slate-500 mb-4">가게를 찾을 수 없습니다.</p><Link to="/admin" className="text-blue-600 hover:underline">← 대시보드</Link></div>;
+  if (!store) return <div><p className="text-slate-500 mb-4">가게를 찾을 수 없습니다.</p><Link to="/admin" className="text-orange-600 hover:underline">← 대시보드</Link></div>;
 
   return (
     <div>
-      <Link to="/admin" className="inline-block mb-4 text-blue-600 text-sm hover:underline">← 대시보드</Link>
+      <Link to="/admin" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
       <h1 className="text-2xl font-bold text-slate-900 mb-1">{store.name} 설정</h1>
       <p className="text-sm text-slate-500 mb-6">{store.address}</p>
 
       <div className="flex gap-2 mb-6">
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'info' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('info')}>기본 정보</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'menu' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('menu')}>메뉴 관리</button>
-        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'holiday' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('holiday')}>휴무일</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'info' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('info')}>기본 정보</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('menu')}>메뉴 관리</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'holiday' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('holiday')}>휴무일</button>
       </div>
 
       {activeTab === 'info' && (
         <div className="space-y-6">
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">가게 형태</h2>
-            <select value={storeType} onChange={(e) => setStoreType(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600">
+            <select value={storeType} onChange={(e) => setStoreType(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               <option value="">선택하세요</option>
               {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
             </select>
@@ -132,12 +136,12 @@ export default function StoreSettings() {
 
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">연락처</h2>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="전화번호" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="전화번호" className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
           </section>
 
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">가게 소개</h2>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="가게 소개를 입력하세요" rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="가게 소개를 입력하세요" rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
           </section>
 
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
@@ -145,12 +149,12 @@ export default function StoreSettings() {
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-slate-700 mb-1">오픈</label>
-                <input type="time" value={openTime} onChange={(e) => setOpenTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+                <input type="time" value={openTime} onChange={(e) => setOpenTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
               </div>
               <span className="text-slate-400 mt-6">~</span>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-slate-700 mb-1">마감</label>
-                <input type="time" value={closeTime} onChange={(e) => setCloseTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
+                <input type="time" value={closeTime} onChange={(e) => setCloseTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
               </div>
             </div>
           </section>
@@ -160,12 +164,12 @@ export default function StoreSettings() {
             <p className="text-sm text-slate-500 mb-4">매주 쉬는 요일을 선택하세요</p>
             <div className="flex gap-2 flex-wrap">
               {[1, 2, 3, 4, 5, 6, 0].map((day) => (
-                <button key={day} type="button" className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${closedDays.includes(day) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`} onClick={() => toggleClosedDay(day)}>{DAY_NAMES[day]}</button>
+                <button key={day} type="button" className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${closedDays.includes(day) ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`} onClick={() => toggleClosedDay(day)}>{DAY_NAMES[day]}</button>
               ))}
             </div>
           </section>
 
-          <button onClick={handleSaveInfo} disabled={saving} className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400">{saving ? '저장 중...' : '저장하기'}</button>
+          <button onClick={handleSaveInfo} disabled={saving} className="w-full py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400">{saving ? '저장 중...' : '저장하기'}</button>
         </div>
       )}
 
@@ -174,10 +178,10 @@ export default function StoreSettings() {
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">메뉴 추가</h2>
             <div className="flex gap-2 flex-wrap">
-              <input type="text" value={newMenuName} onChange={(e) => setNewMenuName(e.target.value)} placeholder="메뉴 이름" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-              <input type="number" value={newMenuPrice} onChange={(e) => setNewMenuPrice(e.target.value)} placeholder="가격" className="w-28 h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-              <input type="text" value={newMenuDesc} onChange={(e) => setNewMenuDesc(e.target.value)} placeholder="설명 (선택)" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-              <button onClick={handleAddMenu} className="h-11 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">추가</button>
+              <input type="text" value={newMenuName} onChange={(e) => setNewMenuName(e.target.value)} placeholder="메뉴 이름" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+              <input type="number" value={newMenuPrice} onChange={(e) => setNewMenuPrice(e.target.value)} placeholder="가격" className="w-28 h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+              <input type="text" value={newMenuDesc} onChange={(e) => setNewMenuDesc(e.target.value)} placeholder="설명 (선택)" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+              <button onClick={handleAddMenu} className="h-11 px-4 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">추가</button>
             </div>
           </section>
 
@@ -193,7 +197,7 @@ export default function StoreSettings() {
                         <input type="number" value={editingMenu.price} onChange={(e) => setEditingMenu({ ...editingMenu, price: Number(e.target.value) })} className="w-24 h-9 px-3 border border-slate-200 rounded-lg text-sm" />
                         <input type="text" value={editingMenu.description || ''} onChange={(e) => setEditingMenu({ ...editingMenu, description: e.target.value || null })} placeholder="설명" className="flex-1 min-w-[100px] h-9 px-3 border border-slate-200 rounded-lg text-sm" />
                         <button onClick={() => setEditingMenu(null)} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-200 rounded">취소</button>
-                        <button onClick={handleUpdateMenu} className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">저장</button>
+                        <button onClick={handleUpdateMenu} className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">저장</button>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
@@ -202,8 +206,8 @@ export default function StoreSettings() {
                           {menu.description && <span className="text-sm text-slate-500 ml-2">{menu.description}</span>}
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-medium text-blue-600">{menu.price.toLocaleString()}원</span>
-                          <button onClick={() => setEditingMenu(menu)} className="text-sm text-slate-500 hover:text-blue-600">수정</button>
+                          <span className="font-medium text-orange-600">{menu.price.toLocaleString()}원</span>
+                          <button onClick={() => setEditingMenu(menu)} className="text-sm text-slate-500 hover:text-orange-600">수정</button>
                           <button onClick={() => handleDeleteMenu(menu.id)} className="text-sm text-red-500 hover:text-red-600">삭제</button>
                         </div>
                       </div>
@@ -221,9 +225,9 @@ export default function StoreSettings() {
           <section className="p-4 bg-white border border-slate-200 rounded-xl">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">휴무일 추가</h2>
             <div className="flex gap-2 flex-wrap">
-              <input type="date" value={newHolidayDate} onChange={(e) => setNewHolidayDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-              <input type="text" value={newHolidayReason} onChange={(e) => setNewHolidayReason(e.target.value)} placeholder="사유 (선택)" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600" />
-              <button onClick={handleAddHoliday} className="h-11 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">추가</button>
+              <input type="date" value={newHolidayDate} onChange={(e) => setNewHolidayDate(e.target.value)} min={minDate} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+              <input type="text" value={newHolidayReason} onChange={(e) => setNewHolidayReason(e.target.value)} placeholder="사유 (선택)" className="flex-1 min-w-[120px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+              <button onClick={handleAddHoliday} className="h-11 px-4 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">추가</button>
             </div>
           </section>
 

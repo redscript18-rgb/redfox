@@ -29,17 +29,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), 5000);
+      });
+
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('프로필 조회 실패:', error);
+            return null;
+          }
+          return data as Profile;
+        });
 
-      if (error) {
-        console.error('프로필 조회 실패:', error);
-        return null;
-      }
-      return data as Profile;
+      return await Promise.race([fetchPromise, timeoutPromise]);
     } catch (err) {
       console.error('프로필 조회 에러:', err);
       return null;

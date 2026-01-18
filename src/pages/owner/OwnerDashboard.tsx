@@ -107,7 +107,7 @@ export default function OwnerDashboard() {
             <div className="text-xl font-bold text-slate-900 mt-1">{todayReservations.length}건</div>
           </div>
           <div className="p-4 bg-white border border-slate-200 rounded-xl">
-            <span className="text-slate-500 text-sm">출근 직원</span>
+            <span className="text-slate-500 text-sm">출근 매니저</span>
             <div className="text-xl font-bold text-slate-900 mt-1">{todaySchedules.length}명</div>
           </div>
           <div className="p-4 bg-white border border-slate-200 rounded-xl">
@@ -165,7 +165,7 @@ export default function OwnerDashboard() {
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-slate-900">{stats.staffWorking}/{stats.totalStaff}</div>
-                    <div className="text-xs text-slate-500">출근 직원</div>
+                    <div className="text-xs text-slate-500">출근 매니저</div>
                   </div>
                 </div>
               </Link>

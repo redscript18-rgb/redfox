@@ -21,6 +21,9 @@ interface Staff {
   hair_style: string | null;
   hair_color: string | null;
   is_waxed: boolean | null;
+  job: string | null;
+  mbti: string | null;
+  created_by_admin_id: string | null;
 }
 
 interface DailyPhoto {
@@ -182,7 +185,7 @@ export default function StaffDetail() {
   if (!staff || isBlocked) {
     return (
       <div>
-        <p className="text-slate-500 mb-4">직원을 찾을 수 없습니다.</p>
+        <p className="text-slate-500 mb-4">매니저를 찾을 수 없습니다.</p>
         <Link to="/" className="text-orange-600 text-sm hover:underline">← 돌아가기</Link>
       </div>
     );
@@ -192,7 +195,7 @@ export default function StaffDetail() {
 
   return (
     <div>
-      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 직원 목록</Link>
+      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 매니저 목록</Link>
 
       {/* Profile Header */}
       <div className="flex gap-5 p-5 bg-white border border-slate-200 rounded-xl mb-6 max-sm:flex-col max-sm:items-center max-sm:text-center">
@@ -206,13 +209,20 @@ export default function StaffDetail() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2 max-sm:justify-center">
             <h1 className="text-2xl font-bold text-slate-900">{staff.name}</h1>
+            {staff.created_by_admin_id ? (
+              <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+            ) : (
+              <span className="px-2 py-1 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
+            )}
             <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
               {isFavorite ? '♥' : '♡'}
             </button>
           </div>
 
-          {(staff.age || staff.height || staff.weight || staff.body_size) && (
+          {(staff.age || staff.height || staff.weight || staff.body_size || staff.job || staff.mbti) && (
             <div className="flex flex-wrap gap-2 mb-3 max-sm:justify-center">
+              {staff.job && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{staff.job}</span>}
+              {staff.mbti && <span className="px-2 py-1 bg-purple-50 text-purple-600 text-sm rounded">{staff.mbti}</span>}
               {staff.age && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{staff.age}세</span>}
               {staff.height && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{staff.height}cm</span>}
               {staff.weight && <span className="px-2 py-1 bg-slate-100 text-slate-600 text-sm rounded">{staff.weight}kg</span>}
@@ -316,14 +326,16 @@ export default function StaffDetail() {
                       <span className="font-medium text-slate-900">{formatDate(schedule.date)}</span>
                       {isToday && <span className="px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">오늘</span>}
                     </div>
-                    <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => handleReserve(schedule.id)}>
-                      예약하기
-                    </button>
+                    {user?.role === 'customer' && (
+                      <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => handleReserve(schedule.id)}>
+                        예약하기
+                      </button>
+                    )}
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-sm max-sm:grid-cols-1">
                     <div>
                       <span className="text-slate-500">가게</span>
-                      <div className="text-slate-900">{schedule.store?.name}</div>
+                      <Link to={`/store/${schedule.store_id}`} className="block text-slate-900 hover:text-orange-600 transition-colors">{schedule.store?.name}</Link>
                       <div className="text-xs text-slate-400">{schedule.store?.address}</div>
                     </div>
                     <div>
@@ -349,10 +361,10 @@ export default function StaffDetail() {
         <h2 className="text-lg font-semibold text-slate-900 mb-4">활동 가게</h2>
         <div className="flex flex-col gap-2">
           {affiliatedStores.map((store) => (
-            <div key={store.id} className="p-3 bg-slate-50 rounded-lg">
+            <Link key={store.id} to={`/store/${store.id}`} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
               <h3 className="font-medium text-slate-900">{store.name}</h3>
               <p className="text-sm text-slate-500">{store.address}</p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -450,7 +462,7 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
         <h2 className="text-xl font-bold text-slate-900 mb-4">예약하기</h2>
 
         <div className="p-4 bg-slate-50 rounded-lg mb-4 space-y-2">
-          <div className="flex justify-between text-sm"><span className="text-slate-500">직원</span><span className="font-medium text-slate-900">{staffName}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-slate-500">매니저</span><span className="font-medium text-slate-900">{staffName}</span></div>
           <div className="flex justify-between text-sm"><span className="text-slate-500">가게</span><span className="font-medium text-slate-900">{schedule.store?.name}</span></div>
           <div className="flex justify-between text-sm"><span className="text-slate-500">날짜</span><span className="font-medium text-slate-900">{schedule.date}</span></div>
         </div>

@@ -149,11 +149,11 @@ export default function StoreStats() {
             <div className="text-xl font-bold text-slate-900">{todayReservations.length}건</div>
           </div>
           <div className="p-3 bg-slate-50 rounded-lg text-center">
-            <div className="text-sm text-slate-500">출근 직원</div>
+            <div className="text-sm text-slate-500">출근 매니저</div>
             <div className="text-xl font-bold text-slate-900">{todaySchedules.length}명</div>
           </div>
           <div className="p-3 bg-slate-50 rounded-lg text-center">
-            <div className="text-sm text-slate-500">총 직원</div>
+            <div className="text-sm text-slate-500">총 매니저</div>
             <div className="text-xl font-bold text-slate-900">{staffMembers.length}명</div>
           </div>
         </div>
@@ -220,12 +220,12 @@ export default function StoreStats() {
 
       {/* Staff Stats */}
       <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">직원별 실적</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">매니저별 실적</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left py-2 font-medium text-slate-500">직원</th>
+                <th className="text-left py-2 font-medium text-slate-500">매니저</th>
                 <th className="text-right py-2 font-medium text-slate-500">예약 수</th>
                 <th className="text-right py-2 font-medium text-slate-500">매출</th>
               </tr>

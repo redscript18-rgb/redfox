@@ -31,12 +31,19 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     if (!user) return;
 
+    // Get stores where user is admin
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
       .eq('admin_id', user.id);
+    const adminStoreIds = adminStores?.map(s => s.store_id) || [];
 
-    const storeIds = adminStores?.map(s => s.store_id) || [];
+    // Get stores where user is owner
+    const { data: ownedStores } = await supabase.from('stores').select('id').eq('owner_id', user.id);
+    const ownedStoreIds = ownedStores?.map(s => s.id) || [];
+
+    // Combine unique store IDs
+    const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
 
     if (storeIds.length > 0) {
       const { data: storesData } = await supabase
@@ -123,7 +130,7 @@ export default function AdminDashboard() {
           </div>
           <div className="p-4 bg-white border border-slate-200 rounded-xl text-center">
             <span className="block text-2xl font-bold text-slate-900">{todayStaff}</span>
-            <span className="text-sm text-slate-500">출근 직원</span>
+            <span className="text-sm text-slate-500">출근 매니저</span>
           </div>
           <div className="p-4 bg-white border border-slate-200 rounded-xl text-center">
             <span className="block text-2xl font-bold text-slate-900">{stores.length}</span>
@@ -162,7 +169,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-3 gap-3 max-md:grid-cols-2">
           <Link to="/admin/staff" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">👥</span>
-            <span className="text-sm font-medium text-slate-700">직원 관리</span>
+            <span className="text-sm font-medium text-slate-700">매니저 관리</span>
           </Link>
           <Link to="/admin/schedules" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📅</span>
@@ -174,7 +181,7 @@ export default function AdminDashboard() {
           </Link>
           <Link to="/admin/find-staff" className="flex flex-col items-center gap-2 p-4 bg-orange-50 border border-blue-200 rounded-xl hover:bg-orange-100 transition-all">
             <span className="text-2xl">🔍</span>
-            <span className="text-sm font-medium text-orange-700">직원 찾기</span>
+            <span className="text-sm font-medium text-orange-700">매니저 찾기</span>
           </Link>
           <Link to="/admin/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
             <span className="text-2xl">📨</span>

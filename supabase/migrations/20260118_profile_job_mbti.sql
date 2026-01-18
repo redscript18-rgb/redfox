@@ -1,0 +1,3 @@
+-- 직원 프로필에 직업, MBTI 필드 추가
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS job TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS mbti TEXT;

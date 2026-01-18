@@ -92,13 +92,14 @@ export default function StoreManage() {
     setSearching(false);
   };
 
-  const handleAddAdmin = async (adminId: string) => {
-    if (!addAdminStoreId) return;
-    const existingAdmins = storeAdmins[addAdminStoreId] || [];
+  const handleAddAdmin = async (adminId: string, storeId?: number) => {
+    const targetStoreId = storeId || addAdminStoreId;
+    if (!targetStoreId) return;
+    const existingAdmins = storeAdmins[targetStoreId] || [];
     if (existingAdmins.some((a) => a.id === adminId)) { alert('이미 연결된 관리자입니다.'); return; }
 
     setAddingAdmin(true);
-    const { error } = await supabase.from('store_admins').insert({ store_id: addAdminStoreId, admin_id: adminId });
+    const { error } = await supabase.from('store_admins').insert({ store_id: targetStoreId, admin_id: adminId });
     if (error) alert('관리자 추가 실패: ' + error.message);
     else { setSearchQuery(''); setSearchResults([]); setAddAdminStoreId(null); fetchData(); }
     setAddingAdmin(false);
@@ -236,6 +237,9 @@ export default function StoreManage() {
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-slate-900">관리자</h4>
                     <div className="flex gap-2">
+                      {!(storeAdmins[store.id] || []).some((a) => a.id === user?.id) && (
+                        <button className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100 transition-colors" onClick={() => user && handleAddAdmin(user.id, store.id)}>+ 나를 추가</button>
+                      )}
                       <button className="px-3 py-1.5 bg-orange-50 text-orange-600 text-xs font-medium rounded-lg hover:bg-orange-100 transition-colors" onClick={() => { setAddAdminStoreId(store.id); setSearchQuery(''); setSearchResults([]); }}>+ 검색으로 추가</button>
                       <button className="px-3 py-1.5 bg-green-50 text-green-600 text-xs font-medium rounded-lg hover:bg-green-100 transition-colors" onClick={() => generateInviteLink(store.id)}>초대 링크</button>
                     </div>

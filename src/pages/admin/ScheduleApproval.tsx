@@ -40,12 +40,19 @@ export default function ScheduleApproval() {
   const fetchSchedules = async () => {
     if (!user) return;
 
+    // Get stores where user is admin
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
       .eq('admin_id', user.id);
+    const adminStoreIds = adminStores?.map(s => s.store_id) || [];
 
-    const storeIds = adminStores?.map(s => s.store_id) || [];
+    // Get stores where user is owner
+    const { data: ownedStores } = await supabase.from('stores').select('id').eq('owner_id', user.id);
+    const ownedStoreIds = ownedStores?.map(s => s.id) || [];
+
+    // Combine unique store IDs
+    const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
 
     if (storeIds.length > 0) {
       const { data: schedulesData } = await supabase
@@ -140,7 +147,7 @@ export default function ScheduleApproval() {
                     </span>
                     {schedule.status === 'approved' && isPastSchedule(schedule.date) && (
                       !hasRated(schedule.id) ? (
-                        <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(schedule)}>직원 별점</button>
+                        <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(schedule)}>매니저 별점</button>
                       ) : (
                         <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded">평가완료</span>
                       )
@@ -191,7 +198,7 @@ function RatingModal({ schedule, raterId, onClose, onSuccess }: { schedule: Sche
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">직원 별점</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">매니저 별점</h2>
         <p className="text-slate-600 mb-4">{schedule.staff?.name}에게 별점을 주세요</p>
 
         <div className="mb-4">

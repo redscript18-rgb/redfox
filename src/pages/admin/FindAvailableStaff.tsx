@@ -33,8 +33,14 @@ export default function FindAvailableStaff() {
 
   const fetchStores = async () => {
     if (!user) return;
+    // Get stores where user is admin
     const { data: adminStores } = await supabase.from('store_admins').select('store_id').eq('admin_id', user.id);
-    const storeIds = adminStores?.map((s) => s.store_id) || [];
+    const adminStoreIds = adminStores?.map((s) => s.store_id) || [];
+    // Get stores where user is owner
+    const { data: ownedStores } = await supabase.from('stores').select('id').eq('owner_id', user.id);
+    const ownedStoreIds = ownedStores?.map((s) => s.id) || [];
+    // Combine unique store IDs
+    const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
     if (storeIds.length > 0) {
       const { data: storesData } = await supabase.from('stores').select('id, name').in('id', storeIds);
       setStores(storesData || []);
@@ -82,8 +88,8 @@ export default function FindAvailableStaff() {
   return (
     <div>
       <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">가용 직원 찾기</h1>
-      <p className="text-sm text-slate-500 mb-6">날짜를 선택하면 해당 요일에 근무 가능한 직원을 찾을 수 있습니다.</p>
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">가용 매니저 찾기</h1>
+      <p className="text-sm text-slate-500 mb-6">날짜를 선택하면 해당 요일에 근무 가능한 매니저를 찾을 수 있습니다.</p>
 
       <div className="p-4 bg-slate-50 rounded-xl mb-6">
         <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
@@ -112,7 +118,7 @@ export default function FindAvailableStaff() {
       {availableStaff.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold text-slate-900 mb-3">
-            가용 직원 ({availableStaff.length}명)
+            가용 매니저 ({availableStaff.length}명)
             {selectedDate && <span className="ml-2 text-sm font-normal text-slate-500">{formatDate(selectedDate)}</span>}
           </h2>
           <div className="flex flex-col gap-3">
@@ -138,7 +144,7 @@ export default function FindAvailableStaff() {
       )}
 
       {!searching && availableStaff.length === 0 && selectedDate && (
-        <div className="p-8 bg-slate-50 rounded-xl text-center"><p className="text-slate-500">해당 날짜에 가용한 직원이 없습니다.</p></div>
+        <div className="p-8 bg-slate-50 rounded-xl text-center"><p className="text-slate-500">해당 날짜에 가용한 매니저가 없습니다.</p></div>
       )}
 
       {showRequestModal && selectedStaff && selectedStoreId && selectedDate && (
@@ -173,7 +179,7 @@ function SendRequestModal({ staff, storeId, storeName, date, adminId, onClose, o
         <h2 className="text-xl font-bold text-slate-900 mb-4">출근 요청 보내기</h2>
 
         <div className="p-4 bg-slate-50 rounded-lg mb-4 space-y-2">
-          <div className="flex justify-between"><span className="text-sm text-slate-500">직원</span><span className="text-sm font-medium text-slate-900">{staff.name}</span></div>
+          <div className="flex justify-between"><span className="text-sm text-slate-500">매니저</span><span className="text-sm font-medium text-slate-900">{staff.name}</span></div>
           <div className="flex justify-between"><span className="text-sm text-slate-500">가게</span><span className="text-sm font-medium text-slate-900">{storeName}</span></div>
           <div className="flex justify-between"><span className="text-sm text-slate-500">날짜</span><span className="text-sm font-medium text-slate-900">{formatDate(date)}</span></div>
         </div>
@@ -195,7 +201,7 @@ function SendRequestModal({ staff, storeId, storeName, date, adminId, onClose, o
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">메시지 (선택)</label>
-          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="직원에게 전달할 메시지를 입력하세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="매니저에게 전달할 메시지를 입력하세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
         </div>
 
         <div className="flex gap-3">

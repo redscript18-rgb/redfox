@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabase';
 interface Reservation {
   id: number;
   store_id: number;
-  staff_id: string;
+  staff_id: string | null;
+  virtual_staff_id: string | null;
   menu_id: number;
   date: string;
   start_time: string;
@@ -14,6 +15,7 @@ interface Reservation {
   status_read_at: string | null;
   store?: { name: string };
   staff?: { name: string };
+  virtual_staff?: { name: string };
   menu?: { name: string; price: number };
 }
 
@@ -39,7 +41,7 @@ export default function CustomerReservations() {
 
     const { data: reservationsData } = await supabase
       .from('reservations')
-      .select(`*, store:stores(name), staff:profiles!reservations_staff_id_fkey(name), menu:menus(name, price)`)
+      .select(`*, store:stores(name), staff:profiles!reservations_staff_id_fkey(name), virtual_staff:virtual_staff(name), menu:menus(name, price)`)
       .eq('customer_id', user.id)
       .order('date', { ascending: true })
       .order('start_time', { ascending: true });
@@ -141,7 +143,7 @@ export default function CustomerReservations() {
               <span className="text-sm font-medium text-orange-600">{reservation.menu?.price?.toLocaleString()}원</span>
             </div>
             <div className="text-sm text-slate-600">{reservation.store?.name}</div>
-            <div className="text-xs text-slate-500">담당: {reservation.staff?.name || '미정'}</div>
+            <div className="text-xs text-slate-500">담당: {reservation.staff?.name || reservation.virtual_staff?.name || '미정'}</div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -160,10 +162,10 @@ export default function CustomerReservations() {
               <div className="flex gap-1">
                 {!hasRated(reservation.id, 'staff') ? (
                   <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(reservation, 'staff')}>
-                    직원 별점
+                    매니저 별점
                   </button>
                 ) : (
-                  <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded">직원 평가완료</span>
+                  <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded">매니저 평가완료</span>
                 )}
                 {!hasRated(reservation.id, 'store') ? (
                   <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(reservation, 'store')}>
@@ -217,8 +219,9 @@ export default function CustomerReservations() {
           reservation={selectedReservation}
           raterId={user?.id || ''}
           targetType={ratingTargetType}
-          targetId={ratingTargetType === 'staff' ? selectedReservation.staff_id : selectedReservation.store_id}
-          targetName={ratingTargetType === 'staff' ? (selectedReservation.staff?.name || '직원') : (selectedReservation.store?.name || '가게')}
+          targetId={ratingTargetType === 'staff' ? (selectedReservation.staff_id || selectedReservation.virtual_staff_id || '') : selectedReservation.store_id}
+          targetName={ratingTargetType === 'staff' ? (selectedReservation.staff?.name || selectedReservation.virtual_staff?.name || '매니저') : (selectedReservation.store?.name || '가게')}
+          isVirtualStaff={!selectedReservation.staff_id && !!selectedReservation.virtual_staff_id}
           onClose={() => { setShowRatingModal(false); setSelectedReservation(null); }}
           onSuccess={() => { setShowRatingModal(false); setSelectedReservation(null); fetchReservations(); }}
         />
@@ -228,9 +231,9 @@ export default function CustomerReservations() {
 }
 
 function RatingModal({
-  reservation, raterId, targetType, targetId, targetName, onClose, onSuccess,
+  reservation, raterId, targetType, targetId, targetName, isVirtualStaff, onClose, onSuccess,
 }: {
-  reservation: Reservation; raterId: string; targetType: 'staff' | 'store'; targetId: string | number; targetName: string; onClose: () => void; onSuccess: () => void;
+  reservation: Reservation; raterId: string; targetType: 'staff' | 'store'; targetId: string | number; targetName: string; isVirtualStaff?: boolean; onClose: () => void; onSuccess: () => void;
 }) {
   const [rating, setRating] = useState(5);
   const [serviceRating, setServiceRating] = useState(5);
@@ -240,8 +243,16 @@ function RatingModal({
   const handleSubmit = async () => {
     setSubmitting(true);
     const insertData: Record<string, unknown> = { reservation_id: reservation.id, rater_id: raterId, target_type: targetType, rating, comment: comment || null };
-    if (targetType === 'staff') { insertData.service_rating = serviceRating; insertData.target_profile_id = targetId; }
-    else { insertData.target_store_id = targetId; }
+    if (targetType === 'staff') {
+      insertData.service_rating = serviceRating;
+      if (isVirtualStaff) {
+        insertData.target_virtual_staff_id = targetId;
+      } else {
+        insertData.target_profile_id = targetId;
+      }
+    } else {
+      insertData.target_store_id = targetId;
+    }
     const { error } = await supabase.from('ratings').insert(insertData);
     setSubmitting(false);
     if (error) alert('별점 등록 중 오류가 발생했습니다.');

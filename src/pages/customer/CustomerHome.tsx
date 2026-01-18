@@ -5,22 +5,12 @@ import StoreList from '../../components/StoreList';
 type View = 'staff' | 'store';
 
 export default function CustomerHome() {
-  const [activeView, setActiveView] = useState<View>('staff');
+  const [activeView, setActiveView] = useState<View>('store');
 
   return (
     <div>
       {/* View Tabs */}
       <div className="flex gap-2 mb-6">
-        <button
-          className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-            activeView === 'staff'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
-          onClick={() => setActiveView('staff')}
-        >
-          직원 찾기
-        </button>
         <button
           className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
             activeView === 'store'
@@ -31,11 +21,21 @@ export default function CustomerHome() {
         >
           가게 목록
         </button>
+        <button
+          className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+            activeView === 'staff'
+              ? 'bg-red-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+          onClick={() => setActiveView('staff')}
+        >
+          매니저 찾기
+        </button>
       </div>
 
       {/* Content */}
       <div>
-        {activeView === 'staff' ? <StaffSearch /> : <StoreList />}
+        {activeView === 'store' ? <StoreList /> : <StaffSearch />}
       </div>
     </div>
   );

@@ -8,11 +8,13 @@ interface Store {
   name: string;
   address: string;
   store_type: string | null;
+  region: string | null;
   menuCount?: number;
   staffCount?: number;
 }
 
 const STORE_TYPES = ['1인샵', '커플관리샵', '왁싱샵', '스웨디시', '타이마사지', '중국마사지', '스포츠마사지', '발마사지', '네일샵', '피부관리샵', '기타'];
+const REGIONS = ['서울', '서울 강남', '경기 북부', '경기 남부', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
 
 interface StoreRating {
   avgRating: number | null;
@@ -28,6 +30,7 @@ export default function StoreList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount'>('name');
   const [filterType, setFilterType] = useState('');
+  const [filterRegion, setFilterRegion] = useState('');
 
   useEffect(() => { fetchStores(); if (user) fetchBlockedStores(); }, [user]);
 
@@ -89,7 +92,8 @@ export default function StoreList() {
       if (blockedStoreIds.has(store.id)) return false;
       const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) || store.address.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = !filterType || store.store_type === filterType;
-      return matchesSearch && matchesType;
+      const matchesRegion = !filterRegion || store.region === filterRegion;
+      return matchesSearch && matchesType && matchesRegion;
     })
     .sort((a, b) => {
       if (sortBy === 'rating') return (ratingMap[b.id]?.avgRating ?? 0) - (ratingMap[a.id]?.avgRating ?? 0);
@@ -103,6 +107,10 @@ export default function StoreList() {
 
       <div className="flex gap-2 mb-6 flex-wrap">
         <input type="text" placeholder="가게명 또는 주소로 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[200px] h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+        <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+          <option value="">전체 지역</option>
+          {REGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
+        </select>
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
           <option value="">전체 업종</option>
           {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
@@ -120,7 +128,11 @@ export default function StoreList() {
           return (
             <Link to={`/store/${store.id}`} key={store.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-2">
-                <h2 className="font-semibold text-slate-900">{store.name}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-slate-900">{store.name}</h2>
+                  {store.region && <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded">{store.region}</span>}
+                  {store.store_type && <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs font-medium rounded">{store.store_type}</span>}
+                </div>
                 {storeRating && storeRating.ratingCount > 0 && (
                   <span className="flex items-center gap-1 text-sm">
                     <span className="text-amber-500">★</span>
@@ -129,11 +141,10 @@ export default function StoreList() {
                   </span>
                 )}
               </div>
-              {store.store_type && <span className="inline-block px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded mb-2">{store.store_type}</span>}
               <p className="text-sm text-slate-500 mb-2">{store.address}</p>
               <div className="flex gap-3 text-xs text-slate-400">
                 <span>메뉴 {store.menuCount}개</span>
-                <span>직원 {store.staffCount}명</span>
+                <span>매니저 {store.staffCount}명</span>
               </div>
             </Link>
           );

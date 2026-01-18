@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 const TEST_ACCOUNTS = [
   { email: 'owner@test.com', password: 'test123456', name: '김사장', role: 'owner', label: '사장' },
   { email: 'admin@test.com', password: 'test123456', name: '이관리', role: 'admin', label: '관리자' },
-  { email: 'staff@test.com', password: 'test123456', name: '박직원', role: 'staff', label: '직원' },
+  { email: 'staff@test.com', password: 'test123456', name: '박매니저', role: 'staff', label: '매니저' },
   { email: 'customer@test.com', password: 'test123456', name: '최손님', role: 'customer', label: '손님' },
 ];
 
@@ -101,14 +101,13 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-white">
       <div className="w-full max-w-[400px] p-8 bg-white border border-slate-200 rounded-2xl shadow-lg">
-        <h1 className="mb-8 text-center text-2xl font-semibold text-slate-900">
-          {isSignup ? '회원가입' : '로그인'}
+        <h1 className="mb-8 text-center text-3xl font-bold text-red-600 tracking-tight">
+          Red Fox
         </h1>
 
         {/* 빠른 로그인 버튼 */}
         {!isSignup && (
           <div className="mb-6 pb-6 border-b border-slate-200">
-            <p className="mb-4 text-sm text-slate-400 text-center">테스트 계정으로 빠른 로그인</p>
             <div className="grid grid-cols-2 gap-2">
               {TEST_ACCOUNTS.map((account) => (
                 <button
@@ -186,7 +185,7 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2371717a%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]"
               >
                 <option value="customer">손님</option>
-                <option value="staff">직원</option>
+                <option value="staff">매니저</option>
                 <option value="admin">관리자</option>
                 <option value="owner">사장</option>
               </select>

@@ -13,6 +13,17 @@ interface Staff {
   height: number | null;
   weight: number | null;
   body_size: string | null;
+  job: string | null;
+  mbti: string | null;
+  created_by_admin_id: string | null;
+  isVirtual?: boolean;
+  store_id?: number;
+  store?: { id: number; name: string };
+}
+
+interface StoreInfo {
+  id: number;
+  name: string;
 }
 
 interface Schedule {
@@ -35,6 +46,7 @@ export default function StaffSearch() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [scheduleMap, setScheduleMap] = useState<Record<string, Schedule>>({});
   const [ratingMap, setRatingMap] = useState<Record<string, StaffRating>>({});
+  const [affiliatedStoresMap, setAffiliatedStoresMap] = useState<Record<string, StoreInfo[]>>({});
   const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,19 +81,59 @@ export default function StaffSearch() {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
+    // Fetch real staff
     const { data: staffData } = await supabase
       .from('profiles')
-      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size')
+      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id')
       .eq('role', 'staff');
 
-    setStaffList(staffData || []);
+    const realStaff: Staff[] = (staffData || []).map(s => ({ ...s, isVirtual: false }));
+
+    // Fetch virtual staff (admin-created)
+    const { data: virtualStaffData } = await supabase
+      .from('virtual_staff')
+      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, store_id, store:stores(id, name)');
+
+    const virtualStaff: Staff[] = (virtualStaffData || []).map(s => ({
+      ...s,
+      isVirtual: true,
+      store: s.store as { id: number; name: string } | undefined,
+    }));
+
+    setStaffList([...realStaff, ...virtualStaff]);
+
+    // Fetch affiliated stores for regular staff
+    if (staffData && staffData.length > 0) {
+      const { data: storeStaffData } = await supabase
+        .from('store_staff')
+        .select('staff_id, store:stores(id, name)')
+        .in('staff_id', staffData.map(s => s.id));
+
+      const storesMap: Record<string, StoreInfo[]> = {};
+      storeStaffData?.forEach(ss => {
+        const store = ss.store as { id: number; name: string } | null;
+        if (store) {
+          if (!storesMap[ss.staff_id]) {
+            storesMap[ss.staff_id] = [];
+          }
+          storesMap[ss.staff_id].push(store);
+        }
+      });
+      setAffiliatedStoresMap(storesMap);
+    }
 
     const specialties = new Set<string>();
     staffData?.forEach(s => {
       s.specialties?.forEach((spec: string) => specialties.add(spec));
     });
+    virtualStaffData?.forEach(s => {
+      s.specialties?.forEach((spec: string) => specialties.add(spec));
+    });
     setAllSpecialties(Array.from(specialties));
 
+    const scheduleByStaff: Record<string, Schedule> = {};
+
+    // Fetch real staff schedules
     if (staffData && staffData.length > 0) {
       const { data: schedulesData } = await supabase
         .from('schedules')
@@ -90,11 +142,27 @@ export default function StaffSearch() {
         .eq('date', today)
         .eq('status', 'approved');
 
-      const scheduleByStaff: Record<string, Schedule> = {};
       schedulesData?.forEach(s => {
         scheduleByStaff[s.staff_id] = s;
       });
-      setScheduleMap(scheduleByStaff);
+    }
+
+    // Fetch virtual staff schedules
+    if (virtualStaffData && virtualStaffData.length > 0) {
+      const { data: virtualSchedulesData } = await supabase
+        .from('virtual_staff_schedules')
+        .select(`*, store:stores(name)`)
+        .in('virtual_staff_id', virtualStaffData.map(s => s.id))
+        .eq('date', today);
+
+      virtualSchedulesData?.forEach(s => {
+        scheduleByStaff[s.virtual_staff_id] = s;
+      });
+    }
+
+    setScheduleMap(scheduleByStaff);
+
+    if (staffData && staffData.length > 0) {
 
       const { data: ratingsData } = await supabase
         .from('ratings')
@@ -155,8 +223,8 @@ export default function StaffSearch() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">직원 찾기</h1>
-      <p className="text-sm text-slate-500 mb-6">원하는 직원을 찾아 예약하세요</p>
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">매니저 찾기</h1>
+      <p className="text-sm text-slate-500 mb-6">원하는 매니저를 찾아 예약하세요</p>
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-slate-50 rounded-xl max-md:flex-col">
@@ -195,26 +263,43 @@ export default function StaffSearch() {
           const staffRating = ratingMap[staff.id];
           return (
             <Link
-              to={`/staff/${staff.id}`}
+              to={staff.isVirtual ? `/virtual-staff/${staff.id}` : `/staff/${staff.id}`}
               key={staff.id}
               className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl no-underline text-inherit transition-all hover:border-red-600 hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
             >
               {/* Left accent bar on hover */}
               <div className="absolute top-0 left-0 w-1 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-              {/* Avatar */}
-              <div className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xl font-bold text-white overflow-hidden flex-shrink-0 max-md:w-14 max-md:h-14">
-                {staff.profile_photo_url ? (
-                  <img src={staff.profile_photo_url} alt={staff.name} className="w-full h-full object-cover" />
+              {/* Avatar + Schedule Status */}
+              <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xl font-bold text-white overflow-hidden max-md:w-14 max-md:h-14">
+                  {staff.profile_photo_url ? (
+                    <img src={staff.profile_photo_url} alt={staff.name} className="w-full h-full object-cover" />
+                  ) : (
+                    staff.name.charAt(0)
+                  )}
+                </div>
+                {todaySchedule ? (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded text-[11px] text-green-600 font-semibold">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    오늘 출근
+                  </div>
                 ) : (
-                  staff.name.charAt(0)
+                  <div className="px-2 py-1 bg-slate-100 rounded text-[11px] text-slate-400 font-medium">
+                    출근 없음
+                  </div>
                 )}
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-bold text-slate-900">{staff.name}</h3>
+                  {staff.isVirtual ? (
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
+                  )}
                   {staffRating && staffRating.totalCount > 0 && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-full text-xs font-bold text-amber-700">
                       <span className="text-amber-500">★</span>
@@ -223,8 +308,34 @@ export default function StaffSearch() {
                   )}
                 </div>
 
-                {(staff.age || staff.height || staff.weight || staff.body_size) && (
+                {/* Affiliated Stores */}
+                {staff.isVirtual ? (
+                  staff.store && (
+                    <div className="flex gap-1.5 flex-wrap">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${todaySchedule && todaySchedule.store_id === staff.store.id ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-slate-100 text-slate-600'}`}>
+                        {staff.store.name}
+                      </span>
+                    </div>
+                  )
+                ) : (
+                  affiliatedStoresMap[staff.id] && affiliatedStoresMap[staff.id].length > 0 && (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {affiliatedStoresMap[staff.id].map(store => (
+                        <span
+                          key={store.id}
+                          className={`text-xs font-medium px-2 py-0.5 rounded ${todaySchedule && todaySchedule.store_id === store.id ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-slate-100 text-slate-600'}`}
+                        >
+                          {store.name}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                )}
+
+                {(staff.age || staff.height || staff.weight || staff.body_size || staff.job || staff.mbti) && (
                   <div className="flex gap-1.5 flex-wrap">
+                    {staff.job && <span className="text-xs font-semibold text-blue-600 px-2.5 py-1 bg-blue-50 rounded-md">{staff.job}</span>}
+                    {staff.mbti && <span className="text-xs font-semibold text-purple-600 px-2.5 py-1 bg-purple-50 rounded-md">{staff.mbti}</span>}
                     {staff.age && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.age}세</span>}
                     {staff.height && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.height}cm</span>}
                     {staff.weight && <span className="text-xs font-semibold text-slate-600 px-2.5 py-1 bg-slate-100 rounded-md">{staff.weight}kg</span>}
@@ -243,22 +354,6 @@ export default function StaffSearch() {
                         {s}
                       </span>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Schedule Info */}
-              <div className="flex flex-col items-end justify-center flex-shrink-0 min-w-[100px] max-md:absolute max-md:top-4 max-md:right-4 max-md:min-w-0">
-                {todaySchedule ? (
-                  <div className="flex flex-col items-end gap-1 px-3 py-2 bg-green-50 rounded-lg text-xs text-green-600 font-semibold max-md:px-2 max-md:py-1 max-md:text-[10px]">
-                    <span className="inline-block w-2 h-2 bg-green-600 rounded-full animate-pulse" />
-                    오늘 출근
-                    <span className="text-slate-600 font-medium">{todaySchedule.store?.name}</span>
-                    <span className="text-slate-400 text-[11px]">{todaySchedule.start_time} - {todaySchedule.end_time}</span>
-                  </div>
-                ) : (
-                  <div className="px-3 py-2 bg-slate-100 rounded-lg text-xs text-slate-400 font-medium max-md:px-2 max-md:py-1 max-md:text-[10px]">
-                    오늘 출근 없음
                   </div>
                 )}
               </div>

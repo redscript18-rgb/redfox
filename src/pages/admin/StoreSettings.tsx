@@ -3,11 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-interface Store { id: number; name: string; address: string; phone: string | null; description: string | null; open_time: string | null; close_time: string | null; closed_days: number[] | null; store_type: string | null; }
+interface Store { id: number; name: string; address: string; phone: string | null; description: string | null; open_time: string | null; close_time: string | null; closed_days: number[] | null; store_type: string | null; region: string | null; }
 interface Menu { id: number; name: string; price: number; description: string | null; }
 interface Holiday { id: number; date: string; reason: string | null; }
+interface VirtualStaff { id: string; name: string; phone: string | null; bio: string | null; }
 
 const STORE_TYPES = ['1인샵', '커플관리샵', '왁싱샵', '스웨디시', '타이마사지', '중국마사지', '스포츠마사지', '발마사지', '네일샵', '피부관리샵', '기타'];
+const REGIONS = ['서울', '서울 강남', '경기 북부', '경기 남부', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 export default function StoreSettings() {
@@ -18,9 +20,10 @@ export default function StoreSettings() {
   const [store, setStore] = useState<Store | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [virtualStaff, setVirtualStaff] = useState<VirtualStaff[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'menu' | 'holiday'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'menu' | 'holiday' | 'staff'>('info');
 
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
@@ -28,6 +31,7 @@ export default function StoreSettings() {
   const [closeTime, setCloseTime] = useState('22:00');
   const [closedDays, setClosedDays] = useState<number[]>([]);
   const [storeType, setStoreType] = useState('');
+  const [region, setRegion] = useState('');
 
   const [newMenuName, setNewMenuName] = useState('');
   const [newMenuPrice, setNewMenuPrice] = useState('');
@@ -52,6 +56,7 @@ export default function StoreSettings() {
       setCloseTime(storeData.close_time?.slice(0, 5) || '22:00');
       setClosedDays(storeData.closed_days || []);
       setStoreType(storeData.store_type || '');
+      setRegion(storeData.region || '');
     }
     const { data: menusData } = await supabase.from('menus').select('*').eq('store_id', storeId).order('name');
     setMenus(menusData || []);
@@ -59,12 +64,14 @@ export default function StoreSettings() {
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const { data: holidaysData } = await supabase.from('store_holidays').select('*').eq('store_id', storeId).gte('date', today).order('date');
     setHolidays(holidaysData || []);
+    const { data: virtualStaffData } = await supabase.from('virtual_staff').select('id, name, phone, bio').eq('store_id', storeId).order('name');
+    setVirtualStaff(virtualStaffData || []);
     setLoading(false);
   };
 
   const handleSaveInfo = async () => {
     setSaving(true);
-    const { error } = await supabase.from('stores').update({ phone: phone || null, description: description || null, open_time: openTime, close_time: closeTime, closed_days: closedDays.length > 0 ? closedDays : null, store_type: storeType || null }).eq('id', storeId);
+    const { error } = await supabase.from('stores').update({ phone: phone || null, description: description || null, open_time: openTime, close_time: closeTime, closed_days: closedDays.length > 0 ? closedDays : null, store_type: storeType || null, region: region || null }).eq('id', storeId);
     setSaving(false);
     if (error) alert('저장 중 오류가 발생했습니다.');
     else alert('저장되었습니다.');
@@ -118,10 +125,11 @@ export default function StoreSettings() {
       <h1 className="text-2xl font-bold text-slate-900 mb-1">{store.name} 설정</h1>
       <p className="text-sm text-slate-500 mb-6">{store.address}</p>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'info' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('info')}>기본 정보</button>
         <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('menu')}>메뉴 관리</button>
         <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'holiday' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('holiday')}>휴무일</button>
+        <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('staff')}>소속 매니저 {virtualStaff.length > 0 && `(${virtualStaff.length})`}</button>
       </div>
 
       {activeTab === 'info' && (
@@ -131,6 +139,14 @@ export default function StoreSettings() {
             <select value={storeType} onChange={(e) => setStoreType(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               <option value="">선택하세요</option>
               {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
+            </select>
+          </section>
+
+          <section className="p-4 bg-white border border-slate-200 rounded-xl">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">지역</h2>
+            <select value={region} onChange={(e) => setRegion(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+              <option value="">선택하세요</option>
+              {REGIONS.map((r) => (<option key={r} value={r}>{r}</option>))}
             </select>
           </section>
 
@@ -243,6 +259,48 @@ export default function StoreSettings() {
                     </div>
                     <button onClick={() => handleDeleteHoliday(holiday.id)} className="text-sm text-red-500 hover:text-red-600">삭제</button>
                   </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {activeTab === 'staff' && (
+        <div className="space-y-6">
+          <section className="p-4 bg-white border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">소속 매니저</h2>
+              <Link to="/admin/staff" className="text-sm text-red-600 hover:underline">매니저 관리 →</Link>
+            </div>
+            {virtualStaff.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-400 mb-4">등록된 매니저가 없습니다.</p>
+                <Link to="/admin/staff" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                  매니저 추가하기
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {virtualStaff.map((staff) => (
+                  <Link
+                    key={staff.id}
+                    to={`/virtual-staff/${staff.id}`}
+                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                      {staff.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-slate-900">{staff.name}</h3>
+                        <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+                      </div>
+                      {staff.bio && <p className="text-sm text-slate-500 truncate">{staff.bio}</p>}
+                      {staff.phone && <p className="text-xs text-slate-400">{staff.phone}</p>}
+                    </div>
+                    <span className="text-sm text-slate-400">→</span>
+                  </Link>
                 ))}
               </div>
             )}

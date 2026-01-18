@@ -29,6 +29,7 @@ import ReservationManage from './pages/admin/ReservationManage';
 import FindAvailableStaff from './pages/admin/FindAvailableStaff';
 import WorkRequestsSent from './pages/admin/WorkRequestsSent';
 import StoreSettings from './pages/admin/StoreSettings';
+import VirtualStaffDetail from './pages/VirtualStaffDetail';
 
 // 사장용 페이지
 import OwnerDashboard from './pages/owner/OwnerDashboard';
@@ -38,6 +39,17 @@ import StoreManage from './pages/owner/StoreManage';
 // 공통 페이지
 import InviteAccept from './pages/common/InviteAccept';
 import BlockManage from './pages/common/BlockManage';
+import AccountSettings from './pages/common/AccountSettings';
+
+// 채팅 페이지
+import ChatList from './pages/chat/ChatList';
+import ChatRoom from './pages/chat/ChatRoom';
+
+// 서비스 관리자 페이지
+import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+import UserManagement from './pages/superadmin/UserManagement';
+import SuperAdminStoreManagement from './pages/superadmin/StoreManagement';
+import ReservationOverview from './pages/superadmin/ReservationOverview';
 
 import './App.css';
 
@@ -56,6 +68,8 @@ function RoleBasedHome() {
   const { user } = useAuth();
 
   switch (user?.role) {
+    case 'superadmin':
+      return <SuperAdminDashboard />;
     case 'customer':
       return <CustomerHome />;
     case 'staff':
@@ -274,6 +288,18 @@ function AppRoutes() {
         }
       />
 
+      {/* 관리자용: 가상 매니저 상세 */}
+      <Route
+        path="/virtual-staff/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <VirtualStaffDetail />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 사장용: 가게 관리 */}
       <Route
         path="/owner/stores"
@@ -305,6 +331,90 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <BlockManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 공통: 계정 설정 */}
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AccountSettings />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 공통: 채팅 목록 */}
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ChatList />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 공통: 채팅방 */}
+      <Route
+        path="/chat/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ChatRoom />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 대시보드 */}
+      <Route
+        path="/superadmin"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SuperAdminDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 사용자 관리 */}
+      <Route
+        path="/superadmin/users"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <UserManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 가게 관리 */}
+      <Route
+        path="/superadmin/stores"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SuperAdminStoreManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 예약 현황 */}
+      <Route
+        path="/superadmin/reservations"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ReservationOverview />
             </Layout>
           </ProtectedRoute>
         }

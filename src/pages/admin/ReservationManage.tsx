@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabase';
 interface Reservation {
   id: number;
   store_id: number;
-  staff_id: string;
+  staff_id: string | null;
+  virtual_staff_id: string | null;
   customer_id: string;
   menu_id: number;
   date: string;
@@ -14,6 +15,7 @@ interface Reservation {
   status: string;
   store?: { name: string };
   staff?: { name: string };
+  virtual_staff?: { name: string };
   customer?: { name: string };
   menu?: { name: string; price: number };
 }
@@ -88,12 +90,19 @@ export default function ReservationManage() {
   const fetchReservations = async () => {
     if (!user) return;
 
+    // Get stores where user is admin
     const { data: adminStores } = await supabase
       .from('store_admins')
       .select('store_id')
       .eq('admin_id', user.id);
+    const adminStoreIds = adminStores?.map(s => s.store_id) || [];
 
-    const storeIds = adminStores?.map(s => s.store_id) || [];
+    // Get stores where user is owner
+    const { data: ownedStores } = await supabase.from('stores').select('id').eq('owner_id', user.id);
+    const ownedStoreIds = ownedStores?.map(s => s.id) || [];
+
+    // Combine unique store IDs
+    const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
 
     if (storeIds.length > 0) {
       const { data: reservationsData } = await supabase
@@ -102,6 +111,7 @@ export default function ReservationManage() {
           *,
           store:stores(name),
           staff:profiles!reservations_staff_id_fkey(name),
+          virtual_staff:virtual_staff(name),
           customer:profiles!reservations_customer_id_fkey(name),
           menu:menus(name, price)
         `)
@@ -326,7 +336,7 @@ export default function ReservationManage() {
                   </button>
                 </div>
                 <div className="flex gap-3 text-xs text-slate-500">
-                  <span>담당: {reservation.staff?.name}</span>
+                  <span>담당: {reservation.staff?.name || reservation.virtual_staff?.name || '미정'}</span>
                   <span>{reservation.store?.name}</span>
                 </div>
               </div>

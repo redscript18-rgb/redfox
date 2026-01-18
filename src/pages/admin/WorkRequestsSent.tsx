@@ -31,8 +31,14 @@ export default function WorkRequestsSent() {
 
   const fetchRequests = async () => {
     if (!user) return;
+    // Get stores where user is admin
     const { data: adminStores } = await supabase.from('store_admins').select('store_id').eq('admin_id', user.id);
-    const storeIds = adminStores?.map((s) => s.store_id) || [];
+    const adminStoreIds = adminStores?.map((s) => s.store_id) || [];
+    // Get stores where user is owner
+    const { data: ownedStores } = await supabase.from('stores').select('id').eq('owner_id', user.id);
+    const ownedStoreIds = ownedStores?.map((s) => s.id) || [];
+    // Combine unique store IDs
+    const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
     if (storeIds.length === 0) { setLoading(false); return; }
 
     const { data } = await supabase.from('work_requests').select(`*, store:stores(name), staff:profiles!work_requests_staff_id_fkey(name, email)`).in('store_id', storeIds).order('created_at', { ascending: false });
@@ -125,7 +131,7 @@ export default function WorkRequestsSent() {
       ) : (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
           <p className="text-slate-500 mb-4">{filter === 'all' ? '보낸 출근 요청이 없습니다.' : `${getStatusText(filter)} 상태의 요청이 없습니다.`}</p>
-          <Link to="/admin/find-staff" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">가용 직원 찾기</Link>
+          <Link to="/admin/find-staff" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">가용 매니저 찾기</Link>
         </div>
       )}
     </div>

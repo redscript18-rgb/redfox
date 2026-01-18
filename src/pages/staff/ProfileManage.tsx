@@ -35,6 +35,8 @@ export default function ProfileManage() {
   const [hairStyle, setHairStyle] = useState('');
   const [hairColor, setHairColor] = useState('');
   const [isWaxed, setIsWaxed] = useState(false);
+  const [job, setJob] = useState('');
+  const [mbti, setMbti] = useState('');
 
   const profileInputRef = useRef<HTMLInputElement>(null);
   const dailyInputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +53,7 @@ export default function ProfileManage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('bio, specialties, profile_photo_url, age, height, weight, body_size, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed')
+      .select('bio, specialties, profile_photo_url, age, height, weight, body_size, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed, job, mbti')
       .eq('id', user.id)
       .single();
 
@@ -71,6 +73,8 @@ export default function ProfileManage() {
       setHairStyle(data.hair_style || '');
       setHairColor(data.hair_color || '');
       setIsWaxed(data.is_waxed || false);
+      setJob(data.job || '');
+      setMbti(data.mbti || '');
     }
 
     setLoading(false);
@@ -154,14 +158,14 @@ export default function ProfileManage() {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayPhotos = dailyPhotos.filter(p => p.date === today);
-  const canUploadMore = todayPhotos.length < 5;
+  const canUploadMore = todayPhotos.length < 3;
 
   const handleDailyPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
     if (!canUploadMore) {
-      alert('오늘은 최대 5장까지만 업로드할 수 있습니다.');
+      alert('오늘은 최대 3장까지만 업로드할 수 있습니다.');
       return;
     }
 
@@ -248,6 +252,8 @@ export default function ProfileManage() {
         hair_style: hairStyle || null,
         hair_color: hairColor || null,
         is_waxed: isWaxed,
+        job: job || null,
+        mbti: mbti || null,
       })
       .eq('id', user.id);
 
@@ -267,13 +273,24 @@ export default function ProfileManage() {
   return (
     <div>
       <Link to="/staff" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">프로필 관리</h1>
+
+      {/* Header with Save Button */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">프로필 관리</h1>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+        >
+          {saving ? '저장 중...' : '저장하기'}
+        </button>
+      </div>
 
       {/* 프로필 사진 */}
-      <section className="mb-8 p-4 bg-white border border-slate-200 rounded-xl">
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">프로필 사진</h2>
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
             {profilePhotoUrl ? (
               <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
             ) : (
@@ -301,8 +318,69 @@ export default function ProfileManage() {
         </div>
       </section>
 
+      {/* 오늘의 사진 - 프로필 사진 바로 아래 */}
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">오늘의 사진 ({todayPhotos.length}/3)</h2>
+        <p className="text-sm text-slate-500 mb-4">오늘 작업한 결과물이나 스타일 사진을 올려보세요. 손님들이 볼 수 있습니다. (0시 리셋)</p>
+
+        {canUploadMore && (
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={newPhotoCaption}
+              onChange={(e) => setNewPhotoCaption(e.target.value)}
+              placeholder="사진 설명 (선택)"
+              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+            />
+            <input
+              type="file"
+              ref={dailyInputRef}
+              onChange={handleDailyPhotoUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => dailyInputRef.current?.click()}
+              disabled={uploadingDaily}
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+            >
+              {uploadingDaily ? '업로드 중...' : '사진 업로드'}
+            </button>
+          </div>
+        )}
+
+        {!canUploadMore && (
+          <p className="text-sm text-amber-600 mb-4">오늘 업로드 가능한 사진 수를 모두 사용했습니다.</p>
+        )}
+
+        {todayPhotos.length > 0 ? (
+          <div className="grid grid-cols-5 gap-2 max-md:grid-cols-3 max-sm:grid-cols-2">
+            {todayPhotos.map((photo) => (
+              <div key={photo.id} className="relative group">
+                <img src={photo.photo_url} alt={photo.caption || '사진'} className="w-full aspect-square object-cover rounded-lg" />
+                {photo.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 text-white text-xs rounded-b-lg truncate">
+                    {photo.caption}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDailyPhoto(photo.id)}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">오늘 업로드한 사진이 없습니다.</p>
+        )}
+      </section>
+
       {/* 자기소개 */}
-      <section className="mb-8 p-4 bg-white border border-slate-200 rounded-xl">
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">자기소개</h2>
         <textarea
           value={bio}
@@ -314,7 +392,7 @@ export default function ProfileManage() {
       </section>
 
       {/* 기본 정보 */}
-      <section className="mb-8 p-4 bg-white border border-slate-200 rounded-xl">
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">기본 정보</h2>
         <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
           <div>
@@ -328,6 +406,42 @@ export default function ProfileManage() {
               max={99}
               className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">직업</label>
+            <input
+              type="text"
+              value={job}
+              onChange={(e) => setJob(e.target.value)}
+              placeholder="예: 대학생, 직장인, 프리랜서..."
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">MBTI</label>
+            <select
+              value={mbti}
+              onChange={(e) => setMbti(e.target.value)}
+              className="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+            >
+              <option value="">선택안함</option>
+              <option value="INTJ">INTJ</option>
+              <option value="INTP">INTP</option>
+              <option value="ENTJ">ENTJ</option>
+              <option value="ENTP">ENTP</option>
+              <option value="INFJ">INFJ</option>
+              <option value="INFP">INFP</option>
+              <option value="ENFJ">ENFJ</option>
+              <option value="ENFP">ENFP</option>
+              <option value="ISTJ">ISTJ</option>
+              <option value="ISFJ">ISFJ</option>
+              <option value="ESTJ">ESTJ</option>
+              <option value="ESFJ">ESFJ</option>
+              <option value="ISTP">ISTP</option>
+              <option value="ISFP">ISFP</option>
+              <option value="ESTP">ESTP</option>
+              <option value="ESFP">ESFP</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">키 (cm)</label>
@@ -433,7 +547,7 @@ export default function ProfileManage() {
       </section>
 
       {/* 성격 & 스타일 */}
-      <section className="mb-8 p-4 bg-white border border-slate-200 rounded-xl">
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">성격 & 스타일</h2>
         <div className="flex flex-col gap-4">
           <div>
@@ -460,7 +574,7 @@ export default function ProfileManage() {
       </section>
 
       {/* 전문 분야 */}
-      <section className="mb-8 p-4 bg-white border border-slate-200 rounded-xl">
+      <section className="p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-2">전문 분야 (스킬)</h2>
         <p className="text-sm text-slate-500 mb-4">손님에게 표시되는 전문 분야입니다. 최대 10개까지 등록 가능합니다.</p>
 
@@ -505,76 +619,6 @@ export default function ProfileManage() {
         )}
       </section>
 
-      <div className="mb-8">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
-        >
-          {saving ? '저장 중...' : '저장하기'}
-        </button>
-      </div>
-
-      {/* 일별 사진 */}
-      <section className="p-4 bg-white border border-slate-200 rounded-xl">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">오늘의 사진 ({todayPhotos.length}/5)</h2>
-        <p className="text-sm text-slate-500 mb-4">오늘 작업한 결과물이나 스타일 사진을 올려보세요. 손님들이 볼 수 있습니다. (0시 리셋)</p>
-
-        {canUploadMore && (
-          <div className="flex gap-2 mb-4">
-            <input
-              type="text"
-              value={newPhotoCaption}
-              onChange={(e) => setNewPhotoCaption(e.target.value)}
-              placeholder="사진 설명 (선택)"
-              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-            />
-            <input
-              type="file"
-              ref={dailyInputRef}
-              onChange={handleDailyPhotoUpload}
-              accept="image/*"
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => dailyInputRef.current?.click()}
-              disabled={uploadingDaily}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
-            >
-              {uploadingDaily ? '업로드 중...' : '사진 업로드'}
-            </button>
-          </div>
-        )}
-
-        {!canUploadMore && (
-          <p className="text-sm text-amber-600 mb-4">오늘 업로드 가능한 사진 수를 모두 사용했습니다.</p>
-        )}
-
-        {todayPhotos.length > 0 ? (
-          <div className="grid grid-cols-5 gap-2 max-md:grid-cols-3 max-sm:grid-cols-2">
-            {todayPhotos.map((photo) => (
-              <div key={photo.id} className="relative group">
-                <img src={photo.photo_url} alt={photo.caption || '사진'} className="w-full aspect-square object-cover rounded-lg" />
-                {photo.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 text-white text-xs rounded-b-lg truncate">
-                    {photo.caption}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleDeleteDailyPhoto(photo.id)}
-                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-slate-400">오늘 업로드한 사진이 없습니다.</p>
-        )}
-      </section>
     </div>
   );
 }

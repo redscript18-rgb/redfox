@@ -99,7 +99,7 @@ export default function Favorites() {
         )}
         {canShowStaff && (
           <button className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => setActiveTab('staff')}>
-            직원 ({favoriteStaff.length})
+            매니저 ({favoriteStaff.length})
           </button>
         )}
       </div>
@@ -163,7 +163,7 @@ export default function Favorites() {
             ))
           ) : (
             <div className="p-8 bg-slate-50 rounded-xl text-center">
-              <p className="text-slate-500">즐겨찾기한 직원이 없습니다.</p>
+              <p className="text-slate-500">즐겨찾기한 매니저가 없습니다.</p>
             </div>
           )}
         </div>

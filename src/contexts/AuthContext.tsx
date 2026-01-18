@@ -5,9 +5,10 @@ interface Profile {
   id: string;
   email: string;
   name: string;
-  role: 'owner' | 'admin' | 'staff' | 'customer';
+  role: 'owner' | 'admin' | 'staff' | 'customer' | 'superadmin';
   phone?: string;
   profile_image?: string;
+  profile_photo_url?: string;
   bio?: string;
   specialties?: string[];
 }

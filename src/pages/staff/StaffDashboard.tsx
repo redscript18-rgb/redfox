@@ -147,37 +147,6 @@ export default function StaffDashboard() {
         </Link>
       )}
 
-      {/* Quick Menu */}
-      <section className="mb-8">
-        <div className="grid grid-cols-5 gap-3 max-md:grid-cols-3 max-sm:grid-cols-2">
-          <Link to="/staff/profile" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
-            <span className="text-2xl">👤</span>
-            <span className="text-xs font-medium text-slate-700">프로필 관리</span>
-          </Link>
-          <Link to="/staff/availability" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
-            <span className="text-2xl">🕐</span>
-            <span className="text-xs font-medium text-slate-700">가용 시간</span>
-          </Link>
-          <Link to="/staff/work-requests" className="relative flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
-            <span className="text-2xl">📨</span>
-            <span className="text-xs font-medium text-slate-700">출근 요청</span>
-            {pendingRequests > 0 && (
-              <span className="absolute top-2 right-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full flex items-center justify-center">
-                {pendingRequests}
-              </span>
-            )}
-          </Link>
-          <Link to="/staff/schedule" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
-            <span className="text-2xl">📅</span>
-            <span className="text-xs font-medium text-slate-700">스케줄 관리</span>
-          </Link>
-          <Link to="/staff/reservations" className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-red-600 hover:shadow-md transition-all">
-            <span className="text-2xl">📋</span>
-            <span className="text-xs font-medium text-slate-700">내 예약</span>
-          </Link>
-        </div>
-      </section>
-
       {/* Today Reservations */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">

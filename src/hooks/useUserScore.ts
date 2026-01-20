@@ -266,6 +266,17 @@ export function useUserScore(userId: string | undefined) {
           description: `${senderProfile?.name || '알 수 없음'}님으로부터 선물`
         });
 
+      // 받는 사람에게 알림 추가
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: receiverId,
+          type: 'gift_received',
+          title: '선물 도착!',
+          message: `${senderProfile?.name || '누군가'}님이 ${amount.toLocaleString()}점을 선물했습니다.`,
+          data: { sender_id: userId, sender_name: senderProfile?.name, amount }
+        });
+
       // 상태 업데이트
       setScore(prev => prev ? {
         ...prev,

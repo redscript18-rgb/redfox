@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import ScoreBadge from './ScoreBadge';
+import { useNotifications } from '../hooks/useNotifications';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,14 @@ export default function Layout({ children }: LayoutProps) {
   const [pendingWorkRequests, setPendingWorkRequests] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const {
+    notifications,
+    unreadCount: notificationUnreadCount,
+    markAsRead,
+    markAllAsRead
+  } = useNotifications(user?.id);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user || user.role !== 'customer') return;
@@ -202,12 +211,105 @@ export default function Layout({ children }: LayoutProps) {
           )}
         </nav>
 
-        {/* Score Badge & Profile Dropdown */}
+        {/* Score Badge, Notifications & Profile Dropdown */}
         <div className="flex items-center gap-3">
           <ScoreBadge />
+
+          {/* Notification Bell */}
           <div className="relative">
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => { setShowNotifications(!showNotifications); setShowProfileMenu(false); }}
+              className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+              {notificationUnreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center">
+                  {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowNotifications(false)}
+                />
+                <div className="absolute right-0 top-12 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden max-md:right-[-60px]">
+                  <div className="flex items-center justify-between p-3 border-b border-slate-100">
+                    <h3 className="font-semibold text-slate-900">알림</h3>
+                    {notificationUnreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-orange-600 hover:underline"
+                      >
+                        모두 읽음
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 text-sm">
+                        알림이 없습니다
+                      </div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          onClick={() => { markAsRead(notification.id); }}
+                          className={`p-3 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors ${
+                            !notification.is_read ? 'bg-orange-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              notification.type === 'gift_received'
+                                ? 'bg-amber-100 text-amber-600'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {notification.type === 'gift_received' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                  <path d="M9.375 3a1.875 1.875 0 0 0 0 3.75h1.875v4.5H3.375A1.875 1.875 0 0 1 1.5 9.375v-.75c0-1.036.84-1.875 1.875-1.875h3.193A3.375 3.375 0 0 1 12 2.753a3.375 3.375 0 0 1 5.432 3.997h3.193c1.035 0 1.875.84 1.875 1.875v.75c0 1.036-.84 1.875-1.875 1.875H12.75v-4.5h1.875a1.875 1.875 0 1 0-1.875-1.875V6.75h-1.5V4.875C11.25 3.839 10.41 3 9.375 3Z" />
+                                  <path d="M11.25 12.75H3v6.75a2.25 2.25 0 0 0 2.25 2.25h6v-9ZM12.75 12.75v9h6a2.25 2.25 0 0 0 2.25-2.25v-6.75h-8.25Z" />
+                                </svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                  <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm text-slate-900">{notification.title}</p>
+                              {notification.message && (
+                                <p className="text-xs text-slate-500 mt-0.5">{notification.message}</p>
+                              )}
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                {new Date(notification.created_at).toLocaleDateString('ko-KR', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                            {!notification.is_read && (
+                              <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => { setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
               className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
             >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm overflow-hidden">

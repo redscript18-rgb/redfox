@@ -114,6 +114,31 @@ export default function StaffDashboard() {
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">안녕하세요, {user?.name}님</h1>
 
+      {/* Today Schedule - 최상단 */}
+      <section className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-slate-900">오늘 내 스케줄</h2>
+          <Link to="/staff/schedule" className="text-sm text-orange-600 hover:underline">스케줄 관리 →</Link>
+        </div>
+        {myTodaySchedules.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {myTodaySchedules.map((schedule) => (
+              <div key={schedule.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
+                <span className="font-semibold text-green-800">{schedule.store?.name}</span>
+                <span className="text-sm text-green-600">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 bg-slate-50 rounded-xl text-center">
+            <p className="text-slate-500 mb-3">오늘 등록된 출근이 없습니다.</p>
+            <Link to="/staff/schedule" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+              출근 등록하기
+            </Link>
+          </div>
+        )}
+      </section>
+
       {/* Alert */}
       {pendingRequests > 0 && (
         <Link to="/staff/work-requests" className="flex items-center gap-4 p-4 mb-6 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors">
@@ -151,31 +176,6 @@ export default function StaffDashboard() {
             <span className="text-xs font-medium text-slate-700">내 예약</span>
           </Link>
         </div>
-      </section>
-
-      {/* Today Schedule */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">오늘 내 스케줄</h2>
-          <Link to="/staff/schedule" className="text-sm text-orange-600 hover:underline">스케줄 관리 →</Link>
-        </div>
-        {myTodaySchedules.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {myTodaySchedules.map((schedule) => (
-              <div key={schedule.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
-                <span className="font-semibold text-green-800">{schedule.store?.name}</span>
-                <span className="text-sm text-green-600">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-6 bg-slate-50 rounded-xl text-center">
-            <p className="text-slate-500 mb-3">오늘 등록된 출근이 없습니다.</p>
-            <Link to="/staff/schedule" className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
-              출근 등록하기
-            </Link>
-          </div>
-        )}
       </section>
 
       {/* Today Reservations */}

@@ -28,6 +28,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const initializeUserScore = async (userId: string) => {
+    try {
+      // 점수 레코드가 있는지 확인
+      const { data: existing } = await supabase
+        .from('user_scores')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
+
+      // 없으면 생성
+      if (!existing) {
+        await supabase
+          .from('user_scores')
+          .insert({ user_id: userId, total_score: 0 });
+      }
+    } catch (err) {
+      // PGRST116은 레코드가 없을 때 발생하는 에러이므로 무시하고 생성 시도
+      if ((err as { code?: string })?.code !== 'PGRST116') {
+        console.error('점수 초기화 에러:', err);
+      }
+    }
+  };
+
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       const timeoutPromise = new Promise<null>((resolve) => {
@@ -44,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('프로필 조회 실패:', error);
             return null;
           }
+          // 프로필 조회 성공 시 점수 레코드 초기화
+          initializeUserScore(userId);
           return data as Profile;
         });
 

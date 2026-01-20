@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import ScoreBadge from './ScoreBadge';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -201,12 +202,14 @@ export default function Layout({ children }: LayoutProps) {
           )}
         </nav>
 
-        {/* Profile Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
-          >
+        {/* Score Badge & Profile Dropdown */}
+        <div className="flex items-center gap-3">
+          <ScoreBadge />
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
+            >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm overflow-hidden">
               {(user?.profile_photo_url || user?.profile_image) ? (
                 <img src={user?.profile_photo_url || user?.profile_image} alt={user?.name} className="w-full h-full object-cover" />
@@ -258,6 +261,14 @@ export default function Layout({ children }: LayoutProps) {
                     </Link>
                   )}
                   <Link
+                    to="/my-score"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="w-5 text-center">⭐</span>
+                    내 점수
+                  </Link>
+                  <Link
                     to="/settings"
                     onClick={() => setShowProfileMenu(false)}
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
@@ -280,6 +291,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </>
           )}
+          </div>
         </div>
       </header>
 

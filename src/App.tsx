@@ -41,6 +41,7 @@ import StoreManage from './pages/owner/StoreManage';
 import InviteAccept from './pages/common/InviteAccept';
 import BlockManage from './pages/common/BlockManage';
 import AccountSettings from './pages/common/AccountSettings';
+import MyScore from './pages/common/MyScore';
 
 // 채팅 페이지
 import ChatList from './pages/chat/ChatList';
@@ -357,6 +358,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <AccountSettings />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 공통: 내 점수 */}
+      <Route
+        path="/my-score"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <MyScore />
             </Layout>
           </ProtectedRoute>
         }

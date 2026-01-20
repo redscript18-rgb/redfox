@@ -25,7 +25,7 @@ const REGIONS = [
   '기타'
 ];
 
-const STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
+const DEFAULT_STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
 
 export default function StoreList() {
   const { user } = useAuth();
@@ -37,6 +37,22 @@ export default function StoreList() {
   const [sortBy, setSortBy] = useState<'rating' | 'reviewCount'>('rating');
   const [filterType, setFilterType] = useState('룸');
   const [filterRegion, setFilterRegion] = useState('강남');
+  const [hiddenStoreTypes, setHiddenStoreTypes] = useState<Set<string>>(new Set());
+  const [allStoreTypes, setAllStoreTypes] = useState<string[]>(DEFAULT_STORE_TYPES);
+
+  useEffect(() => {
+    fetchTypeVisibility();
+  }, []);
+
+  // 현재 선택된 업종이 숨겨지면 첫 번째 보이는 업종으로 전환
+  useEffect(() => {
+    if (hiddenStoreTypes.has(filterType)) {
+      const firstVisibleType = allStoreTypes.find(type => !hiddenStoreTypes.has(type));
+      if (firstVisibleType) {
+        setFilterType(firstVisibleType);
+      }
+    }
+  }, [hiddenStoreTypes, filterType, allStoreTypes]);
 
   useEffect(() => {
     if (user) {
@@ -53,6 +69,25 @@ export default function StoreList() {
     if (!user) return;
     const { data } = await supabase.from('favorites').select('target_store_id').eq('user_id', user.id).eq('target_type', 'store');
     if (data) setFavoriteStoreIds(new Set(data.map(f => f.target_store_id).filter(Boolean)));
+  };
+
+  const fetchTypeVisibility = async () => {
+    const { data } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, is_visible, display_order')
+      .order('display_order', { ascending: true });
+
+    if (data) {
+      // Set hidden types
+      const hidden = new Set(data.filter(item => !item.is_visible).map(item => item.store_type));
+      setHiddenStoreTypes(hidden);
+
+      // Get ordered types from DB first, then add default types that aren't in DB
+      const orderedTypes = data.map(item => item.store_type);
+      const remainingDefaults = DEFAULT_STORE_TYPES.filter(t => !orderedTypes.includes(t));
+      const allTypes = [...orderedTypes, ...remainingDefaults];
+      setAllStoreTypes(allTypes);
+    }
   };
 
   const fetchBlockedStores = async () => {
@@ -75,7 +110,7 @@ export default function StoreList() {
   const fetchStores = async () => {
     setLoading(true);
 
-    let query = supabase.from('stores').select('*');
+    let query = supabase.from('stores').select('*').eq('is_visible', true);
 
     if (filterRegion && filterRegion !== '기타') {
       query = query.eq('region', filterRegion);
@@ -124,6 +159,7 @@ export default function StoreList() {
 
   const filteredStores = stores
     .filter((store) => !blockedStoreIds.has(store.id))
+    .filter((store) => !store.store_type || !hiddenStoreTypes.has(store.store_type))
     .sort((a, b) => {
       const aFav = favoriteStoreIds.has(a.id) ? 1 : 0;
       const bFav = favoriteStoreIds.has(b.id) ? 1 : 0;
@@ -158,7 +194,7 @@ export default function StoreList() {
           onChange={(e) => setFilterType(e.target.value)}
           className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
         >
-          {STORE_TYPES.map((type) => (
+          {allStoreTypes.filter(type => !hiddenStoreTypes.has(type)).map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>

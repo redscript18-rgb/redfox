@@ -8,7 +8,7 @@ interface Menu { id: number; name: string; price: number; description: string | 
 interface Holiday { id: number; date: string; reason: string | null; }
 interface VirtualStaff { id: string; name: string; phone: string | null; bio: string | null; }
 
-const STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
+const DEFAULT_STORE_TYPES = ['룸', '오피', '휴게텔', '건마', '안마', '출장', '립카페', '핸플', '페티쉬', '스웨디시'];
 const REGIONS = [
   '강남', '강서', '강동', '가락', '가산', '계양', '고양', '구로', '구미', '군포', '김포',
   '당산', '대구', '대전', '동탄', '동대문', '동암', '마곡', '마포', '문래동', '부산', '부천', '부평', '분당', '북창동',
@@ -38,6 +38,7 @@ export default function StoreSettings() {
   const [closedDays, setClosedDays] = useState<number[]>([]);
   const [storeType, setStoreType] = useState('');
   const [region, setRegion] = useState('');
+  const [allStoreTypes, setAllStoreTypes] = useState<string[]>(DEFAULT_STORE_TYPES);
 
   const [newMenuName, setNewMenuName] = useState('');
   const [newMenuPrice, setNewMenuPrice] = useState('');
@@ -72,6 +73,20 @@ export default function StoreSettings() {
     setHolidays(holidaysData || []);
     const { data: virtualStaffData } = await supabase.from('virtual_staff').select('id, name, phone, bio').eq('store_id', storeId).order('name');
     setVirtualStaff(virtualStaffData || []);
+    // Fetch custom store types with display_order
+    const { data: customTypes } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, display_order')
+      .eq('is_visible', true)
+      .order('display_order', { ascending: true });
+
+    if (customTypes) {
+      // Get ordered types from DB first, then add default types that aren't in DB
+      const orderedTypes = customTypes.map(ct => ct.store_type);
+      const remainingDefaults = DEFAULT_STORE_TYPES.filter(t => !orderedTypes.includes(t));
+      const allTypes = [...orderedTypes, ...remainingDefaults];
+      setAllStoreTypes(allTypes);
+    }
     setLoading(false);
   };
 
@@ -144,7 +159,7 @@ export default function StoreSettings() {
             <h2 className="text-lg font-semibold text-slate-900 mb-4">가게 형태</h2>
             <select value={storeType} onChange={(e) => setStoreType(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
               <option value="">선택하세요</option>
-              {STORE_TYPES.map((type) => (<option key={type} value={type}>{type}</option>))}
+              {allStoreTypes.map((type) => (<option key={type} value={type}>{type}</option>))}
             </select>
           </section>
 

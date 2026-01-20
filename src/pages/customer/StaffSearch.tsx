@@ -107,10 +107,11 @@ export default function StaffSearch() {
 
     const realStaff: Staff[] = (staffData || []).map(s => ({ ...s, isVirtual: false }));
 
-    // Fetch virtual staff (admin-created)
+    // Fetch virtual staff (admin-created) - only visible ones
     const { data: virtualStaffData } = await supabase
       .from('virtual_staff')
-      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, store_id, store:stores(id, name)');
+      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, store_id, store:stores(id, name)')
+      .eq('is_visible', true);
 
     const virtualStaff: Staff[] = (virtualStaffData || []).map(s => ({
       ...s,

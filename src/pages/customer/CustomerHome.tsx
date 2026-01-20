@@ -16,8 +16,8 @@ export default function CustomerHome() {
 
   const fetchCounts = async () => {
     const [storesResult, managersResult] = await Promise.all([
-      supabase.from('stores').select('*', { count: 'exact', head: true }),
-      supabase.from('virtual_staff').select('*', { count: 'exact', head: true })
+      supabase.from('stores').select('*', { count: 'exact', head: true }).eq('is_visible', true),
+      supabase.from('virtual_staff').select('*', { count: 'exact', head: true }).eq('is_visible', true)
     ]);
     setStoreCount(storesResult.count || 0);
     setManagerCount(managersResult.count || 0);

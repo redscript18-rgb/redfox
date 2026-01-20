@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import ToggleSwitch from '../../components/ToggleSwitch';
 
 interface Stats {
   totalUsers: number;
@@ -63,12 +64,171 @@ export default function SuperAdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<VirtualStaffDetail | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
+  const [typeVisibility, setTypeVisibility] = useState<Record<string, boolean>>({});
+  const [showAddTypeModal, setShowAddTypeModal] = useState(false);
+  const [newTypeName, setNewTypeName] = useState('');
+  const [addingType, setAddingType] = useState(false);
+  const [draggedType, setDraggedType] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.role === 'superadmin') {
       fetchStats();
+      fetchTypeVisibility();
     }
   }, [user]);
+
+  const fetchTypeVisibility = async () => {
+    const { data } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, is_visible');
+
+    if (data) {
+      const visibility: Record<string, boolean> = {};
+      data.forEach(item => {
+        visibility[item.store_type] = item.is_visible;
+      });
+      setTypeVisibility(visibility);
+    }
+  };
+
+  const handleTypeVisibilityChange = async (storeType: string, isVisible: boolean) => {
+    // Optimistic update
+    setTypeVisibility(prev => ({ ...prev, [storeType]: isVisible }));
+
+    // Upsert to database
+    const { error } = await supabase
+      .from('store_type_visibility')
+      .upsert({
+        store_type: storeType,
+        is_visible: isVisible,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'store_type' });
+
+    if (error) {
+      // Revert on error
+      setTypeVisibility(prev => ({ ...prev, [storeType]: !isVisible }));
+      console.error('Failed to update type visibility:', error);
+    }
+  };
+
+  const handleAddStoreType = async () => {
+    const trimmedName = newTypeName.trim();
+    if (!trimmedName) {
+      alert('업종 이름을 입력해주세요.');
+      return;
+    }
+
+    // Check if already exists in stats
+    if (stats?.storesByType.some(t => t.type === trimmedName)) {
+      alert('이미 존재하는 업종입니다.');
+      return;
+    }
+
+    setAddingType(true);
+
+    // Add to store_type_visibility table
+    const { error } = await supabase
+      .from('store_type_visibility')
+      .upsert({
+        store_type: trimmedName,
+        is_visible: true,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'store_type' });
+
+    if (error) {
+      console.error('Failed to add store type:', error);
+      alert('업종 추가 중 오류가 발생했습니다.');
+    } else {
+      // Add to local stats with count 0
+      if (stats) {
+        setStats({
+          ...stats,
+          storesByType: [...stats.storesByType, { type: trimmedName, count: 0 }]
+        });
+      }
+      setTypeVisibility(prev => ({ ...prev, [trimmedName]: true }));
+      setNewTypeName('');
+      setShowAddTypeModal(false);
+    }
+
+    setAddingType(false);
+  };
+
+  const handleDeleteStoreType = async (storeType: string) => {
+    // Delete from store_type_visibility table
+    const { error } = await supabase
+      .from('store_type_visibility')
+      .delete()
+      .eq('store_type', storeType);
+
+    if (error) {
+      console.error('Failed to delete store type:', error);
+      alert('업종 삭제 중 오류가 발생했습니다.');
+    } else {
+      // Remove from local stats
+      if (stats) {
+        setStats({
+          ...stats,
+          storesByType: stats.storesByType.filter(t => t.type !== storeType)
+        });
+      }
+      // Remove from visibility
+      setTypeVisibility(prev => {
+        const newVis = { ...prev };
+        delete newVis[storeType];
+        return newVis;
+      });
+    }
+    setShowDeleteConfirm(null);
+  };
+
+  const handleDragStart = (e: React.DragEvent, type: string) => {
+    setDraggedType(type);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetType: string) => {
+    e.preventDefault();
+    if (!draggedType || draggedType === targetType || !stats) return;
+
+    const types = [...stats.storesByType];
+    const draggedIndex = types.findIndex(t => t.type === draggedType);
+    const targetIndex = types.findIndex(t => t.type === targetType);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Reorder array
+    const [removed] = types.splice(draggedIndex, 1);
+    types.splice(targetIndex, 0, removed);
+
+    // Update local state
+    setStats({ ...stats, storesByType: types });
+
+    // Update order in database
+    const updates = types.map((t, index) => {
+      return supabase
+        .from('store_type_visibility')
+        .upsert({
+          store_type: t.type,
+          is_visible: typeVisibility[t.type] ?? true,
+          display_order: index,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'store_type' });
+    });
+
+    await Promise.all(updates);
+    setDraggedType(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedType(null);
+  };
 
   const fetchStats = async () => {
     // Total users
@@ -125,8 +285,32 @@ export default function SuperAdminDashboard() {
       storesByType.push({ type: '미분류', count: nullCount });
     }
 
-    // Sort by count descending
-    storesByType.sort((a, b) => b.count - a.count);
+    // Fetch custom store types from store_type_visibility table with order
+    const { data: customTypes } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, display_order');
+
+    // Create order map
+    const orderMap: Record<string, number> = {};
+    customTypes?.forEach(ct => {
+      orderMap[ct.store_type] = ct.display_order ?? 999;
+    });
+
+    // Add custom types that don't exist in storesByType yet (count 0)
+    const existingTypes = new Set(storesByType.map(t => t.type));
+    customTypes?.forEach(ct => {
+      if (!existingTypes.has(ct.store_type)) {
+        storesByType.push({ type: ct.store_type, count: 0 });
+      }
+    });
+
+    // Sort by display_order (stored types first), then by count for unordered types
+    storesByType.sort((a, b) => {
+      const orderA = orderMap[a.type] ?? 999;
+      const orderB = orderMap[b.type] ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return b.count - a.count;
+    });
 
     // Total reservations
     const { count: totalReservations } = await supabase
@@ -389,17 +573,72 @@ export default function SuperAdminDashboard() {
 
         {/* Stores by Type */}
         <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">업종별 가게 현황</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900">업종별 가게 현황</h2>
+            <button
+              onClick={() => setShowAddTypeModal(true)}
+              className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+            >
+              + 업종 추가
+            </button>
+          </div>
+          <p className="text-xs text-slate-400 mb-2">드래그하여 순서를 변경할 수 있습니다</p>
           <div className="space-y-2">
             {stats?.storesByType.map(({ type, count }) => (
-              <Link
+              <div
                 key={type}
-                to={`/superadmin/stores?type=${encodeURIComponent(type)}`}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                draggable
+                onDragStart={(e) => handleDragStart(e, type)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, type)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-move transition-all ${
+                  draggedType === type ? 'opacity-50 scale-95' : ''
+                } ${draggedType && draggedType !== type ? 'hover:bg-slate-100' : ''}`}
               >
-                <span className="text-slate-700">{type}</span>
-                <span className="font-semibold text-slate-900">{count}개 →</span>
-              </Link>
+                {/* Drag Handle */}
+                <div className="mr-2 text-slate-400 cursor-grab active:cursor-grabbing">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="5" cy="4" r="1.5" />
+                    <circle cx="11" cy="4" r="1.5" />
+                    <circle cx="5" cy="8" r="1.5" />
+                    <circle cx="11" cy="8" r="1.5" />
+                    <circle cx="5" cy="12" r="1.5" />
+                    <circle cx="11" cy="12" r="1.5" />
+                  </svg>
+                </div>
+                <Link
+                  to={`/superadmin/stores?type=${encodeURIComponent(type)}`}
+                  className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                  draggable={false}
+                >
+                  <span className="text-slate-700">{type}</span>
+                  <span className="font-semibold text-slate-900">{count}개 →</span>
+                </Link>
+                <div className="ml-3 flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">노출</span>
+                    <ToggleSwitch
+                      enabled={typeVisibility[type] ?? true}
+                      onChange={(v) => handleTypeVisibilityChange(type, v)}
+                      size="sm"
+                    />
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteConfirm(type);
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    title="업종 삭제"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             ))}
             {stats?.storesByType.length === 0 && (
               <p className="text-slate-500 text-sm">가게 데이터가 없습니다.</p>
@@ -780,6 +1019,73 @@ export default function SuperAdminDashboard() {
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+
+      {/* Add Store Type Modal */}
+      {showAddTypeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">업종 추가</h2>
+            <input
+              type="text"
+              value={newTypeName}
+              onChange={(e) => setNewTypeName(e.target.value)}
+              placeholder="새 업종 이름"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddStoreType();
+              }}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowAddTypeModal(false);
+                  setNewTypeName('');
+                }}
+                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddStoreType}
+                disabled={addingType}
+                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-slate-400"
+              >
+                {addingType ? '추가 중...' : '추가'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Store Type Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">업종 삭제</h2>
+            <p className="text-slate-600 mb-4">
+              <span className="font-semibold text-red-600">"{showDeleteConfirm}"</span> 업종을 삭제하시겠습니까?
+            </p>
+            <p className="text-sm text-slate-500 mb-4">
+              이 업종에 속한 가게들은 삭제되지 않지만, 업종 분류에서 제외됩니다.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => handleDeleteStoreType(showDeleteConfirm)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

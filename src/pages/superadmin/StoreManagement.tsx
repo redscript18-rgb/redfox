@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import ToggleSwitch from '../../components/ToggleSwitch';
 
 interface Store {
   id: number;
@@ -13,6 +14,7 @@ interface Store {
   owner_id: string;
   created_at: string;
   rating: number;
+  is_visible: boolean;
   owner?: { name: string; email: string };
   adminCount: number;
   freeStaffCount: number;
@@ -77,7 +79,28 @@ export default function StoreManagement() {
 
     // Combine with predefined types
     STORE_TYPES.forEach(t => typeSet.add(t));
-    const allTypes = Array.from(typeSet).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    // Fetch custom types with display_order from store_type_visibility table
+    const { data: customTypes } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, display_order')
+      .order('display_order', { ascending: true });
+
+    customTypes?.forEach(ct => typeSet.add(ct.store_type));
+
+    // Create order map
+    const orderMap: Record<string, number> = {};
+    customTypes?.forEach(ct => {
+      orderMap[ct.store_type] = ct.display_order ?? 999;
+    });
+
+    // Sort by display_order first, then alphabetically for types without order
+    const allTypes = Array.from(typeSet).sort((a, b) => {
+      const orderA = orderMap[a] ?? 999;
+      const orderB = orderMap[b] ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.localeCompare(b, 'ko');
+    });
     setAllStoreTypes(allTypes);
 
     // Count each type
@@ -233,6 +256,7 @@ export default function StoreManagement() {
     let storesWithDetails = storesData.map(store => ({
       ...store,
       rating: store.rating || 0,
+      is_visible: store.is_visible ?? true,
       owner: ownersMap.get(store.owner_id),
       adminCount: 1 + (adminCounts[store.id] || 0),
       freeStaffCount: freeStaffCounts[store.id] || 0,
@@ -361,6 +385,26 @@ export default function StoreManagement() {
     }
   };
 
+  const handleStoreVisibilityChange = async (storeId: number, isVisible: boolean) => {
+    // Optimistic update
+    setStores(prev => prev.map(s =>
+      s.id === storeId ? { ...s, is_visible: isVisible } : s
+    ));
+
+    const { error } = await supabase
+      .from('stores')
+      .update({ is_visible: isVisible })
+      .eq('id', storeId);
+
+    if (error) {
+      // Revert on error
+      setStores(prev => prev.map(s =>
+        s.id === storeId ? { ...s, is_visible: !isVisible } : s
+      ));
+      console.error('Failed to update store visibility:', error);
+    }
+  };
+
   if (user?.role !== 'superadmin') {
     return (
       <div className="p-8 text-center">
@@ -443,7 +487,15 @@ export default function StoreManagement() {
                 <p className="text-sm text-slate-500">{store.address}</p>
                 {store.phone && <p className="text-sm text-slate-400">{store.phone}</p>}
               </div>
-              <div className="flex gap-2 ml-4">
+              <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-1 mr-2">
+                  <span className="text-xs text-slate-400">노출</span>
+                  <ToggleSwitch
+                    enabled={store.is_visible}
+                    onChange={(v) => handleStoreVisibilityChange(store.id, v)}
+                    size="sm"
+                  />
+                </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); openEditModal(store); }}
                   className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import ToggleSwitch from '../../components/ToggleSwitch';
 
 interface VirtualStaff {
   id: string;
@@ -30,6 +31,7 @@ interface VirtualStaff {
   specialties: string[] | null;
   nationalities: string[] | null;
   languages: string[] | null;
+  is_visible: boolean;
 }
 
 interface Store {
@@ -111,7 +113,8 @@ export default function VirtualStaffManagement() {
       is_waxed: s.is_waxed,
       specialties: s.specialties,
       nationalities: s.nationalities,
-      languages: s.languages
+      languages: s.languages,
+      is_visible: s.is_visible ?? true
     }));
     setStaffList(mapped);
     setLoading(false);
@@ -218,7 +221,8 @@ export default function VirtualStaffManagement() {
           is_waxed: null,
           specialties: null,
           nationalities: null,
-          languages: null
+          languages: null,
+          is_visible: true
         }, ...prev]);
         setShowModal(false);
       } else {
@@ -241,6 +245,26 @@ export default function VirtualStaffManagement() {
       setStaffList(prev => prev.filter(s => s.id !== staff.id));
     } else {
       alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleStaffVisibilityChange = async (staffId: string, isVisible: boolean) => {
+    // Optimistic update
+    setStaffList(prev => prev.map(s =>
+      s.id === staffId ? { ...s, is_visible: isVisible } : s
+    ));
+
+    const { error } = await supabase
+      .from('virtual_staff')
+      .update({ is_visible: isVisible })
+      .eq('id', staffId);
+
+    if (error) {
+      // Revert on error
+      setStaffList(prev => prev.map(s =>
+        s.id === staffId ? { ...s, is_visible: !isVisible } : s
+      ));
+      console.error('Failed to update staff visibility:', error);
     }
   };
 
@@ -366,6 +390,14 @@ export default function VirtualStaffManagement() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1 mr-2">
+                  <span className="text-xs text-slate-400">노출</span>
+                  <ToggleSwitch
+                    enabled={staff.is_visible}
+                    onChange={(v) => handleStaffVisibilityChange(staff.id, v)}
+                    size="sm"
+                  />
+                </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); openEditModal(staff); }}
                   className="px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"

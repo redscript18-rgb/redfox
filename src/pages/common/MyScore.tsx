@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUserScore, getReasonLabel } from '../../hooks/useUserScore';
+import { supabase } from '../../lib/supabase';
+
+interface SearchUser {
+  id: string;
+  name: string;
+  email: string;
+}
 
 export default function MyScore() {
   const { user } = useAuth();
@@ -12,11 +19,22 @@ export default function MyScore() {
     canClaimDaily,
     fetchHistory,
     claimDailyReward,
-    initializeScore
+    initializeScore,
+    giftScore
   } = useUserScore(user?.id);
 
   const [claiming, setClaiming] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 선물 관련 상태
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null);
+  const [giftAmount, setGiftAmount] = useState(100);
+  const [gifting, setGifting] = useState(false);
+  const [giftMessage, setGiftMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -51,6 +69,73 @@ export default function MyScore() {
     });
   };
 
+  // 사용자 검색
+  const searchUsers = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .neq('id', user?.id) // 자신 제외
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+        .limit(10);
+
+      setSearchResults(data || []);
+    } catch (err) {
+      console.error('사용자 검색 에러:', err);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // 검색어 변경 시 검색
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchUsers(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // 선물하기
+  const handleGift = async () => {
+    if (!selectedUser) return;
+
+    setGifting(true);
+    setGiftMessage(null);
+
+    const result = await giftScore(selectedUser.id, selectedUser.name, giftAmount);
+
+    if (result.success) {
+      setGiftMessage({ type: 'success', text: `${selectedUser.name}님에게 ${giftAmount.toLocaleString()}점을 선물했습니다!` });
+      // 2초 후 모달 닫기
+      setTimeout(() => {
+        closeGiftModal();
+      }, 2000);
+    } else {
+      setGiftMessage({ type: 'error', text: result.error || '선물 전송에 실패했습니다.' });
+    }
+
+    setGifting(false);
+  };
+
+  // 모달 닫기
+  const closeGiftModal = () => {
+    setShowGiftModal(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setSelectedUser(null);
+    setGiftAmount(100);
+    setGiftMessage(null);
+  };
+
+  // 선물 가능한 최대 금액 (100점 단위)
+  const maxGiftAmount = Math.floor(totalScore / 100) * 100;
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -76,6 +161,18 @@ export default function MyScore() {
             </svg>
           </div>
         </div>
+        {/* 선물하기 버튼 */}
+        <button
+          onClick={() => setShowGiftModal(true)}
+          disabled={totalScore < 100}
+          className={`mt-4 w-full py-2.5 rounded-lg font-medium transition-colors ${
+            totalScore >= 100
+              ? 'bg-white/20 hover:bg-white/30 text-white'
+              : 'bg-white/10 text-white/50 cursor-not-allowed'
+          }`}
+        >
+          선물하기
+        </button>
       </div>
 
       {/* 일일 보상 */}
@@ -153,6 +250,155 @@ export default function MyScore() {
           </ul>
         )}
       </div>
+
+      {/* 선물 모달 */}
+      {showGiftModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <h2 className="text-lg font-semibold text-slate-900">점수 선물하기</h2>
+              <button
+                onClick={closeGiftModal}
+                className="text-slate-400 hover:text-slate-600 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4">
+              {!selectedUser ? (
+                // 사용자 검색
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">받는 사람</label>
+                    <input
+                      type="text"
+                      placeholder="이름 또는 이메일로 검색..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                  </div>
+
+                  {searching ? (
+                    <div className="py-8 text-center text-slate-400">검색 중...</div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="max-h-60 overflow-y-auto">
+                      {searchResults.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => setSelectedUser(u)}
+                          className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors text-left"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                            {u.name.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-slate-900">{u.name}</p>
+                            <p className="text-sm text-slate-500 truncate">{u.email}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : searchQuery.length >= 2 ? (
+                    <div className="py-8 text-center text-slate-400">검색 결과가 없습니다.</div>
+                  ) : (
+                    <div className="py-8 text-center text-slate-400">2글자 이상 입력해주세요.</div>
+                  )}
+                </>
+              ) : (
+                // 금액 선택
+                <>
+                  <div className="mb-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                          {selectedUser.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">{selectedUser.name}</p>
+                          <p className="text-sm text-slate-500">{selectedUser.email}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedUser(null)}
+                        className="text-sm text-orange-600 hover:underline"
+                      >
+                        변경
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">선물할 점수</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setGiftAmount(Math.max(100, giftAmount - 100))}
+                        disabled={giftAmount <= 100}
+                        className="w-12 h-12 bg-slate-100 rounded-lg text-xl font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        -
+                      </button>
+                      <div className="flex-1 text-center">
+                        <span className="text-3xl font-bold text-slate-900">{giftAmount.toLocaleString()}</span>
+                        <span className="text-slate-500 ml-1">점</span>
+                      </div>
+                      <button
+                        onClick={() => setGiftAmount(Math.min(maxGiftAmount, giftAmount + 100))}
+                        disabled={giftAmount >= maxGiftAmount}
+                        className="w-12 h-12 bg-slate-100 rounded-lg text-xl font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="text-center text-sm text-slate-500 mt-2">
+                      보유: {totalScore.toLocaleString()}점 (최대 {maxGiftAmount.toLocaleString()}점 선물 가능)
+                    </p>
+                  </div>
+
+                  {/* 빠른 선택 버튼 */}
+                  <div className="flex gap-2 mb-4">
+                    {[100, 500, 1000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => setGiftAmount(Math.min(maxGiftAmount, amount))}
+                        disabled={amount > maxGiftAmount}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          giftAmount === amount
+                            ? 'bg-orange-500 text-white'
+                            : amount > maxGiftAmount
+                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {amount.toLocaleString()}점
+                      </button>
+                    ))}
+                  </div>
+
+                  {giftMessage && (
+                    <div className={`mb-4 p-3 rounded-lg text-sm ${
+                      giftMessage.type === 'success'
+                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {giftMessage.text}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleGift}
+                    disabled={gifting || giftAmount > maxGiftAmount}
+                    className="w-full py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {gifting ? '전송 중...' : `${giftAmount.toLocaleString()}점 선물하기`}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

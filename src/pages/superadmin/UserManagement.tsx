@@ -57,11 +57,13 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState('');
   const [userStoreMap, setUserStoreMap] = useState<Record<string, StoreInfo[]>>({});
+  const [userScoreMap, setUserScoreMap] = useState<Record<string, number>>({});
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<{
     reservationCount: number;
     favoriteCount: number;
     chatCount: number;
+    score: number;
   } | null>(null);
   const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
@@ -123,6 +125,18 @@ export default function UserManagement() {
     });
 
     setUserStoreMap(storeMap);
+
+    // Fetch user scores
+    const { data: scoresData } = await supabase
+      .from('user_scores')
+      .select('user_id, total_score');
+
+    const scoreMap: Record<string, number> = {};
+    scoresData?.forEach(score => {
+      scoreMap[score.user_id] = score.total_score;
+    });
+    setUserScoreMap(scoreMap);
+
     setLoading(false);
   };
 
@@ -178,16 +192,18 @@ export default function UserManagement() {
       ? supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('staff_id', u.id)
       : supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('customer_id', u.id);
 
-    const [reservations, favorites, chats] = await Promise.all([
+    const [reservations, favorites, chats, scoreData] = await Promise.all([
       reservationQuery,
       supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
-      supabase.from('conversations').select('id', { count: 'exact', head: true }).or(`admin_id.eq.${u.id},customer_id.eq.${u.id},staff_id.eq.${u.id}`)
+      supabase.from('conversations').select('id', { count: 'exact', head: true }).or(`admin_id.eq.${u.id},customer_id.eq.${u.id},staff_id.eq.${u.id}`),
+      supabase.from('user_scores').select('total_score').eq('user_id', u.id).single()
     ]);
 
     setUserDetails({
       reservationCount: reservations.count || 0,
       favoriteCount: favorites.count || 0,
-      chatCount: chats.count || 0
+      chatCount: chats.count || 0,
+      score: scoreData.data?.total_score || 0
     });
 
     // Fetch staff profile if user is staff
@@ -287,6 +303,14 @@ export default function UserManagement() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-slate-400">
                   {u.phone && <span>{u.phone}</span>}
                   <span>{new Date(u.created_at).toLocaleDateString('ko-KR')} 가입</span>
+                  {userScoreMap[u.id] !== undefined && (
+                    <span className="flex items-center gap-1 text-amber-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                        <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                      </svg>
+                      {userScoreMap[u.id].toLocaleString()}점
+                    </span>
+                  )}
                 </div>
                 {(u.role === 'owner' || u.role === 'admin') && userStoreMap[u.id]?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -512,7 +536,11 @@ export default function UserManagement() {
               <div className="p-4 bg-slate-50 rounded-xl">
                 <h3 className="text-sm font-medium text-slate-700 mb-3">활동 통계</h3>
                 {userDetails ? (
-                  <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="grid grid-cols-4 gap-3 text-center">
+                    <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+                      <p className="text-2xl font-bold text-amber-600">{userDetails.score.toLocaleString()}</p>
+                      <p className="text-xs text-amber-600">점수</p>
+                    </div>
                     <div className="p-3 bg-white rounded-lg">
                       <p className="text-2xl font-bold text-slate-900">{userDetails.reservationCount}</p>
                       <p className="text-xs text-slate-500">예약</p>

@@ -179,34 +179,43 @@ export default function StoreList() {
 
   return (
     <div>
-      <div className="flex gap-2 mb-6 flex-wrap">
+      {/* 업종 필터 - 가로 스크롤 */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+        {allStoreTypes.filter(type => !hiddenStoreTypes.has(type)).map((type) => (
+          <button
+            key={type}
+            onClick={() => setFilterType(type)}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+              filterType === type
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
+      {/* 지역 및 정렬 필터 */}
+      <div className="flex gap-2 mb-6 flex-wrap items-center">
         <select
           value={filterRegion}
           onChange={(e) => setFilterRegion(e.target.value)}
-          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+          className="h-10 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
         >
           {REGIONS.map((r) => (
             <option key={r} value={r}>{r}</option>
           ))}
         </select>
         <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-        >
-          {allStoreTypes.filter(type => !hiddenStoreTypes.has(type)).map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
-        <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'rating' | 'reviewCount')}
-          className="h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+          className="h-10 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
         >
           <option value="rating">별점순</option>
           <option value="reviewCount">리뷰 많은순</option>
         </select>
-        <span className="flex items-center text-sm text-slate-500 ml-2">
+        <span className="flex items-center text-sm text-slate-500 ml-auto">
           {filteredStores.length}개
         </span>
       </div>

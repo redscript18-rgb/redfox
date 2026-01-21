@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const TEST_ACCOUNTS = [
+  { username: 'superadmin', password: 'test123456', nickname: '슈퍼관리자', role: 'superadmin', label: 'ADMIN' },
   { username: 'owner', password: 'test123456', nickname: '김사장', role: 'owner', label: '사장' },
   { username: 'admin', password: 'test123456', nickname: '이관리', role: 'staff', label: '실장' },
   { username: 'staff', password: 'test123456', nickname: '박매니저', role: 'manager', label: '매니저' },

@@ -17,6 +17,11 @@ interface Stats {
   pendingPasswordResets: number;
   recentUsers: { id: string; name: string; email: string; role: string; created_at: string }[];
   recentVirtualStaff: { id: string; name: string; store_name: string; created_at: string }[];
+  // 채팅 통계
+  totalConversations: number;
+  totalMessages: number;
+  conversationsByType: { type: string; count: number }[];
+  todayMessages: number;
 }
 
 interface UserDetail {
@@ -400,6 +405,38 @@ export default function SuperAdminDashboard() {
     const { data: pendingResetData } = await supabase.rpc('get_pending_reset_count');
     const pendingPasswordResets = pendingResetData || 0;
 
+    // 채팅 통계
+    const { count: totalConversations } = await supabase
+      .from('conversations')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: totalMessages } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true });
+
+    // 대화 유형별 통계
+    const { data: conversationsData } = await supabase
+      .from('conversations')
+      .select('customer_id, staff_id, agency_id');
+
+    const typeCounts: Record<string, number> = { '손님': 0, '매니저': 0, '에이전시': 0 };
+    conversationsData?.forEach(c => {
+      if (c.agency_id) typeCounts['에이전시']++;
+      else if (c.staff_id) typeCounts['매니저']++;
+      else if (c.customer_id) typeCounts['손님']++;
+    });
+    const conversationsByType = Object.entries(typeCounts)
+      .filter(([, count]) => count > 0)
+      .map(([type, count]) => ({ type, count }));
+
+    // 오늘 메시지 수
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: todayMessages } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', todayStart.toISOString());
+
     setStats({
       totalUsers: totalUsers || 0,
       usersByRole,
@@ -417,7 +454,11 @@ export default function SuperAdminDashboard() {
         name: vs.name,
         store_name: (vs.store as unknown as { name: string } | null)?.name || '알 수 없음',
         created_at: vs.created_at
-      }))
+      })),
+      totalConversations: totalConversations || 0,
+      totalMessages: totalMessages || 0,
+      conversationsByType,
+      todayMessages: todayMessages || 0
     });
     setLoading(false);
   };
@@ -611,6 +652,38 @@ export default function SuperAdminDashboard() {
           <p className="text-sm text-slate-500 mb-1">오늘 예약</p>
           <p className="text-3xl font-bold text-orange-600">{stats?.todayReservations}</p>
         </Link>
+      </div>
+
+      {/* Chat Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <p className="text-sm text-slate-500 mb-1">전체 대화</p>
+          <p className="text-3xl font-bold text-slate-900">{stats?.totalConversations}</p>
+        </div>
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <p className="text-sm text-slate-500 mb-1">전체 메시지</p>
+          <p className="text-3xl font-bold text-slate-900">{stats?.totalMessages}</p>
+        </div>
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <p className="text-sm text-slate-500 mb-1">오늘 메시지</p>
+          <p className="text-3xl font-bold text-blue-600">{stats?.todayMessages}</p>
+        </div>
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <p className="text-sm text-slate-500 mb-2">대화 유형별</p>
+          <div className="flex flex-wrap gap-2">
+            {stats?.conversationsByType.map(({ type, count }) => (
+              <span key={type} className={`px-2 py-1 text-xs rounded ${
+                type === '에이전시' ? 'bg-purple-50 text-purple-600' :
+                type === '매니저' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+              }`}>
+                {type}: {count}
+              </span>
+            ))}
+            {stats?.conversationsByType.length === 0 && (
+              <span className="text-xs text-slate-400">대화 없음</span>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

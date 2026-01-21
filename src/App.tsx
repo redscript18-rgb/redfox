@@ -14,6 +14,7 @@ import StaffDetailPage from './pages/customer/StaffDetail';
 import CustomerReservations from './pages/customer/CustomerReservations';
 import Favorites from './pages/customer/Favorites';
 import PointsPage from './pages/customer/PointsPage';
+import TodayPhotos from './pages/customer/TodayPhotos';
 
 // 직원용 페이지
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -168,6 +169,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <PointsPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 손님용: 오늘의 사진 */}
+      <Route
+        path="/today-photos"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TodayPhotos />
             </Layout>
           </ProtectedRoute>
         }

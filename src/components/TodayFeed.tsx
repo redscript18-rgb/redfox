@@ -285,10 +285,18 @@ export default function TodayFeed() {
       {/* 오늘의 사진 */}
       {dailyPhotos.length > 0 && (
         <section>
-          <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-            📸 오늘의 사진
-            <span className="text-sm font-normal text-slate-500">({dailyPhotos.length}장)</span>
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              📸 오늘의 사진
+              <span className="text-sm font-normal text-slate-500">({dailyPhotos.length}장)</span>
+            </h2>
+            <Link
+              to="/today-photos"
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+            >
+              전체보기 →
+            </Link>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {dailyPhotos.slice(0, 8).map((photo) => (
               <Link

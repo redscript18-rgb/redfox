@@ -188,6 +188,9 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/admin/find-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 매니저
               </Link>
+              <Link to="/admin/join-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                가입요청
+              </Link>
               <Link to="/admin/work-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 보낸요청
               </Link>

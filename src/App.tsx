@@ -34,6 +34,7 @@ import ReservationManage from './pages/admin/ReservationManage';
 import FindAvailableStaff from './pages/admin/FindAvailableStaff';
 import WorkRequestsSent from './pages/admin/WorkRequestsSent';
 import StoreSettings from './pages/admin/StoreSettings';
+import JoinRequestsManage from './pages/admin/JoinRequestsManage';
 import VirtualStaffDetail from './pages/VirtualStaffDetail';
 
 // 사장용 페이지
@@ -338,6 +339,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <WorkRequestsSent />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 관리자용: 매니저 가입 요청 */}
+      <Route
+        path="/admin/join-requests"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <JoinRequestsManage />
             </Layout>
           </ProtectedRoute>
         }

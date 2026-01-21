@@ -68,6 +68,9 @@ import AgencyDispatchManagement from './pages/agency/AgencyDispatchManagement';
 import AgencyInviteAccept from './pages/common/AgencyInviteAccept';
 import AgencySearch from './pages/staff/AgencySearch';
 
+// 랜딩 페이지
+import LandingPage from './pages/LandingPage';
+
 import './App.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -115,6 +118,9 @@ function AppRoutes() {
       {/* 초대 링크 수락 페이지 */}
       <Route path="/invite/:code" element={<InviteAccept />} />
       <Route path="/agency-invite/:code" element={<AgencyInviteAccept />} />
+
+      {/* 인트로/랜딩 페이지 */}
+      <Route path="/intro" element={<LandingPage />} />
 
       {/* 홈 - 역할별 다른 화면 */}
       <Route

@@ -263,6 +263,11 @@ export default function LandingPage() {
           <div className="text-2xl font-bold text-white">
             Red<span className="text-red-500">Fox</span>
           </div>
+          <div className="flex items-center gap-6">
+            <Link to="/customer-intro" className="text-slate-400 hover:text-white text-sm transition-colors">
+              손님용 소개
+            </Link>
+          </div>
           <p className="text-slate-500 text-sm">
             © 2024 RedFox. All rights reserved.
           </p>

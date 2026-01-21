@@ -227,7 +227,7 @@ export default function UserManagement() {
     const [reservations, favorites, chats, scoreData] = await Promise.all([
       reservationQuery,
       supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
-      supabase.from('conversations').select('id', { count: 'exact', head: true }).or(`admin_id.eq.${u.id},customer_id.eq.${u.id},staff_id.eq.${u.id}`),
+      supabase.from('conversations').select('id', { count: 'exact', head: true }).or(`admin_id.eq.${u.id},customer_id.eq.${u.id},staff_id.eq.${u.id},agency_id.eq.${u.id}`),
       supabase.from('user_scores').select('total_score').eq('user_id', u.id).single()
     ]);
 

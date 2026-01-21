@@ -12,20 +12,12 @@ export default function ManagerIntro() {
           <div className="text-2xl font-bold text-white">
             Red<span className="text-red-500">Fox</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/intro"
-              className="px-4 py-2 text-emerald-300 hover:text-white transition-colors text-sm"
-            >
-              서비스 소개
-            </Link>
-            <Link
-              to={isAuthenticated ? "/" : "/login"}
-              className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all"
-            >
-              {isAuthenticated ? "대시보드" : "매니저 등록"}
-            </Link>
-          </div>
+          <Link
+            to={isAuthenticated ? "/" : "/login"}
+            className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all"
+          >
+            {isAuthenticated ? "대시보드" : "매니저 등록"}
+          </Link>
         </div>
       </nav>
 
@@ -361,14 +353,6 @@ export default function ManagerIntro() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-2xl font-bold text-white">
             Red<span className="text-red-500">Fox</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link to="/intro" className="text-slate-400 hover:text-white text-sm transition-colors">
-              사업자용 소개
-            </Link>
-            <Link to="/customer-intro" className="text-slate-400 hover:text-white text-sm transition-colors">
-              손님용 소개
-            </Link>
           </div>
           <p className="text-slate-500 text-sm">
             © 2024 RedFox. All rights reserved.

@@ -29,6 +29,30 @@ interface Store {
 
 const SPECIALTIES_OPTIONS = ['스웨디시', '아로마', '타이', '스포츠', '딥티슈', '경락', '발마사지', '왁싱'];
 
+interface NewStaffEntry {
+  id: number;
+  name: string;
+  phone: string;
+  bio: string;
+  specialties: string[];
+  nationalities: string[];
+  languages: string[];
+  nationalityInput: string;
+  languageInput: string;
+}
+
+const createEmptyStaffEntry = (id: number): NewStaffEntry => ({
+  id,
+  name: '',
+  phone: '',
+  bio: '',
+  specialties: [],
+  nationalities: [],
+  languages: [],
+  nationalityInput: '',
+  languageInput: '',
+});
+
 export default function StaffManage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,14 +62,7 @@ export default function StaffManage() {
   const [favoriteStaff, setFavoriteStaff] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffPhone, setNewStaffPhone] = useState('');
-  const [newStaffBio, setNewStaffBio] = useState('');
-  const [newStaffSpecialties, setNewStaffSpecialties] = useState<string[]>([]);
-  const [newStaffNationalities, setNewStaffNationalities] = useState<string[]>([]);
-  const [newStaffLanguages, setNewStaffLanguages] = useState<string[]>([]);
-  const [newNationalityInput, setNewNationalityInput] = useState('');
-  const [newLanguageInput, setNewLanguageInput] = useState('');
+  const [newStaffEntries, setNewStaffEntries] = useState<NewStaffEntry[]>([createEmptyStaffEntry(1)]);
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -208,31 +225,51 @@ export default function StaffManage() {
     setStaffList([...realStaff, ...virtualStaff]);
   };
 
+  const updateStaffEntry = (id: number, updates: Partial<NewStaffEntry>) => {
+    setNewStaffEntries(prev => prev.map(entry =>
+      entry.id === id ? { ...entry, ...updates } : entry
+    ));
+  };
+
+  const addNewStaffEntry = () => {
+    const maxId = Math.max(...newStaffEntries.map(e => e.id));
+    setNewStaffEntries(prev => [...prev, createEmptyStaffEntry(maxId + 1)]);
+  };
+
+  const removeStaffEntry = (id: number) => {
+    if (newStaffEntries.length <= 1) return;
+    setNewStaffEntries(prev => prev.filter(entry => entry.id !== id));
+  };
+
   const handleAddStaff = async () => {
     if (!user || !selectedStoreId || selectedStoreId === 'all') {
       alert('가게를 선택해주세요.');
       return;
     }
-    if (!newStaffName.trim()) {
-      alert('매니저 이름을 입력하세요.');
+
+    const validEntries = newStaffEntries.filter(e => e.name.trim());
+    if (validEntries.length === 0) {
+      alert('최소 한 명의 매니저 이름을 입력하세요.');
       return;
     }
 
     setAdding(true);
 
     // Create virtual staff (admin-created, store-specific)
+    const staffToInsert = validEntries.map(entry => ({
+      store_id: selectedStoreId as number,
+      name: entry.name.trim(),
+      phone: entry.phone.trim() || null,
+      bio: entry.bio.trim() || null,
+      specialties: entry.specialties.length > 0 ? entry.specialties : null,
+      nationalities: entry.nationalities.length > 0 ? entry.nationalities : null,
+      languages: entry.languages.length > 0 ? entry.languages : null,
+      created_by_admin_id: user.id,
+    }));
+
     const { error } = await supabase
       .from('virtual_staff')
-      .insert({
-        store_id: selectedStoreId as number,
-        name: newStaffName.trim(),
-        phone: newStaffPhone.trim() || null,
-        bio: newStaffBio.trim() || null,
-        specialties: newStaffSpecialties.length > 0 ? newStaffSpecialties : null,
-        nationalities: newStaffNationalities.length > 0 ? newStaffNationalities : null,
-        languages: newStaffLanguages.length > 0 ? newStaffLanguages : null,
-        created_by_admin_id: user.id,
-      });
+      .insert(staffToInsert);
 
     if (error) {
       console.error(error);
@@ -241,14 +278,7 @@ export default function StaffManage() {
       return;
     }
 
-    setNewStaffName('');
-    setNewStaffPhone('');
-    setNewStaffBio('');
-    setNewStaffSpecialties([]);
-    setNewStaffNationalities([]);
-    setNewStaffLanguages([]);
-    setNewNationalityInput('');
-    setNewLanguageInput('');
+    setNewStaffEntries([createEmptyStaffEntry(1)]);
     setShowAddModal(false);
     setAdding(false);
     fetchStaff();
@@ -456,151 +486,178 @@ export default function StaffManage() {
 
       {/* Add Staff Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">매니저 추가</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">이름 *</label>
-                <input
-                  type="text"
-                  value={newStaffName}
-                  onChange={(e) => setNewStaffName(e.target.value)}
-                  placeholder="매니저 이름"
-                  className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">연락처</label>
-                <input
-                  type="tel"
-                  value={newStaffPhone}
-                  onChange={(e) => setNewStaffPhone(e.target.value)}
-                  placeholder="010-0000-0000"
-                  className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">소개</label>
-                <textarea
-                  value={newStaffBio}
-                  onChange={(e) => setNewStaffBio(e.target.value)}
-                  placeholder="매니저 소개"
-                  rows={3}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">전문 분야</label>
-                <div className="flex flex-wrap gap-2">
-                  {SPECIALTIES_OPTIONS.map((spec) => (
-                    <button
-                      key={spec}
-                      type="button"
-                      onClick={() => setNewStaffSpecialties(prev =>
-                        prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
-                      )}
-                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                        newStaffSpecialties.includes(spec)
-                          ? 'bg-red-600 text-white border-red-600'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-red-600'
-                      }`}
-                    >
-                      {spec}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">국적</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {newStaffNationalities.map((n) => (
-                    <span key={n} className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 text-sm rounded">
-                      {n}
-                      <button type="button" onClick={() => setNewStaffNationalities(prev => prev.filter(x => x !== n))} className="text-green-400 hover:text-red-500">×</button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newNationalityInput}
-                    onChange={(e) => setNewNationalityInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const v = newNationalityInput.trim();
-                        if (v && !newStaffNationalities.includes(v)) {
-                          setNewStaffNationalities([...newStaffNationalities, v]);
-                          setNewNationalityInput('');
-                        }
-                      }
-                    }}
-                    placeholder="예: 한국, 일본..."
-                    className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const v = newNationalityInput.trim();
-                      if (v && !newStaffNationalities.includes(v)) {
-                        setNewStaffNationalities([...newStaffNationalities, v]);
-                        setNewNationalityInput('');
-                      }
-                    }}
-                    className="px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors"
-                  >
-                    추가
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">언어</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {newStaffLanguages.map((l) => (
-                    <span key={l} className="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-600 text-sm rounded">
-                      {l}
-                      <button type="button" onClick={() => setNewStaffLanguages(prev => prev.filter(x => x !== l))} className="text-indigo-400 hover:text-red-500">×</button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newLanguageInput}
-                    onChange={(e) => setNewLanguageInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const v = newLanguageInput.trim();
-                        if (v && !newStaffLanguages.includes(v)) {
-                          setNewStaffLanguages([...newStaffLanguages, v]);
-                          setNewLanguageInput('');
-                        }
-                      }
-                    }}
-                    placeholder="예: 한국어, 영어..."
-                    className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const v = newLanguageInput.trim();
-                      if (v && !newStaffLanguages.includes(v)) {
-                        setNewStaffLanguages([...newStaffLanguages, v]);
-                        setNewLanguageInput('');
-                      }
-                    }}
-                    className="px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors"
-                  >
-                    추가
-                  </button>
-                </div>
-              </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6 my-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-900">매니저 추가</h2>
+              <span className="text-sm text-slate-500">{newStaffEntries.length}명</span>
             </div>
+
+            <div className="space-y-6">
+              {newStaffEntries.map((entry, index) => (
+                <div key={entry.id} className="p-4 bg-slate-50 rounded-lg relative">
+                  {newStaffEntries.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeStaffEntry(entry.id)}
+                      className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <div className="text-sm font-medium text-slate-500 mb-3">매니저 {index + 1}</div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">이름 *</label>
+                      <input
+                        type="text"
+                        value={entry.name}
+                        onChange={(e) => updateStaffEntry(entry.id, { name: e.target.value })}
+                        placeholder="매니저 이름"
+                        className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">연락처</label>
+                      <input
+                        type="tel"
+                        value={entry.phone}
+                        onChange={(e) => updateStaffEntry(entry.id, { phone: e.target.value })}
+                        placeholder="010-0000-0000"
+                        className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">소개</label>
+                      <textarea
+                        value={entry.bio}
+                        onChange={(e) => updateStaffEntry(entry.id, { bio: e.target.value })}
+                        placeholder="매니저 소개"
+                        rows={2}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">전문 분야</label>
+                      <div className="flex flex-wrap gap-2">
+                        {SPECIALTIES_OPTIONS.map((spec) => (
+                          <button
+                            key={spec}
+                            type="button"
+                            onClick={() => updateStaffEntry(entry.id, {
+                              specialties: entry.specialties.includes(spec)
+                                ? entry.specialties.filter(s => s !== spec)
+                                : [...entry.specialties, spec]
+                            })}
+                            className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                              entry.specialties.includes(spec)
+                                ? 'bg-red-600 text-white border-red-600'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-red-600'
+                            }`}
+                          >
+                            {spec}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">국적</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {entry.nationalities.map((n) => (
+                          <span key={n} className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 text-sm rounded">
+                            {n}
+                            <button type="button" onClick={() => updateStaffEntry(entry.id, { nationalities: entry.nationalities.filter(x => x !== n) })} className="text-green-400 hover:text-red-500">×</button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={entry.nationalityInput}
+                          onChange={(e) => updateStaffEntry(entry.id, { nationalityInput: e.target.value })}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const v = entry.nationalityInput.trim();
+                              if (v && !entry.nationalities.includes(v)) {
+                                updateStaffEntry(entry.id, { nationalities: [...entry.nationalities, v], nationalityInput: '' });
+                              }
+                            }
+                          }}
+                          placeholder="예: 한국, 일본..."
+                          className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const v = entry.nationalityInput.trim();
+                            if (v && !entry.nationalities.includes(v)) {
+                              updateStaffEntry(entry.id, { nationalities: [...entry.nationalities, v], nationalityInput: '' });
+                            }
+                          }}
+                          className="flex-shrink-0 px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap"
+                        >
+                          추가
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">언어</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {entry.languages.map((l) => (
+                          <span key={l} className="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-600 text-sm rounded">
+                            {l}
+                            <button type="button" onClick={() => updateStaffEntry(entry.id, { languages: entry.languages.filter(x => x !== l) })} className="text-indigo-400 hover:text-red-500">×</button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={entry.languageInput}
+                          onChange={(e) => updateStaffEntry(entry.id, { languageInput: e.target.value })}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const v = entry.languageInput.trim();
+                              if (v && !entry.languages.includes(v)) {
+                                updateStaffEntry(entry.id, { languages: [...entry.languages, v], languageInput: '' });
+                              }
+                            }
+                          }}
+                          placeholder="예: 한국어, 영어..."
+                          className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const v = entry.languageInput.trim();
+                            if (v && !entry.languages.includes(v)) {
+                              updateStaffEntry(entry.id, { languages: [...entry.languages, v], languageInput: '' });
+                            }
+                          }}
+                          className="flex-shrink-0 px-3 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap"
+                        >
+                          추가
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addNewStaffEntry}
+              className="w-full mt-4 py-3 border-2 border-dashed border-slate-300 text-slate-500 font-medium rounded-lg hover:border-red-600 hover:text-red-600 transition-colors"
+            >
+              + 매니저 추가
+            </button>
+
             <div className="flex gap-2 mt-6">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => { setShowAddModal(false); setNewStaffEntries([createEmptyStaffEntry(1)]); }}
                 className="flex-1 py-3 bg-slate-100 text-slate-600 font-medium rounded-lg hover:bg-slate-200 transition-colors"
               >
                 취소
@@ -610,7 +667,7 @@ export default function StaffManage() {
                 disabled={adding}
                 className="flex-1 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
               >
-                {adding ? '추가 중...' : '추가'}
+                {adding ? '추가 중...' : `${newStaffEntries.filter(e => e.name.trim()).length}명 추가`}
               </button>
             </div>
           </div>

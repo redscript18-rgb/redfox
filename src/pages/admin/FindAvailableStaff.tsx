@@ -188,13 +188,13 @@ function SendRequestModal({ staff, storeId, storeName, date, adminId, onClose, o
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
             <select value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
-              {Array.from({ length: 15 }, (_, i) => i + 7).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
             <select value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
-              {Array.from({ length: 15 }, (_, i) => i + 8).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (<option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>))}
             </select>
           </div>
         </div>

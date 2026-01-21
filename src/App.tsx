@@ -24,6 +24,7 @@ import StoreSearch from './pages/staff/StoreSearch';
 import AvailabilityManage from './pages/staff/AvailabilityManage';
 import WorkRequests from './pages/staff/WorkRequests';
 import ProfileManage from './pages/staff/ProfileManage';
+import MySchedule from './pages/staff/MySchedule';
 
 // 관리자용 페이지
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -198,7 +199,19 @@ function AppRoutes() {
         }
       />
 
-      {/* 직원용: 스케줄 관리 */}
+      {/* 직원용: 통합 스케줄 (내 스케줄) */}
+      <Route
+        path="/staff/my-schedule"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <MySchedule />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 스케줄 관리 (기존) */}
       <Route
         path="/staff/schedule"
         element={

@@ -10,6 +10,12 @@ interface DailyPhoto {
   caption: string | null;
 }
 
+interface GalleryPhoto {
+  id: number;
+  photo_url: string;
+  sort_order: number;
+}
+
 export default function ProfileManage() {
   const { user } = useAuth();
   const [bio, setBio] = useState('');
@@ -26,6 +32,10 @@ export default function ProfileManage() {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingDaily, setUploadingDaily] = useState(false);
   const [newPhotoCaption, setNewPhotoCaption] = useState('');
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [selectedPhotoList, setSelectedPhotoList] = useState<{ id: number; photo_url: string; caption: string | null }[]>([]);
 
   const [age, setAge] = useState<number | ''>('');
   const [height, setHeight] = useState<number | ''>('');
@@ -44,11 +54,13 @@ export default function ProfileManage() {
 
   const profileInputRef = useRef<HTMLInputElement>(null);
   const dailyInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
       fetchDailyPhotos();
+      fetchGalleryPhotos();
     }
   }, [user]);
 
@@ -97,6 +109,85 @@ export default function ProfileManage() {
       .limit(20);
 
     setDailyPhotos(data || []);
+  };
+
+  const fetchGalleryPhotos = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('staff_gallery')
+      .select('*')
+      .eq('staff_id', user.id)
+      .order('sort_order', { ascending: true });
+
+    setGalleryPhotos(data || []);
+  };
+
+  const handleGalleryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
+
+    const remainingSlots = 3 - galleryPhotos.length;
+    if (remainingSlots <= 0) {
+      alert('프로필 사진은 최대 3장까지 등록할 수 있습니다.');
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    setUploadingGallery(true);
+
+    let currentOrder = galleryPhotos.length;
+    for (const file of filesToUpload) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name}: 파일 크기는 5MB 이하여야 합니다.`);
+        continue;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `gallery_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `staff-gallery/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('staff-photos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('업로드 오류:', uploadError.message);
+        continue;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('staff-photos')
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from('staff_gallery')
+        .insert({
+          staff_id: user.id,
+          photo_url: publicUrl,
+          sort_order: currentOrder++,
+        });
+    }
+
+    fetchGalleryPhotos();
+    setUploadingGallery(false);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleDeleteGalleryPhoto = async (photoId: number) => {
+    if (!confirm('이 사진을 삭제하시겠습니까?')) return;
+
+    const { error } = await supabase
+      .from('staff_gallery')
+      .delete()
+      .eq('id', photoId);
+
+    if (error) {
+      alert('삭제 중 오류가 발생했습니다.');
+    } else {
+      fetchGalleryPhotos();
+    }
   };
 
   const handleAddSpecialty = () => {
@@ -191,58 +282,59 @@ export default function ProfileManage() {
   const canUploadMore = todayPhotos.length < 3;
 
   const handleDailyPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
 
-    if (!canUploadMore) {
+    const remainingSlots = 3 - todayPhotos.length;
+    if (remainingSlots <= 0) {
       alert('오늘은 최대 3장까지만 업로드할 수 있습니다.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.');
-      return;
-    }
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
     setUploadingDaily(true);
 
-    const fileExt = file.name.split('.').pop();
     const uploadNow = new Date();
     const uploadDate = `${uploadNow.getFullYear()}-${String(uploadNow.getMonth() + 1).padStart(2, '0')}-${String(uploadNow.getDate()).padStart(2, '0')}`;
-    const fileName = `daily_${user.id}_${Date.now()}.${fileExt}`;
-    const filePath = `daily/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('staff-photos')
-      .upload(filePath, file);
+    for (const file of filesToUpload) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name}: 파일 크기는 5MB 이하여야 합니다.`);
+        continue;
+      }
 
-    if (uploadError) {
-      alert('업로드 중 오류가 발생했습니다: ' + uploadError.message);
-      setUploadingDaily(false);
-      return;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `daily_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const filePath = `daily/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('staff-photos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('업로드 오류:', uploadError.message);
+        continue;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('staff-photos')
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from('staff_photos')
+        .insert({
+          staff_id: user.id,
+          photo_url: publicUrl,
+          date: uploadDate,
+          caption: newPhotoCaption || null,
+        });
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('staff-photos')
-      .getPublicUrl(filePath);
-
-    const { error: insertError } = await supabase
-      .from('staff_photos')
-      .insert({
-        staff_id: user.id,
-        photo_url: publicUrl,
-        date: uploadDate,
-        caption: newPhotoCaption || null,
-      });
-
-    if (insertError) {
-      alert('사진 저장 중 오류가 발생했습니다.');
-    } else {
-      setNewPhotoCaption('');
-      fetchDailyPhotos();
-    }
-
+    setNewPhotoCaption('');
+    fetchDailyPhotos();
     setUploadingDaily(false);
+    if (e.target) e.target.value = '';
   };
 
   const handleDeleteDailyPhoto = async (photoId: number) => {
@@ -350,6 +442,60 @@ export default function ProfileManage() {
         </div>
       </section>
 
+      {/* 프로필 갤러리 (고정 사진) */}
+      <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">프로필 갤러리 ({galleryPhotos.length}/3)</h2>
+        <p className="text-sm text-slate-500 mb-4">프로필에 표시되는 고정 사진입니다. 최대 3장까지 등록 가능합니다.</p>
+
+        {galleryPhotos.length < 3 && (
+          <div className="mb-4">
+            <input
+              type="file"
+              ref={galleryInputRef}
+              onChange={handleGalleryPhotoUpload}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              disabled={uploadingGallery}
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+            >
+              {uploadingGallery ? '업로드 중...' : '+ 사진 추가'}
+            </button>
+          </div>
+        )}
+
+        {galleryPhotos.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2 max-sm:grid-cols-2">
+            {galleryPhotos.map((photo, index) => (
+              <div key={photo.id} className="relative group">
+                <img
+                  src={photo.photo_url}
+                  alt="프로필 사진"
+                  className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => {
+                    setSelectedPhotoList(galleryPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: null })));
+                    setSelectedPhotoIndex(index);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">등록된 프로필 사진이 없습니다.</p>
+        )}
+      </section>
+
       {/* 오늘의 사진 - 프로필 사진 바로 아래 */}
       <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-2">오늘의 사진 ({todayPhotos.length}/3)</h2>
@@ -369,6 +515,7 @@ export default function ProfileManage() {
               ref={dailyInputRef}
               onChange={handleDailyPhotoUpload}
               accept="image/*"
+              multiple
               className="hidden"
             />
             <button
@@ -388,9 +535,17 @@ export default function ProfileManage() {
 
         {todayPhotos.length > 0 ? (
           <div className="grid grid-cols-5 gap-2 max-md:grid-cols-3 max-sm:grid-cols-2">
-            {todayPhotos.map((photo) => (
+            {todayPhotos.map((photo, index) => (
               <div key={photo.id} className="relative group">
-                <img src={photo.photo_url} alt={photo.caption || '사진'} className="w-full aspect-square object-cover rounded-lg" />
+                <img
+                  src={photo.photo_url}
+                  alt={photo.caption || '사진'}
+                  className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => {
+                    setSelectedPhotoList(todayPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: p.caption })));
+                    setSelectedPhotoIndex(index);
+                  }}
+                />
                 {photo.caption && (
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 text-white text-xs rounded-b-lg truncate">
                     {photo.caption}
@@ -398,7 +553,7 @@ export default function ProfileManage() {
                 )}
                 <button
                   type="button"
-                  onClick={() => handleDeleteDailyPhoto(photo.id)}
+                  onClick={(e) => { e.stopPropagation(); handleDeleteDailyPhoto(photo.id); }}
                   className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   ×
@@ -735,6 +890,134 @@ export default function ProfileManage() {
         )}
       </section>
 
+      {/* Photo Viewer Modal with Swipe */}
+      {selectedPhotoIndex !== null && selectedPhotoList.length > 0 && (
+        <SwipeablePhotoModal
+          photos={selectedPhotoList}
+          currentIndex={selectedPhotoIndex}
+          onClose={() => { setSelectedPhotoIndex(null); setSelectedPhotoList([]); }}
+          onNavigate={setSelectedPhotoIndex}
+        />
+      )}
+    </div>
+  );
+}
+
+function SwipeablePhotoModal({
+  photos,
+  currentIndex,
+  onClose,
+  onNavigate,
+}: {
+  photos: { id: number; photo_url: string; caption: string | null }[];
+  currentIndex: number;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const currentPhoto = photos[currentIndex];
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < photos.length - 1;
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && hasNext) {
+      onNavigate(currentIndex + 1);
+    }
+    if (isRightSwipe && hasPrev) {
+      onNavigate(currentIndex - 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft' && hasPrev) onNavigate(currentIndex - 1);
+      if (e.key === 'ArrowRight' && hasNext) onNavigate(currentIndex + 1);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, hasPrev, hasNext, onClose, onNavigate]);
+
+  if (!currentPhoto) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={onClose}>
+      <div
+        className="relative w-full h-full flex items-center justify-center p-4"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Close button */}
+        <button
+          className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors z-10"
+          onClick={onClose}
+        >
+          ×
+        </button>
+
+        {/* Counter */}
+        <div className="absolute top-4 left-4 px-3 py-1 bg-black/50 rounded-full text-white text-sm">
+          {currentIndex + 1} / {photos.length}
+        </div>
+
+        {/* Previous button */}
+        {hasPrev && (
+          <button
+            className="absolute left-2 md:left-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+            onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex - 1); }}
+          >
+            ‹
+          </button>
+        )}
+
+        {/* Image */}
+        <div className="max-w-4xl max-h-[80vh] flex flex-col items-center">
+          <img
+            src={currentPhoto.photo_url}
+            alt={currentPhoto.caption || '사진'}
+            className="max-w-full max-h-[70vh] object-contain rounded-lg"
+            draggable={false}
+          />
+          {currentPhoto.caption && (
+            <p className="mt-4 text-center text-white text-sm">{currentPhoto.caption}</p>
+          )}
+        </div>
+
+        {/* Next button */}
+        {hasNext && (
+          <button
+            className="absolute right-2 md:right-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+            onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex + 1); }}
+          >
+            ›
+          </button>
+        )}
+
+        {/* Swipe hint for mobile */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-xs md:hidden">
+          좌우로 스와이프하여 넘기기
+        </div>
+      </div>
     </div>
   );
 }

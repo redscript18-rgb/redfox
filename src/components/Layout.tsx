@@ -38,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
   }, [user]);
 
   const fetchPendingWorkRequests = useCallback(async () => {
-    if (!user || user.role !== 'staff') return;
+    if (!user || user.role !== 'manager') return;
 
     const { count } = await supabase
       .from('work_requests')
@@ -153,25 +153,19 @@ export default function Layout({ children }: LayoutProps) {
           )}
           {user?.role === 'manager' && (
             <>
-              <Link to="/staff/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
-                내 예약
-              </Link>
-              <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
-                가게
-              </Link>
-              <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
-                에이전시
-              </Link>
-              <Link to="/staff/work-requests" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
-                출근요청
+              <Link to="/staff/my-schedule" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                스케줄
                 {pendingWorkRequests > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
                     {pendingWorkRequests}
                   </span>
                 )}
               </Link>
-              <Link to="/staff/availability" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
-                가용시간
+              <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                가게
+              </Link>
+              <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                에이전시
               </Link>
               <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 메시지

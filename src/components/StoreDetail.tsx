@@ -85,6 +85,7 @@ export default function StoreDetail() {
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [storeAdminId, setStoreAdminId] = useState<string | null>(null);
+  const [showReservationModal, setShowReservationModal] = useState(false);
 
   useEffect(() => { fetchData(); if (user) { checkFavorite(); fetchBlockedByStaff(); } }, [storeId, user, location.key]);
 
@@ -224,6 +225,14 @@ export default function StoreDetail() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            {user?.role === 'customer' && menus.length > 0 && (
+              <button
+                onClick={() => setShowReservationModal(true)}
+                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+              >
+                예약하기
+              </button>
+            )}
             {user?.role === 'customer' && storeAdminId && (
               <button
                 onClick={startConversation}
@@ -382,6 +391,204 @@ export default function StoreDetail() {
           ))}
         </div>
       </section>
+
+      {/* Store Reservation Modal */}
+      {showReservationModal && user && (
+        <StoreReservationModal
+          storeId={storeId}
+          storeName={store.name}
+          menus={menus}
+          userId={user.id}
+          onClose={() => setShowReservationModal(false)}
+          onSuccess={() => {
+            setShowReservationModal(false);
+            alert('예약 신청이 완료되었습니다. 가게에서 확인 후 연락드리겠습니다.');
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+function StoreReservationModal({
+  storeId,
+  storeName,
+  menus,
+  userId,
+  onClose,
+  onSuccess,
+}: {
+  storeId: number;
+  storeName: string;
+  menus: Menu[];
+  userId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [selectedDate, setSelectedDate] = useState('');
+  const [startTime, setStartTime] = useState('12:00');
+  const [endTime, setEndTime] = useState('14:00');
+  const [selectedMenuId, setSelectedMenuId] = useState<number | ''>('');
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const dateOptions = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `${date.getMonth() + 1}/${date.getDate()} (${DAY_NAMES[date.getDay()]})`;
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedDate) {
+      alert('날짜를 선택해주세요.');
+      return;
+    }
+    if (!selectedMenuId) {
+      alert('메뉴를 선택해주세요.');
+      return;
+    }
+    if (startTime >= endTime) {
+      alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    const selectedMenu = menus.find(m => m.id === selectedMenuId);
+
+    const { error } = await supabase.from('reservations').insert({
+      store_id: storeId,
+      customer_id: userId,
+      staff_id: null,
+      virtual_staff_id: null,
+      menu_id: selectedMenuId,
+      date: selectedDate,
+      start_time: startTime,
+      end_time: endTime,
+      status: 'pending',
+      total_price: selectedMenu?.price || 0,
+      notes: notes || null,
+    });
+
+    setSubmitting(false);
+
+    if (error) {
+      console.error('Reservation error:', error);
+      alert('예약 중 오류가 발생했습니다.');
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900 mb-4">가게 예약</h2>
+
+        <div className="p-4 bg-slate-50 rounded-lg mb-4">
+          <p className="text-sm text-slate-500">가게</p>
+          <p className="font-medium text-slate-900">{storeName}</p>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">날짜 선택</label>
+          <select
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+          >
+            <option value="">날짜를 선택하세요</option>
+            {dateOptions.map((d) => (
+              <option key={d} value={d}>{formatDate(d)}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
+            <select
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+            >
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (
+                <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
+                  {h.toString().padStart(2, '0')}:00
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
+            <select
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+            >
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (
+                <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
+                  {h.toString().padStart(2, '0')}:00
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">메뉴 선택</label>
+          <select
+            value={selectedMenuId}
+            onChange={(e) => setSelectedMenuId(Number(e.target.value))}
+            className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+          >
+            <option value="">메뉴를 선택하세요</option>
+            {menus.map((menu) => (
+              <option key={menu.id} value={menu.id}>
+                {menu.name} - {menu.price.toLocaleString()}원
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-slate-700 mb-2">요청사항 (선택)</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="요청사항을 입력하세요..."
+            rows={3}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+          />
+        </div>
+
+        <p className="text-xs text-slate-500 mb-4">
+          * 매니저 지정 없이 가게에 직접 예약합니다. 가게에서 확인 후 연락드립니다.
+        </p>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedDate || !selectedMenuId || submitting}
+            className="flex-1 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors disabled:bg-slate-400"
+          >
+            {submitting ? '예약 중...' : '예약하기'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

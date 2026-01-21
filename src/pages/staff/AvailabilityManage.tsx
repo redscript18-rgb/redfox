@@ -248,7 +248,7 @@ function AddAvailabilityModal({
               onChange={(e) => setStartTime(e.target.value)}
               className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             >
-              {Array.from({ length: 15 }, (_, i) => i + 7).map((h) => (
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
                   {h.toString().padStart(2, '0')}:00
                 </option>
@@ -262,7 +262,7 @@ function AddAvailabilityModal({
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             >
-              {Array.from({ length: 15 }, (_, i) => i + 8).map((h) => (
+              {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                 <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
                   {h.toString().padStart(2, '0')}:00
                 </option>

@@ -35,6 +35,12 @@ interface DailyPhoto {
   caption: string | null;
 }
 
+interface GalleryPhoto {
+  id: number;
+  photo_url: string;
+  sort_order: number;
+}
+
 interface Store {
   id: number;
   name: string;
@@ -80,11 +86,13 @@ export default function StaffDetail() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [affiliatedStores, setAffiliatedStores] = useState<Store[]>([]);
   const [dailyPhotos, setDailyPhotos] = useState<DailyPhoto[]>([]);
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [reservationCounts, setReservationCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [selectedPhotoList, setSelectedPhotoList] = useState<{ id: number; photo_url: string; caption: string | null }[]>([]);
   const [staffRating, setStaffRating] = useState<StaffRating>({ customerAvgRating: null, customerAvgServiceRating: null, customerCount: 0, adminAvgRating: null, adminAvgServiceRating: null, adminCount: 0 });
   const [isFavorite, setIsFavorite] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -180,6 +188,10 @@ export default function StaffDetail() {
 
     const { data: photosData } = await supabase.from('staff_photos').select('*').eq('staff_id', id).order('date', { ascending: false }).limit(20);
     setDailyPhotos(photosData || []);
+
+    // Fetch gallery photos
+    const { data: galleryData } = await supabase.from('staff_gallery').select('*').eq('staff_id', id).order('sort_order', { ascending: true });
+    setGalleryPhotos(galleryData || []);
 
     const { data: ratingsData } = await supabase.from('ratings').select('rating, service_rating, reservation_id, schedule_id').eq('target_profile_id', id).eq('target_type', 'staff');
 
@@ -340,6 +352,27 @@ export default function StaffDetail() {
         </section>
       )}
 
+      {/* Profile Gallery Photos */}
+      {galleryPhotos.length > 0 && (
+        <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">프로필 사진</h2>
+          <div className="grid grid-cols-3 gap-2 max-sm:grid-cols-2">
+            {galleryPhotos.map((photo, index) => (
+              <div
+                key={photo.id}
+                className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  setSelectedPhotoList(galleryPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: null })));
+                  setSelectedPhotoIndex(index);
+                }}
+              >
+                <img src={photo.photo_url} alt="프로필 사진" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Today's Photos */}
       {dailyPhotos.filter(p => p.date === today).length > 0 && (
         <section className="p-5 bg-white border border-slate-200 rounded-xl mb-6">
@@ -347,7 +380,15 @@ export default function StaffDetail() {
           <p className="text-sm text-slate-500 mb-4">매일 0시 기준으로 리셋됩니다</p>
           <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
             {dailyPhotos.filter(p => p.date === today).map((photo, index) => (
-              <div key={photo.id} className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedPhotoIndex(index)}>
+              <div
+                key={photo.id}
+                className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  const todayPhotos = dailyPhotos.filter(p => p.date === today);
+                  setSelectedPhotoList(todayPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: p.caption })));
+                  setSelectedPhotoIndex(index);
+                }}
+              >
                 <img src={photo.photo_url} alt={photo.caption || '작업 사진'} className="w-full h-full object-cover" />
               </div>
             ))}
@@ -416,11 +457,11 @@ export default function StaffDetail() {
         <ReservationModal scheduleId={selectedSchedule} staffId={staff.id} customerId={user?.id} schedules={schedules} onClose={() => setShowReservationModal(false)} onSuccess={() => { setShowReservationModal(false); fetchData(); }} />
       )}
 
-      {selectedPhotoIndex !== null && (
-        <PhotoGalleryModal
-          photos={dailyPhotos.filter(p => p.date === today)}
+      {selectedPhotoIndex !== null && selectedPhotoList.length > 0 && (
+        <SwipeablePhotoModal
+          photos={selectedPhotoList}
           currentIndex={selectedPhotoIndex}
-          onClose={() => setSelectedPhotoIndex(null)}
+          onClose={() => { setSelectedPhotoIndex(null); setSelectedPhotoList([]); }}
           onNavigate={setSelectedPhotoIndex}
         />
       )}
@@ -546,10 +587,48 @@ function ReservationModal({ scheduleId, staffId, customerId, schedules, onClose,
   );
 }
 
-function PhotoGalleryModal({ photos, currentIndex, onClose, onNavigate }: { photos: DailyPhoto[]; currentIndex: number; onClose: () => void; onNavigate: (index: number) => void; }) {
+function SwipeablePhotoModal({
+  photos,
+  currentIndex,
+  onClose,
+  onNavigate,
+}: {
+  photos: { id: number; photo_url: string; caption: string | null }[];
+  currentIndex: number;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   const currentPhoto = photos[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < photos.length - 1;
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && hasNext) {
+      onNavigate(currentIndex + 1);
+    }
+    if (isRightSwipe && hasPrev) {
+      onNavigate(currentIndex - 1);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -565,7 +644,13 @@ function PhotoGalleryModal({ photos, currentIndex, onClose, onNavigate }: { phot
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="relative w-full h-full flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="relative w-full h-full flex items-center justify-center p-4"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         {/* Close button */}
         <button
           className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors z-10"
@@ -595,6 +680,7 @@ function PhotoGalleryModal({ photos, currentIndex, onClose, onNavigate }: { phot
             src={currentPhoto.photo_url}
             alt={currentPhoto.caption || '사진'}
             className="max-w-full max-h-[70vh] object-contain rounded-lg"
+            draggable={false}
           />
           {currentPhoto.caption && (
             <p className="mt-4 text-center text-white text-sm">{currentPhoto.caption}</p>
@@ -610,6 +696,11 @@ function PhotoGalleryModal({ photos, currentIndex, onClose, onNavigate }: { phot
             ›
           </button>
         )}
+
+        {/* Swipe hint for mobile */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-xs md:hidden">
+          좌우로 스와이프하여 넘기기
+        </div>
       </div>
     </div>
   );

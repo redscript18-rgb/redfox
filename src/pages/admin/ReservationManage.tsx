@@ -335,8 +335,12 @@ export default function ReservationManage() {
                     {isBlocked ? '차단됨' : '차단'}
                   </button>
                 </div>
-                <div className="flex gap-3 text-xs text-slate-500">
-                  <span>담당: {reservation.staff?.name || reservation.virtual_staff?.name || '미정'}</span>
+                <div className="flex gap-3 text-xs text-slate-500 flex-wrap items-center">
+                  <span className="flex items-center gap-1">
+                    담당: {reservation.staff?.name || reservation.virtual_staff?.name || (
+                      <span className="text-blue-600 font-medium">미지정 (가게 직접 예약)</span>
+                    )}
+                  </span>
                   <span>{reservation.store?.name}</span>
                 </div>
               </div>

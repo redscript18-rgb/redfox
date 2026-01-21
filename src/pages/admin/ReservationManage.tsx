@@ -204,20 +204,23 @@ export default function ReservationManage() {
     }
   };
 
-  const startChatWithCustomer = async (customerId: string) => {
+  const startChatWithCustomer = async (customerId: string, storeId: number) => {
     if (!user) return;
 
     setStartingChat(customerId);
 
     // Find existing conversation
-    const { data: existingConversations } = await supabase
+    const { data: existingConv } = await supabase
       .from('conversations')
-      .select('id, participant1_id, participant2_id')
-      .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${customerId}),and(participant1_id.eq.${customerId},participant2_id.eq.${user.id})`);
+      .select('id')
+      .eq('store_id', storeId)
+      .eq('admin_id', user.id)
+      .eq('customer_id', customerId)
+      .maybeSingle();
 
-    if (existingConversations && existingConversations.length > 0) {
+    if (existingConv) {
       setStartingChat(null);
-      navigate(`/chat/${existingConversations[0].id}`);
+      navigate(`/chat/${existingConv.id}`);
       return;
     }
 
@@ -225,8 +228,9 @@ export default function ReservationManage() {
     const { data: newConv, error } = await supabase
       .from('conversations')
       .insert({
-        participant1_id: user.id,
-        participant2_id: customerId,
+        store_id: storeId,
+        admin_id: user.id,
+        customer_id: customerId,
       })
       .select()
       .single();
@@ -234,6 +238,7 @@ export default function ReservationManage() {
     setStartingChat(null);
 
     if (error) {
+      console.error('Error creating conversation:', error);
       alert('채팅방 생성 중 오류가 발생했습니다.');
     } else if (newConv) {
       navigate(`/chat/${newConv.id}`);
@@ -363,7 +368,7 @@ export default function ReservationManage() {
                   <div className="flex items-center gap-2">
                     <button
                       className="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors text-blue-500 hover:bg-blue-50"
-                      onClick={() => startChatWithCustomer(reservation.customer_id)}
+                      onClick={() => startChatWithCustomer(reservation.customer_id, reservation.store_id)}
                       disabled={startingChat === reservation.customer_id}
                     >
                       {startingChat === reservation.customer_id ? '...' : '메시지'}

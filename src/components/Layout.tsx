@@ -108,29 +108,29 @@ export default function Layout({ children }: LayoutProps) {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-1 max-md:order-3 max-md:w-full max-md:justify-center max-md:pt-2 max-md:border-t max-md:border-slate-200 max-md:mt-2">
+        <nav className="flex items-center gap-1 max-md:order-3 max-md:w-full max-md:pt-2 max-md:border-t max-md:border-slate-200 max-md:mt-2 max-md:overflow-x-auto max-md:justify-start max-md:-mx-4 max-md:px-4">
           {user?.role === 'superadmin' && (
             <>
-              <Link to="/superadmin/users" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/superadmin/users" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 사용자
               </Link>
-              <Link to="/superadmin/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/superadmin/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 가게
               </Link>
-              <Link to="/superadmin/virtual-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/superadmin/virtual-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 매니저
               </Link>
-              <Link to="/superadmin/users?role=customer" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/superadmin/users?role=customer" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 손님
               </Link>
-              <Link to="/superadmin/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/superadmin/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 예약
               </Link>
             </>
           )}
           {user?.role === 'customer' && (
             <>
-              <Link to="/customer/reservations" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/customer/reservations" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 내 예약
                 {unreadCount > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
@@ -138,7 +138,7 @@ export default function Layout({ children }: LayoutProps) {
                   </span>
                 )}
               </Link>
-              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 메시지
                 {unreadMessages > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
@@ -146,34 +146,34 @@ export default function Layout({ children }: LayoutProps) {
                   </span>
                 )}
               </Link>
-              <Link to="/customer/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/customer/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 즐겨찾기
               </Link>
             </>
           )}
           {user?.role === 'manager' && (
             <>
-              <Link to="/staff/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/staff/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 내 예약
               </Link>
-              <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                가게 탐색
+              <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                가게
               </Link>
-              <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 에이전시
               </Link>
-              <Link to="/staff/work-requests" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                출근 요청
+              <Link to="/staff/work-requests" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                출근요청
                 {pendingWorkRequests > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
                     {pendingWorkRequests}
                   </span>
                 )}
               </Link>
-              <Link to="/staff/availability" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                가용 시간
+              <Link to="/staff/availability" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                가용시간
               </Link>
-              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 메시지
                 {unreadMessages > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
@@ -181,23 +181,23 @@ export default function Layout({ children }: LayoutProps) {
                   </span>
                 )}
               </Link>
-              <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 즐겨찾기
               </Link>
-              <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                차단 관리
+              <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                차단
               </Link>
             </>
           )}
           {(user?.role === 'staff' || user?.role === 'owner') && (
             <>
-              <Link to="/admin/find-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                매니저 찾기
+              <Link to="/admin/find-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                매니저
               </Link>
-              <Link to="/admin/work-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                보낸 요청
+              <Link to="/admin/work-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                보낸요청
               </Link>
-              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 메시지
                 {unreadMessages > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
@@ -205,23 +205,23 @@ export default function Layout({ children }: LayoutProps) {
                   </span>
                 )}
               </Link>
-              <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 즐겨찾기
               </Link>
-              <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                차단 관리
+              <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                차단
               </Link>
             </>
           )}
           {user?.role === 'agency' && (
             <>
-              <Link to="/agency/managers" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                매니저 관리
+              <Link to="/agency/managers" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                매니저
               </Link>
-              <Link to="/agency/dispatches" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
-                파견 관리
+              <Link to="/agency/dispatches" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
+                파견
               </Link>
-              <Link to="/chat" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+              <Link to="/chat" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs flex-shrink-0 whitespace-nowrap">
                 메시지
               </Link>
             </>

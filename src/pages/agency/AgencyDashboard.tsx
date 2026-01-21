@@ -165,28 +165,28 @@ export default function AgencyDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">에이전시 대시보드</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6 max-md:text-xl">에이전시 대시보드</h1>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Link to="/agency/managers" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">소속 매니저</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.activeManagers}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+        <Link to="/agency/managers" className="p-4 md:p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+          <p className="text-xs md:text-sm text-slate-500 mb-1">소속 매니저</p>
+          <p className="text-2xl md:text-3xl font-bold text-slate-900">{stats?.activeManagers}</p>
           {stats?.pendingManagers ? (
-            <p className="text-xs text-orange-500 mt-1">{stats.pendingManagers}명 대기 중</p>
+            <p className="text-xs text-orange-500 mt-1">{stats.pendingManagers}명 대기</p>
           ) : null}
         </Link>
-        <Link to="/agency/managers" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">가상 매니저</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
+        <Link to="/agency/managers" className="p-4 md:p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+          <p className="text-xs md:text-sm text-slate-500 mb-1">가상 매니저</p>
+          <p className="text-2xl md:text-3xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
         </Link>
-        <Link to="/agency/dispatches" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">오늘 파견</p>
-          <p className="text-3xl font-bold text-orange-600">{stats?.todayDispatches}</p>
+        <Link to="/agency/dispatches" className="p-4 md:p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+          <p className="text-xs md:text-sm text-slate-500 mb-1">오늘 파견</p>
+          <p className="text-2xl md:text-3xl font-bold text-orange-600">{stats?.todayDispatches}</p>
         </Link>
-        <Link to="/agency/dispatches?status=pending" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">대기 파견</p>
-          <p className="text-3xl font-bold text-yellow-600">{stats?.pendingDispatches}</p>
+        <Link to="/agency/dispatches?status=pending" className="p-4 md:p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+          <p className="text-xs md:text-sm text-slate-500 mb-1">대기 파견</p>
+          <p className="text-2xl md:text-3xl font-bold text-yellow-600">{stats?.pendingDispatches}</p>
         </Link>
       </div>
 
@@ -259,24 +259,24 @@ export default function AgencyDashboard() {
       </div>
 
       {/* Stats Summary */}
-      <div className="p-5 bg-white border border-slate-200 rounded-xl">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">전체 통계</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-50 rounded-lg text-center">
-            <p className="text-2xl font-bold text-slate-900">{stats?.totalManagers}</p>
-            <p className="text-sm text-slate-500">전체 매니저</p>
+      <div className="p-4 md:p-5 bg-white border border-slate-200 rounded-xl">
+        <h2 className="text-base md:text-lg font-semibold text-slate-900 mb-4">전체 통계</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="p-3 md:p-4 bg-slate-50 rounded-lg text-center">
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{stats?.totalManagers}</p>
+            <p className="text-xs md:text-sm text-slate-500">전체 매니저</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-lg text-center">
-            <p className="text-2xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
-            <p className="text-sm text-slate-500">가상 매니저</p>
+          <div className="p-3 md:p-4 bg-slate-50 rounded-lg text-center">
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
+            <p className="text-xs md:text-sm text-slate-500">가상 매니저</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-lg text-center">
-            <p className="text-2xl font-bold text-slate-900">{stats?.totalDispatches}</p>
-            <p className="text-sm text-slate-500">전체 파견</p>
+          <div className="p-3 md:p-4 bg-slate-50 rounded-lg text-center">
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{stats?.totalDispatches}</p>
+            <p className="text-xs md:text-sm text-slate-500">전체 파견</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-lg text-center">
-            <p className="text-2xl font-bold text-orange-600">{stats?.todayDispatches}</p>
-            <p className="text-sm text-slate-500">오늘 파견</p>
+          <div className="p-3 md:p-4 bg-slate-50 rounded-lg text-center">
+            <p className="text-xl md:text-2xl font-bold text-orange-600">{stats?.todayDispatches}</p>
+            <p className="text-xs md:text-sm text-slate-500">오늘 파견</p>
           </div>
         </div>
       </div>

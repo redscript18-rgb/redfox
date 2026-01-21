@@ -109,12 +109,12 @@ export default function Login() {
         {/* 빠른 로그인 버튼 */}
         {!isSignup && (
           <div className="mb-6 pb-6 border-b border-slate-200">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {TEST_ACCOUNTS.map((account) => (
                 <button
                   key={account.email}
                   type="button"
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-red-600 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-red-600 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-w-[80px]"
                   onClick={() => handleQuickLogin(account)}
                   disabled={loading}
                 >

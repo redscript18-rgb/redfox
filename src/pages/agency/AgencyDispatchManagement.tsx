@@ -336,36 +336,38 @@ export default function AgencyDispatchManagement() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-        >
-          <option value="all">전체 상태</option>
-          <option value="pending">대기</option>
-          <option value="confirmed">확정</option>
-          <option value="completed">완료</option>
-          <option value="cancelled">취소</option>
-        </select>
-        <input
-          type="date"
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-        {dateFilter && (
-          <button
-            onClick={() => setDateFilter('')}
-            className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-6">
+        <div className="flex gap-2 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            className="px-3 md:px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
-            날짜 초기화
-          </button>
-        )}
-        <div className="flex-1"></div>
+            <option value="all">전체 상태</option>
+            <option value="pending">대기</option>
+            <option value="confirmed">확정</option>
+            <option value="completed">완료</option>
+            <option value="cancelled">취소</option>
+          </select>
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="px-3 md:px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter('')}
+              className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+            >
+              초기화
+            </button>
+          )}
+        </div>
+        <div className="md:flex-1"></div>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm md:text-base"
         >
           + 파견 등록
         </button>
@@ -379,10 +381,10 @@ export default function AgencyDispatchManagement() {
       ) : (
         <div className="space-y-3">
           {filteredDispatches.map((dispatch) => (
-            <div key={dispatch.id} className="p-4 bg-white border border-slate-200 rounded-xl">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+            <div key={dispatch.id} className="p-3 md:p-4 bg-white border border-slate-200 rounded-xl">
+              <div className="flex flex-col md:flex-row md:items-start gap-3 md:justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className="font-semibold text-slate-900">
                       {dispatch.manager_name || dispatch.virtual_staff_name}
                     </span>
@@ -408,10 +410,10 @@ export default function AgencyDispatchManagement() {
                     <span>{dispatch.start_time.slice(0, 5)} - {dispatch.end_time.slice(0, 5)}</span>
                   </div>
                   {dispatch.notes && (
-                    <p className="text-sm text-slate-400 mt-2">{dispatch.notes}</p>
+                    <p className="text-sm text-slate-400 mt-2 line-clamp-2">{dispatch.notes}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-2 flex-wrap">
                   {dispatch.status === 'pending' && (
                     <>
                       <button

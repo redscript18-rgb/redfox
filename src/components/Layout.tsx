@@ -50,7 +50,7 @@ export default function Layout({ children }: LayoutProps) {
   }, [user]);
 
   const fetchUnreadMessages = useCallback(async () => {
-    if (!user || (user.role !== 'customer' && user.role !== 'admin' && user.role !== 'owner' && user.role !== 'staff')) return;
+    if (!user || (user.role !== 'customer' && user.role !== 'staff' && user.role !== 'owner' && user.role !== 'manager')) return;
 
     // Get conversations where user is a participant
     const { data: conversations } = await supabase
@@ -90,9 +90,10 @@ export default function Layout({ children }: LayoutProps) {
   const getRoleName = (role: string) => {
     switch (role) {
       case 'superadmin': return '서비스관리자';
+      case 'agency': return '에이전시';
       case 'owner': return '사장';
-      case 'admin': return '관리자';
-      case 'staff': return '매니저';
+      case 'staff': return '실장';
+      case 'manager': return '매니저';
       case 'customer': return '손님';
       default: return role;
     }
@@ -150,13 +151,16 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             </>
           )}
-          {user?.role === 'staff' && (
+          {user?.role === 'manager' && (
             <>
               <Link to="/staff/reservations" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 내 예약
               </Link>
               <Link to="/staff/stores" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 가게 탐색
+              </Link>
+              <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                에이전시
               </Link>
               <Link to="/staff/work-requests" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 출근 요청
@@ -185,7 +189,7 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             </>
           )}
-          {(user?.role === 'admin' || user?.role === 'owner') && (
+          {(user?.role === 'staff' || user?.role === 'owner') && (
             <>
               <Link to="/admin/find-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 매니저 찾기
@@ -206,6 +210,19 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
               <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
                 차단 관리
+              </Link>
+            </>
+          )}
+          {user?.role === 'agency' && (
+            <>
+              <Link to="/agency/managers" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                매니저 관리
+              </Link>
+              <Link to="/agency/dispatches" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                파견 관리
+              </Link>
+              <Link to="/chat" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-2 max-md:text-xs">
+                메시지
               </Link>
             </>
           )}
@@ -352,7 +369,7 @@ export default function Layout({ children }: LayoutProps) {
 
                 {/* Menu Items */}
                 <div className="py-2">
-                  {user?.role === 'staff' && (
+                  {user?.role === 'manager' && (
                     <Link
                       to="/staff/profile"
                       onClick={() => setShowProfileMenu(false)}

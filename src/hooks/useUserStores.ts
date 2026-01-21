@@ -24,15 +24,15 @@ export function useUserStores(userId: string | undefined, role: string | undefin
           .select('id')
           .eq('owner_id', userId);
         setStoreIds(data?.map(s => s.id) || []);
-      } else if (role === 'admin') {
-        // 관리자: 관리하는 가게
+      } else if (role === 'staff') {
+        // 실장: 관리하는 가게
         const { data } = await supabase
           .from('store_admins')
           .select('store_id')
           .eq('admin_id', userId);
         setStoreIds(data?.map(s => s.store_id) || []);
-      } else if (role === 'staff') {
-        // 직원: 소속된 가게
+      } else if (role === 'manager') {
+        // 프리 매니저: 소속된 가게
         const { data } = await supabase
           .from('store_staff')
           .select('store_id')

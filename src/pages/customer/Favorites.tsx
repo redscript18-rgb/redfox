@@ -28,14 +28,14 @@ type TabType = 'stores' | 'staff';
 
 export default function Favorites() {
   const { user } = useAuth();
-  const defaultTab: TabType = user?.role === 'admin' ? 'staff' : 'stores';
+  const defaultTab: TabType = user?.role === 'staff' ? 'staff' : 'stores';
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [favoriteStores, setFavoriteStores] = useState<FavoriteStore[]>([]);
   const [favoriteStaff, setFavoriteStaff] = useState<FavoriteStaff[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canShowStores = user?.role === 'customer' || user?.role === 'staff';
-  const canShowStaff = user?.role === 'customer' || user?.role === 'admin';
+  const canShowStores = user?.role === 'customer' || user?.role === 'manager';
+  const canShowStaff = user?.role === 'customer' || user?.role === 'staff';
 
   useEffect(() => { if (user) fetchFavorites(); }, [user]);
 

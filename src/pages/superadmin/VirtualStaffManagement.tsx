@@ -285,7 +285,7 @@ export default function VirtualStaffManagement() {
           <Link to="/superadmin" className="text-slate-400 hover:text-slate-600">←</Link>
           <h1 className="text-2xl font-bold text-slate-900">등록 매니저 관리</h1>
           <span className="text-slate-400">({filteredStaff.length}명)</span>
-          <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded">관리자 등록</span>
+          <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded">실장 등록</span>
         </div>
         <button
           onClick={openAddModal}

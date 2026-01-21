@@ -18,12 +18,13 @@ interface Staff {
   created_by_admin_id: string | null;
   isVirtual?: boolean;
   store_id?: number;
-  store?: { id: number; name: string };
+  store?: { id: number; name: string; store_type?: string };
 }
 
 interface StoreInfo {
   id: number;
   name: string;
+  store_type?: string;
 }
 
 interface Schedule {
@@ -49,9 +50,10 @@ export default function StaffSearch() {
   const [affiliatedStoresMap, setAffiliatedStoresMap] = useState<Record<string, StoreInfo[]>>({});
   const [blockedByStaff, setBlockedByStaff] = useState<Set<string>>(new Set());
   const [favoriteStaffIds, setFavoriteStaffIds] = useState<Set<string>>(new Set());
-  const [allSpecialties, setAllSpecialties] = useState<string[]>([]);
+  const [allStoreTypes, setAllStoreTypes] = useState<string[]>([]);
+  const [staffStoreTypesMap, setStaffStoreTypesMap] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [selectedStoreType, setSelectedStoreType] = useState<string>('');
   const [sortBy, setSortBy] = useState<'rating' | 'reviewCount'>('rating');
 
   useEffect(() => {
@@ -99,38 +101,97 @@ export default function StaffSearch() {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // Fetch real staff
-    const { data: staffData } = await supabase
-      .from('profiles')
-      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id')
-      .eq('role', 'staff');
+    // Fetch ALL store type visibility settings
+    const { data: visibilityData } = await supabase
+      .from('store_type_visibility')
+      .select('store_type, is_visible');
 
-    const realStaff: Staff[] = (staffData || []).map(s => ({ ...s, isVirtual: false }));
+    // Fetch role visibility settings
+    const { data: roleVisibilityData } = await supabase
+      .from('role_visibility')
+      .select('role_type, is_visible');
 
-    // Fetch virtual staff (admin-created) - only visible ones
-    const { data: virtualStaffData } = await supabase
-      .from('virtual_staff')
-      .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, store_id, store:stores(id, name)')
-      .eq('is_visible', true);
+    const roleVisibilityMap: Record<string, boolean> = {};
+    roleVisibilityData?.forEach(r => {
+      roleVisibilityMap[r.role_type] = r.is_visible;
+    });
 
-    const virtualStaff: Staff[] = (virtualStaffData || []).map(s => ({
+    // Check if manager and virtual_staff roles are visible
+    const isStaffRoleVisible = roleVisibilityMap['manager'] !== false;
+    const isVirtualStaffRoleVisible = roleVisibilityMap['virtual_staff'] !== false;
+
+    // Create a map of store_type -> is_visible, and a set of hidden types
+    const visibilityMap: Record<string, boolean> = {};
+    const hiddenStoreTypes = new Set<string>();
+
+    visibilityData?.forEach(v => {
+      const storeType = v.store_type?.trim();
+      if (storeType) {
+        visibilityMap[storeType] = v.is_visible;
+        if (!v.is_visible) {
+          hiddenStoreTypes.add(storeType);
+        }
+      }
+    });
+
+    // Helper function to check if a store type is visible
+    const isStoreTypeVisible = (storeType: string | null | undefined): boolean => {
+      if (!storeType) return false; // No store type = treat as hidden for safety
+      const trimmed = storeType.trim();
+      if (!trimmed) return false;
+      // If explicitly marked as hidden, return false
+      if (hiddenStoreTypes.has(trimmed)) return false;
+      if (visibilityMap[trimmed] === false) return false;
+      // If in visibility map and visible, return true
+      if (visibilityMap[trimmed] === true) return true;
+      // If not in visibility map at all, treat as visible (default)
+      return true;
+    };
+
+    // Fetch real staff (only if role is visible and individual is visible)
+    let staffData: { id: string; name: string; bio: string | null; specialties: string[] | null; profile_photo_url: string | null; age: number | null; height: number | null; weight: number | null; body_size: string | null; job: string | null; mbti: string | null; created_by_admin_id: string | null; is_visible: boolean | null }[] = [];
+    if (isStaffRoleVisible) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, is_visible')
+        .eq('role', 'manager')
+        .neq('is_visible', false);
+      staffData = data || [];
+    }
+
+    // Fetch virtual staff (admin-created) - only if role is visible
+    let virtualStaffData: { id: string; name: string; bio: string | null; specialties: string[] | null; profile_photo_url: string | null; age: number | null; height: number | null; weight: number | null; body_size: string | null; job: string | null; mbti: string | null; created_by_admin_id: string | null; store_id: number; store: unknown }[] = [];
+    if (isVirtualStaffRoleVisible) {
+      const { data } = await supabase
+        .from('virtual_staff')
+        .select('id, name, bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, created_by_admin_id, store_id, store:stores(id, name, store_type)')
+        .eq('is_visible', true);
+      virtualStaffData = data || [];
+    }
+
+    // Filter virtual staff by hidden store types
+    const filteredVirtualStaff = virtualStaffData.filter(s => {
+      const storeData = s.store as unknown as { id: number; name: string; store_type?: string } | null;
+      // Must have a store with a visible store type
+      return isStoreTypeVisible(storeData?.store_type);
+    });
+
+    const virtualStaff: Staff[] = filteredVirtualStaff.map(s => ({
       ...s,
       isVirtual: true,
-      store: s.store as unknown as { id: number; name: string } | undefined,
+      store: s.store as unknown as { id: number; name: string; store_type?: string } | undefined,
     }));
 
-    setStaffList([...realStaff, ...virtualStaff]);
-
-    // Fetch affiliated stores for regular staff
+    // Fetch affiliated stores for regular staff (include store_type)
+    let storesMap: Record<string, StoreInfo[]> = {};
     if (staffData && staffData.length > 0) {
       const { data: storeStaffData } = await supabase
         .from('store_staff')
-        .select('staff_id, store:stores(id, name)')
+        .select('staff_id, store:stores(id, name, store_type)')
         .in('staff_id', staffData.map(s => s.id));
 
-      const storesMap: Record<string, StoreInfo[]> = {};
       storeStaffData?.forEach(ss => {
-        const store = ss.store as unknown as { id: number; name: string } | null;
+        const store = ss.store as unknown as { id: number; name: string; store_type?: string } | null;
         if (store) {
           if (!storesMap[ss.staff_id]) {
             storesMap[ss.staff_id] = [];
@@ -138,17 +199,49 @@ export default function StaffSearch() {
           storesMap[ss.staff_id].push(store);
         }
       });
-      setAffiliatedStoresMap(storesMap);
     }
 
-    const specialties = new Set<string>();
-    staffData?.forEach(s => {
-      s.specialties?.forEach((spec: string) => specialties.add(spec));
+    // Filter real staff - must have at least one store with a visible store type
+    const filteredRealStaff = (staffData || []).filter(s => {
+      const staffStores = storesMap[s.id] || [];
+      if (staffStores.length === 0) return false; // Hide if no store affiliation
+      // Check if at least one store has a visible store type
+      return staffStores.some(store => isStoreTypeVisible(store.store_type));
     });
-    virtualStaffData?.forEach(s => {
-      s.specialties?.forEach((spec: string) => specialties.add(spec));
+
+    const realStaff: Staff[] = filteredRealStaff.map(s => ({ ...s, isVirtual: false }));
+
+    setStaffList([...realStaff, ...virtualStaff]);
+    setAffiliatedStoresMap(storesMap);
+
+    // Collect store types and create staff-to-store-types mapping (exclude hidden store types)
+    const storeTypes = new Set<string>();
+    const staffStoreTypes: Record<string, string[]> = {};
+
+    // For real staff: get store types from affiliated stores (only visible ones)
+    filteredRealStaff.forEach(s => {
+      const stores = storesMap[s.id] || [];
+      const types = stores
+        .map(store => store.store_type?.trim())
+        .filter((t): t is string => !!t && isStoreTypeVisible(t));
+      if (types.length > 0) {
+        staffStoreTypes[s.id] = types;
+        types.forEach(t => storeTypes.add(t));
+      }
     });
-    setAllSpecialties(Array.from(specialties));
+
+    // For virtual staff: get store type from their store (only if visible)
+    filteredVirtualStaff.forEach(s => {
+      const storeData = s.store as unknown as { id: number; name: string; store_type?: string } | null;
+      const storeType = storeData?.store_type?.trim();
+      if (storeType && isStoreTypeVisible(storeType)) {
+        staffStoreTypes[s.id] = [storeType];
+        storeTypes.add(storeType);
+      }
+    });
+
+    setStaffStoreTypesMap(staffStoreTypes);
+    setAllStoreTypes(Array.from(storeTypes).sort());
 
     const scheduleByStaff: Record<string, Schedule> = {};
 
@@ -219,8 +312,8 @@ export default function StaffSearch() {
   const filteredStaffs = staffList
     .filter((staff) => {
       if (blockedByStaff.has(staff.id)) return false;
-      const matchesSpecialty = !selectedSpecialty || staff.specialties?.includes(selectedSpecialty);
-      return matchesSpecialty;
+      const matchesStoreType = !selectedStoreType || staffStoreTypesMap[staff.id]?.includes(selectedStoreType);
+      return matchesStoreType;
     })
     .sort((a, b) => {
       // 1. 즐겨찾기 우선
@@ -263,13 +356,13 @@ export default function StaffSearch() {
       {/* Filters */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-slate-50 rounded-xl max-md:flex-col">
         <select
-          value={selectedSpecialty}
-          onChange={(e) => setSelectedSpecialty(e.target.value)}
+          value={selectedStoreType}
+          onChange={(e) => setSelectedStoreType(e.target.value)}
           className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
         >
-          <option value="">전체 분야</option>
-          {allSpecialties.map((specialty) => (
-            <option key={specialty} value={specialty}>{specialty}</option>
+          <option value="">전체 업종</option>
+          {allStoreTypes.map((storeType) => (
+            <option key={storeType} value={storeType}>{storeType}</option>
           ))}
         </select>
         <select
@@ -338,7 +431,7 @@ export default function StaffSearch() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-bold text-slate-900">{staff.name}</h3>
                   {staff.isVirtual ? (
-                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">실장 등록</span>
                   ) : (
                     <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
                   )}

@@ -520,7 +520,7 @@ export default function StoreManagement() {
                 )}
               </div>
               <div className="text-sm">
-                <span className="text-slate-500">관리자: </span>
+                <span className="text-slate-500">실장: </span>
                 <span className="text-slate-700">{store.adminCount}명</span>
               </div>
               <div className="text-sm">
@@ -633,7 +633,7 @@ export default function StoreManagement() {
 
               {/* Owner & Admins */}
               <div className="p-4 bg-slate-50 rounded-xl">
-                <h3 className="text-sm font-medium text-slate-700 mb-3">사장 및 관리자</h3>
+                <h3 className="text-sm font-medium text-slate-700 mb-3">사장 및 실장</h3>
                 <div className="space-y-2">
                   {selectedStore.owner && (
                     <div className="flex items-center justify-between p-2 bg-white rounded-lg">
@@ -650,7 +650,7 @@ export default function StoreManagement() {
                         <span className="font-medium text-slate-900">{admin.name}</span>
                         <span className="text-slate-400 text-xs ml-2">{admin.email}</span>
                       </div>
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">관리자</span>
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">실장</span>
                     </div>
                   ))}
                   {!storeDetails && <div className="text-center py-2 text-slate-400">로딩 중...</div>}

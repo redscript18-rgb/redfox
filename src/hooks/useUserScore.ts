@@ -18,11 +18,25 @@ interface ScoreHistory {
   created_at: string;
 }
 
+export interface PendingGift {
+  id: number;
+  sender_id: string;
+  receiver_id: string;
+  amount: number;
+  message: string | null;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  processed_at: string | null;
+  sender?: { name: string; email: string };
+  receiver?: { name: string; email: string };
+}
+
 const DAILY_LOGIN_REWARD = 100;
 
 export function useUserScore(userId: string | undefined) {
   const [score, setScore] = useState<UserScore | null>(null);
   const [history, setHistory] = useState<ScoreHistory[]>([]);
+  const [pendingGifts, setPendingGifts] = useState<PendingGift[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
 
@@ -74,11 +88,36 @@ export function useUserScore(userId: string | undefined) {
     }
   }, [userId]);
 
+  const fetchPendingGifts = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('pending_gifts')
+        .select(`
+          *,
+          sender:profiles!pending_gifts_sender_id_fkey(name, email),
+          receiver:profiles!pending_gifts_receiver_id_fkey(name, email)
+        `)
+        .eq('receiver_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('대기 선물 조회 실패:', error);
+        return;
+      }
+
+      setPendingGifts(data || []);
+    } catch (err) {
+      console.error('대기 선물 조회 에러:', err);
+    }
+  }, [userId]);
+
   const initializeScore = useCallback(async () => {
     if (!userId) return null;
 
     try {
-      // 이미 레코드가 있는지 확인
       const { data: existing } = await supabase
         .from('user_scores')
         .select('*')
@@ -90,7 +129,6 @@ export function useUserScore(userId: string | undefined) {
         return existing;
       }
 
-      // 없으면 새로 생성
       const { data, error } = await supabase
         .from('user_scores')
         .insert({ user_id: userId, total_score: 0 })
@@ -125,7 +163,6 @@ export function useUserScore(userId: string | undefined) {
     const today = new Date().toISOString().split('T')[0];
 
     try {
-      // 점수 레코드가 없으면 생성
       let currentScore = score;
       if (!currentScore) {
         currentScore = await initializeScore();
@@ -134,7 +171,6 @@ export function useUserScore(userId: string | undefined) {
         }
       }
 
-      // 점수 업데이트
       const newTotalScore = (currentScore.total_score || 0) + DAILY_LOGIN_REWARD;
 
       const { error: updateError } = await supabase
@@ -151,8 +187,7 @@ export function useUserScore(userId: string | undefined) {
         return { success: false, error: '점수 업데이트에 실패했습니다.' };
       }
 
-      // 내역 추가
-      const { error: historyError } = await supabase
+      await supabase
         .from('score_history')
         .insert({
           user_id: userId,
@@ -161,11 +196,6 @@ export function useUserScore(userId: string | undefined) {
           description: '일일 로그인 보상'
         });
 
-      if (historyError) {
-        console.error('내역 추가 실패:', historyError);
-      }
-
-      // 상태 업데이트
       setScore(prev => prev ? {
         ...prev,
         total_score: newTotalScore,
@@ -173,7 +203,6 @@ export function useUserScore(userId: string | undefined) {
         updated_at: new Date().toISOString()
       } : null);
 
-      // 내역 새로고침
       fetchHistory();
 
       return { success: true, error: null };
@@ -183,7 +212,8 @@ export function useUserScore(userId: string | undefined) {
     }
   }, [userId, score, canClaimDaily, initializeScore, fetchHistory]);
 
-  const giftScore = useCallback(async (receiverId: string, receiverName: string, amount: number) => {
+  // 선물 보내기 (대기 상태로 생성, 점수 차감 안함)
+  const sendGift = useCallback(async (receiverId: string, _receiverName: string, amount: number, message?: string) => {
     if (!userId) return { success: false, error: '로그인이 필요합니다.' };
     if (amount < 100) return { success: false, error: '최소 100점부터 선물 가능합니다.' };
     if (amount % 100 !== 0) return { success: false, error: '100점 단위로만 선물 가능합니다.' };
@@ -191,67 +221,124 @@ export function useUserScore(userId: string | undefined) {
     if (receiverId === userId) return { success: false, error: '자신에게는 선물할 수 없습니다.' };
 
     try {
-      // 받는 사람 점수 레코드 확인/생성
-      const { data: receiverScore } = await supabase
-        .from('user_scores')
-        .select('*')
-        .eq('user_id', receiverId)
+      // 대기 선물 생성 (점수 차감 없음)
+      const { error: giftError } = await supabase
+        .from('pending_gifts')
+        .insert({
+          sender_id: userId,
+          receiver_id: receiverId,
+          amount,
+          message: message || null,
+          status: 'pending'
+        });
+
+      if (giftError) {
+        console.error('선물 생성 실패:', giftError);
+        return { success: false, error: '선물 전송에 실패했습니다.' };
+      }
+
+      // 보내는 사람 프로필 조회
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', userId)
         .single();
 
-      if (!receiverScore) {
-        // 받는 사람 점수 레코드 생성
+      // 받는 사람에게 알림
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: receiverId,
+          type: 'gift_pending',
+          title: '선물이 도착했습니다!',
+          message: `${senderProfile?.name || '누군가'}님이 ${amount.toLocaleString()}점을 선물했습니다. 수락하시겠습니까?`,
+          data: { sender_id: userId, sender_name: senderProfile?.name, amount }
+        });
+
+      return { success: true, error: null };
+    } catch (err) {
+      console.error('선물 전송 에러:', err);
+      return { success: false, error: '선물 전송 중 오류가 발생했습니다.' };
+    }
+  }, [userId, score]);
+
+  // 선물 수락
+  const acceptGift = useCallback(async (giftId: number) => {
+    if (!userId) return { success: false, error: '로그인이 필요합니다.' };
+
+    try {
+      // 선물 정보 조회
+      const { data: gift, error: giftError } = await supabase
+        .from('pending_gifts')
+        .select('*, sender:profiles!pending_gifts_sender_id_fkey(name)')
+        .eq('id', giftId)
+        .eq('receiver_id', userId)
+        .eq('status', 'pending')
+        .single();
+
+      if (giftError || !gift) {
+        return { success: false, error: '선물을 찾을 수 없습니다.' };
+      }
+
+      // 보내는 사람 점수 확인
+      const { data: senderScore } = await supabase
+        .from('user_scores')
+        .select('total_score')
+        .eq('user_id', gift.sender_id)
+        .single();
+
+      if (!senderScore || senderScore.total_score < gift.amount) {
+        // 보내는 사람 점수 부족 - 선물 거절 처리
         await supabase
-          .from('user_scores')
-          .insert({ user_id: receiverId, total_score: 0 });
+          .from('pending_gifts')
+          .update({ status: 'rejected', processed_at: new Date().toISOString() })
+          .eq('id', giftId);
+
+        return { success: false, error: '보내는 분의 점수가 부족하여 선물을 받을 수 없습니다.' };
       }
 
       // 보내는 사람 점수 차감
-      const newSenderScore = score.total_score - amount;
       const { error: senderUpdateError } = await supabase
         .from('user_scores')
         .update({
-          total_score: newSenderScore,
+          total_score: senderScore.total_score - gift.amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', gift.sender_id);
+
+      if (senderUpdateError) {
+        console.error('보내는 사람 점수 차감 실패:', senderUpdateError);
+        return { success: false, error: '선물 처리에 실패했습니다.' };
+      }
+
+      // 받는 사람 점수 추가
+      const currentScore = score?.total_score || 0;
+      const { error: receiverUpdateError } = await supabase
+        .from('user_scores')
+        .update({
+          total_score: currentScore + gift.amount,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId);
 
-      if (senderUpdateError) {
-        console.error('보내는 사람 점수 업데이트 실패:', senderUpdateError);
-        return { success: false, error: '점수 차감에 실패했습니다.' };
-      }
-
-      // 받는 사람 점수 추가
-      const receiverCurrentScore = receiverScore?.total_score || 0;
-      const { error: receiverUpdateError } = await supabase
-        .from('user_scores')
-        .update({
-          total_score: receiverCurrentScore + amount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', receiverId);
-
       if (receiverUpdateError) {
-        console.error('받는 사람 점수 업데이트 실패:', receiverUpdateError);
         // 롤백: 보내는 사람 점수 복구
         await supabase
           .from('user_scores')
-          .update({ total_score: score.total_score })
-          .eq('user_id', userId);
-        return { success: false, error: '선물 전송에 실패했습니다.' };
+          .update({ total_score: senderScore.total_score })
+          .eq('user_id', gift.sender_id);
+        console.error('받는 사람 점수 추가 실패:', receiverUpdateError);
+        return { success: false, error: '선물 처리에 실패했습니다.' };
       }
 
-      // 보내는 사람 내역 추가 (차감)
+      // 선물 상태 업데이트
       await supabase
-        .from('score_history')
-        .insert({
-          user_id: userId,
-          amount: -amount,
-          reason: 'gift_sent',
-          description: `${receiverName}님에게 선물`
-        });
+        .from('pending_gifts')
+        .update({ status: 'accepted', processed_at: new Date().toISOString() })
+        .eq('id', giftId);
 
-      // 받는 사람 내역 추가
-      const { data: senderProfile } = await supabase
+      // 보내는 사람 내역 추가
+      const { data: receiverProfile } = await supabase
         .from('profiles')
         .select('name')
         .eq('id', userId)
@@ -260,58 +347,125 @@ export function useUserScore(userId: string | undefined) {
       await supabase
         .from('score_history')
         .insert({
-          user_id: receiverId,
-          amount: amount,
-          reason: 'gift_received',
-          description: `${senderProfile?.name || '알 수 없음'}님으로부터 선물`
+          user_id: gift.sender_id,
+          amount: -gift.amount,
+          reason: 'gift_sent',
+          description: `${receiverProfile?.name || '알 수 없음'}님에게 선물`
         });
 
-      // 받는 사람에게 알림 추가
+      // 받는 사람 내역 추가
+      await supabase
+        .from('score_history')
+        .insert({
+          user_id: userId,
+          amount: gift.amount,
+          reason: 'gift_received',
+          description: `${gift.sender?.name || '알 수 없음'}님으로부터 선물`
+        });
+
+      // 보내는 사람에게 알림
       await supabase
         .from('notifications')
         .insert({
-          user_id: receiverId,
-          type: 'gift_received',
-          title: '선물 도착!',
-          message: `${senderProfile?.name || '누군가'}님이 ${amount.toLocaleString()}점을 선물했습니다.`,
-          data: { sender_id: userId, sender_name: senderProfile?.name, amount }
+          user_id: gift.sender_id,
+          type: 'gift_accepted',
+          title: '선물이 수락되었습니다!',
+          message: `${receiverProfile?.name || '누군가'}님이 ${gift.amount.toLocaleString()}점 선물을 수락했습니다.`,
+          data: { receiver_id: userId, receiver_name: receiverProfile?.name, amount: gift.amount }
         });
 
       // 상태 업데이트
       setScore(prev => prev ? {
         ...prev,
-        total_score: newSenderScore,
+        total_score: currentScore + gift.amount,
         updated_at: new Date().toISOString()
       } : null);
 
-      // 내역 새로고침
+      // 대기 선물 목록 새로고침
+      fetchPendingGifts();
       fetchHistory();
 
       return { success: true, error: null };
     } catch (err) {
-      console.error('선물 전송 에러:', err);
-      return { success: false, error: '선물 전송 중 오류가 발생했습니다.' };
+      console.error('선물 수락 에러:', err);
+      return { success: false, error: '선물 수락 중 오류가 발생했습니다.' };
     }
-  }, [userId, score, fetchHistory]);
+  }, [userId, score, fetchPendingGifts, fetchHistory]);
+
+  // 선물 거절
+  const rejectGift = useCallback(async (giftId: number) => {
+    if (!userId) return { success: false, error: '로그인이 필요합니다.' };
+
+    try {
+      const { data: gift } = await supabase
+        .from('pending_gifts')
+        .select('*, sender:profiles!pending_gifts_sender_id_fkey(name)')
+        .eq('id', giftId)
+        .eq('receiver_id', userId)
+        .eq('status', 'pending')
+        .single();
+
+      if (!gift) {
+        return { success: false, error: '선물을 찾을 수 없습니다.' };
+      }
+
+      // 선물 상태 업데이트
+      await supabase
+        .from('pending_gifts')
+        .update({ status: 'rejected', processed_at: new Date().toISOString() })
+        .eq('id', giftId);
+
+      // 받는 사람 프로필
+      const { data: receiverProfile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', userId)
+        .single();
+
+      // 보내는 사람에게 알림
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: gift.sender_id,
+          type: 'gift_rejected',
+          title: '선물이 거절되었습니다',
+          message: `${receiverProfile?.name || '누군가'}님이 ${gift.amount.toLocaleString()}점 선물을 거절했습니다.`,
+          data: { receiver_id: userId, receiver_name: receiverProfile?.name, amount: gift.amount }
+        });
+
+      fetchPendingGifts();
+
+      return { success: true, error: null };
+    } catch (err) {
+      console.error('선물 거절 에러:', err);
+      return { success: false, error: '선물 거절 중 오류가 발생했습니다.' };
+    }
+  }, [userId, fetchPendingGifts]);
 
   useEffect(() => {
     if (userId) {
       fetchScore();
+      fetchPendingGifts();
     }
-  }, [userId, fetchScore]);
+  }, [userId, fetchScore, fetchPendingGifts]);
 
   return {
     score,
     history,
+    pendingGifts,
     loading,
     historyLoading,
     canClaimDaily: canClaimDaily(),
     fetchScore,
     fetchHistory,
+    fetchPendingGifts,
     initializeScore,
     claimDailyReward,
-    giftScore,
-    totalScore: score?.total_score || 0
+    sendGift,
+    acceptGift,
+    rejectGift,
+    totalScore: score?.total_score || 0,
+    pendingGiftCount: pendingGifts.length
   };
 }
 

@@ -54,6 +54,13 @@ import SuperAdminStoreManagement from './pages/superadmin/StoreManagement';
 import ReservationOverview from './pages/superadmin/ReservationOverview';
 import VirtualStaffManagement from './pages/superadmin/VirtualStaffManagement';
 
+// 에이전시 페이지
+import AgencyDashboard from './pages/agency/AgencyDashboard';
+import AgencyManagerManagement from './pages/agency/AgencyManagerManagement';
+import AgencyDispatchManagement from './pages/agency/AgencyDispatchManagement';
+import AgencyInviteAccept from './pages/common/AgencyInviteAccept';
+import AgencySearch from './pages/staff/AgencySearch';
+
 import './App.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -73,11 +80,13 @@ function RoleBasedHome() {
   switch (user?.role) {
     case 'superadmin':
       return <SuperAdminDashboard />;
+    case 'agency':
+      return <AgencyDashboard />;
     case 'customer':
       return <CustomerHome />;
-    case 'staff':
+    case 'manager':
       return <StaffDashboard />;
-    case 'admin':
+    case 'staff':
       return <AdminDashboard />;
     case 'owner':
       return <OwnerDashboard />;
@@ -98,6 +107,7 @@ function AppRoutes() {
 
       {/* 초대 링크 수락 페이지 */}
       <Route path="/invite/:code" element={<InviteAccept />} />
+      <Route path="/agency-invite/:code" element={<AgencyInviteAccept />} />
 
       {/* 홈 - 역할별 다른 화면 */}
       <Route
@@ -454,6 +464,54 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <VirtualStaffManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 에이전시: 대시보드 */}
+      <Route
+        path="/agency"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AgencyDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 에이전시: 매니저 관리 */}
+      <Route
+        path="/agency/managers"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AgencyManagerManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 에이전시: 파견 관리 */}
+      <Route
+        path="/agency/dispatches"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AgencyDispatchManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 매니저용: 에이전시 탐색 */}
+      <Route
+        path="/staff/agencies"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AgencySearch />
             </Layout>
           </ProtectedRoute>
         }

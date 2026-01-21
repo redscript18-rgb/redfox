@@ -378,7 +378,7 @@ export default function StaffManage() {
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className="font-semibold text-slate-900">{staff.name}</h3>
                   {staff.isVirtual ? (
-                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">실장 등록</span>
                   ) : (
                     <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
                   )}

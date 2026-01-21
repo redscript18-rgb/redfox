@@ -293,7 +293,7 @@ export default function StoreDetail() {
               <Link key={`vs-${schedule.id}`} to={`/virtual-staff/${schedule.virtual_staff_id}`} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-slate-900">{schedule.virtual_staff?.name}</span>
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-600">관리자 등록</span>
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-600">실장 등록</span>
                 </div>
                 <span className="text-sm text-slate-500">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</span>
               </Link>
@@ -347,7 +347,7 @@ export default function StoreDetail() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium text-slate-900">{staff.name}</h3>
-                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">관리자 등록</span>
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">실장 등록</span>
                   </div>
                   {staff.bio && <p className="text-sm text-slate-500 line-clamp-1">{staff.bio}</p>}
                   {staff.specialties && (

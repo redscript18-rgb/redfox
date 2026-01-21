@@ -70,11 +70,13 @@ export default function SuperAdminDashboard() {
   const [addingType, setAddingType] = useState(false);
   const [draggedType, setDraggedType] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [roleVisibility, setRoleVisibility] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (user?.role === 'superadmin') {
       fetchStats();
       fetchTypeVisibility();
+      fetchRoleVisibility();
     }
   }, [user]);
 
@@ -89,6 +91,40 @@ export default function SuperAdminDashboard() {
         visibility[item.store_type] = item.is_visible;
       });
       setTypeVisibility(visibility);
+    }
+  };
+
+  const fetchRoleVisibility = async () => {
+    const { data } = await supabase
+      .from('role_visibility')
+      .select('role_type, is_visible');
+
+    if (data) {
+      const visibility: Record<string, boolean> = {};
+      data.forEach(item => {
+        visibility[item.role_type] = item.is_visible;
+      });
+      setRoleVisibility(visibility);
+    }
+  };
+
+  const handleRoleVisibilityChange = async (roleType: string, isVisible: boolean) => {
+    // Optimistic update
+    setRoleVisibility(prev => ({ ...prev, [roleType]: isVisible }));
+
+    // Upsert to database
+    const { error } = await supabase
+      .from('role_visibility')
+      .upsert({
+        role_type: roleType,
+        is_visible: isVisible,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'role_type' });
+
+    if (error) {
+      // Revert on error
+      setRoleVisibility(prev => ({ ...prev, [roleType]: !isVisible }));
+      console.error('Failed to update role visibility:', error);
     }
   };
 
@@ -377,9 +413,10 @@ export default function SuperAdminDashboard() {
   const getRoleName = (role: string) => {
     switch (role) {
       case 'superadmin': return 'ADMIN';
+      case 'agency': return '에이전시';
       case 'owner': return '사장';
-      case 'admin': return '관리자';
-      case 'staff': return '프리 매니저';
+      case 'staff': return '실장';
+      case 'manager': return '프리 매니저';
       case 'customer': return '손님';
       default: return role;
     }
@@ -407,7 +444,7 @@ export default function SuperAdminDashboard() {
 
     // Get stores for owner/admin
     let stores: { id: number; name: string }[] = [];
-    if (userData.role === 'owner' || userData.role === 'admin') {
+    if (userData.role === 'owner' || userData.role === 'staff') {
       const { data: ownedStores } = await supabase
         .from('stores')
         .select('id, name')
@@ -530,24 +567,51 @@ export default function SuperAdminDashboard() {
         <div className="p-5 bg-white border border-slate-200 rounded-xl">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">역할별 사용자</h2>
           <div className="space-y-2">
-            {stats?.usersByRole.map(({ role, count }) => (
-              <Link
-                key={role}
-                to={`/superadmin/users?role=${role}`}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <span className="text-slate-700">{getRoleName(role)}</span>
-                <span className="font-semibold text-slate-900">{count}명 →</span>
-              </Link>
-            ))}
+            {stats?.usersByRole.filter(({ role }) => role !== 'superadmin').map(({ role, count }) => {
+              const showToggle = ['owner', 'staff', 'manager', 'agency'].includes(role);
+              return (
+                <div
+                  key={role}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                >
+                  <Link
+                    to={`/superadmin/users?role=${role}`}
+                    className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
+                  >
+                    <span className="text-slate-700">{getRoleName(role)}</span>
+                    <span className="font-semibold text-slate-900">{count}명 →</span>
+                  </Link>
+                  {showToggle && (
+                    <div className="ml-3 flex items-center gap-2">
+                      <span className="text-xs text-slate-400">노출</span>
+                      <ToggleSwitch
+                        enabled={roleVisibility[role] ?? true}
+                        onChange={(v) => handleRoleVisibilityChange(role, v)}
+                        size="sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {/* 등록 매니저 (virtual_staff) */}
-            <Link
-              to="/superadmin/virtual-staff"
-              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <span className="text-slate-700">등록 매니저</span>
-              <span className="font-semibold text-slate-900">{stats?.totalVirtualStaff}명 →</span>
-            </Link>
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <Link
+                to="/superadmin/virtual-staff"
+                className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
+              >
+                <span className="text-slate-700">등록 매니저</span>
+                <span className="font-semibold text-slate-900">{stats?.totalVirtualStaff}명 →</span>
+              </Link>
+              <div className="ml-3 flex items-center gap-2">
+                <span className="text-xs text-slate-400">노출</span>
+                <ToggleSwitch
+                  enabled={roleVisibility['virtual_staff'] ?? true}
+                  onChange={(v) => handleRoleVisibilityChange('virtual_staff', v)}
+                  size="sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
 

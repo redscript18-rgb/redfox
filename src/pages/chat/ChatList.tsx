@@ -115,7 +115,7 @@ export default function ChatList() {
     setStaffList([]);
     setStores([]);
 
-    if (user?.role === 'admin') {
+    if (user?.role === 'staff') {
       // Admin: show affiliated staff members
       const { data: adminStoresData } = await supabase
         .from('store_admins')
@@ -158,8 +158,8 @@ export default function ChatList() {
           setStaffList(staffWithStores);
         }
       }
-    } else if (user?.role === 'staff') {
-      // Staff: show only affiliated stores
+    } else if (user?.role === 'manager') {
+      // Manager: show only affiliated stores
       const { data: storeStaffData } = await supabase
         .from('store_staff')
         .select('store_id')
@@ -236,8 +236,8 @@ export default function ChatList() {
     if (!user) return;
 
     try {
-      if (user.role === 'staff') {
-        // Staff starting conversation with admin
+      if (user.role === 'manager') {
+        // Manager starting conversation with admin
         const { data: existing, error: findError } = await supabase
           .from('conversations')
           .select('id')
@@ -359,11 +359,11 @@ export default function ChatList() {
   };
 
   const getOtherParticipant = (conv: Conversation) => {
-    if (user?.role === 'admin') {
-      // Admin sees customer or staff
+    if (user?.role === 'staff') {
+      // 실장 sees customer or manager
       return conv.customer || conv.staff;
-    } else if (user?.role === 'staff') {
-      // Staff sees admin
+    } else if (user?.role === 'manager') {
+      // 프리 매니저 sees admin
       return conv.admin;
     }
     // Customer sees admin
@@ -433,7 +433,7 @@ export default function ChatList() {
   };
 
   // Filter conversations for admin tabs
-  const filteredConversations = user?.role === 'admin'
+  const filteredConversations = user?.role === 'staff'
     ? conversations.filter(conv => {
         if (activeTab === 'customer') return conv.customer_id !== null;
         if (activeTab === 'staff') return conv.staff_id !== null;
@@ -455,7 +455,7 @@ export default function ChatList() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">메시지</h1>
-        {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'admin') && (
+        {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager') && (
           <button
             onClick={openNewChatModal}
             className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
@@ -466,7 +466,7 @@ export default function ChatList() {
       </div>
 
       {/* Admin Tabs */}
-      {user?.role === 'admin' && conversations.length > 0 && (
+      {user?.role === 'staff' && conversations.length > 0 && (
         <div className="flex gap-1 mb-4 p-1 bg-slate-100 rounded-lg">
           <button
             onClick={() => setActiveTab('all')}
@@ -519,11 +519,11 @@ export default function ChatList() {
       {filteredConversations.length === 0 ? (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
           <p className="text-slate-500">
-            {user?.role === 'admin' && activeTab !== 'all'
+            {user?.role === 'staff' && activeTab !== 'all'
               ? `${activeTab === 'customer' ? '손님' : '매니저'}과의 메시지가 없습니다.`
               : '메시지가 없습니다.'}
           </p>
-          {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'admin') && (
+          {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager') && (
             <button
               onClick={openNewChatModal}
               className="mt-4 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
@@ -549,7 +549,7 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-slate-900">{other?.name || '알 수 없음'}</span>
-                      {user?.role === 'admin' && (
+                      {user?.role === 'staff' && (
                         <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
                           {convType === 'staff' ? '매니저' : '손님'}
                         </span>
@@ -598,7 +598,7 @@ export default function ChatList() {
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h2 className="text-lg font-semibold text-slate-900">
-                {user?.role === 'admin' ? '매니저 선택' : '가게 선택'}
+                {user?.role === 'staff' ? '매니저 선택' : '가게 선택'}
               </h2>
               <button
                 onClick={() => setShowNewChat(false)}
@@ -610,7 +610,7 @@ export default function ChatList() {
             <div className="p-4 overflow-y-auto max-h-[60vh]">
               {loadingStores ? (
                 <p className="text-slate-500 text-center py-4">로딩 중...</p>
-              ) : user?.role === 'admin' ? (
+              ) : user?.role === 'staff' ? (
                 // Admin: show staff list
                 staffList.length === 0 ? (
                   <p className="text-slate-500 text-center py-4">메시지를 보낼 매니저가 없습니다.</p>

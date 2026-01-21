@@ -315,7 +315,7 @@ export default function StoreSettings() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-slate-900">{staff.name}</h3>
-                        <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+                        <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-medium rounded">실장 등록</span>
                       </div>
                       {staff.bio && <p className="text-sm text-slate-500 truncate">{staff.bio}</p>}
                       {staff.phone && <p className="text-xs text-slate-400">{staff.phone}</p>}

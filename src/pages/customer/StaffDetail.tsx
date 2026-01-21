@@ -39,6 +39,7 @@ interface Store {
   id: number;
   name: string;
   address: string;
+  store_type?: string;
 }
 
 interface Menu {
@@ -125,7 +126,43 @@ export default function StaffDetail() {
 
     const { data: staffData } = await supabase.from('profiles').select('*').eq('id', id).single();
     if (!staffData) { setLoading(false); return; }
+
+    // Check if staff is hidden (for customer view)
+    if (user?.role === 'customer' && staffData.is_visible === false) {
+      setLoading(false);
+      return;
+    }
+
+    // Fetch hidden store types
+    const { data: visibilityData } = await supabase
+      .from('store_type_visibility')
+      .select('store_type')
+      .eq('is_visible', false);
+    const hiddenStoreTypes = new Set(visibilityData?.map(v => v.store_type) || []);
+
+    // Check if staff is affiliated with any visible store type
+    const { data: storeStaffData } = await supabase.from('store_staff').select('store_id').eq('staff_id', id);
+    let affiliatedStoresList: Store[] = [];
+    if (storeStaffData && storeStaffData.length > 0) {
+      const storeIds = storeStaffData.map(s => s.store_id);
+      const { data: storesData } = await supabase.from('stores').select('*').in('id', storeIds);
+      affiliatedStoresList = storesData || [];
+
+      // If staff has stores, check if at least one store type is visible
+      if (affiliatedStoresList.length > 0) {
+        const hasVisibleStore = affiliatedStoresList.some(store =>
+          !store.store_type || !hiddenStoreTypes.has(store.store_type)
+        );
+        if (!hasVisibleStore) {
+          // All affiliated stores have hidden store types - block access
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     setStaff(staffData);
+    setAffiliatedStores(affiliatedStoresList);
 
     const today = getLocalToday();
 
@@ -139,13 +176,6 @@ export default function StaffDetail() {
         counts[schedule.id] = count || 0;
       }
       setReservationCounts(counts);
-    }
-
-    const { data: storeStaffData } = await supabase.from('store_staff').select('store_id').eq('staff_id', id);
-    if (storeStaffData && storeStaffData.length > 0) {
-      const storeIds = storeStaffData.map(s => s.store_id);
-      const { data: storesData } = await supabase.from('stores').select('*').in('id', storeIds);
-      setAffiliatedStores(storesData || []);
     }
 
     const { data: photosData } = await supabase.from('staff_photos').select('*').eq('staff_id', id).order('date', { ascending: false }).limit(20);
@@ -212,7 +242,7 @@ export default function StaffDetail() {
           <div className="flex items-center gap-3 mb-2 max-sm:justify-center">
             <h1 className="text-2xl font-bold text-slate-900">{staff.name}</h1>
             {staff.created_by_admin_id ? (
-              <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+              <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded">실장 등록</span>
             ) : (
               <span className="px-2 py-1 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
             )}
@@ -247,7 +277,7 @@ export default function StaffDetail() {
               )}
               {staffRating.adminCount > 0 && (
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">관리자</span>
+                  <span className="text-slate-500">실장</span>
                   <span className="text-amber-500">★</span>
                   <span className="font-medium text-slate-900">{staffRating.adminAvgRating?.toFixed(1)}</span>
                   <span className="text-slate-400">({staffRating.adminCount})</span>

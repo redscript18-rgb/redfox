@@ -73,7 +73,7 @@ export default function InviteAccept() {
     }
 
     if (user.role === 'customer') {
-      const { error: roleError } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+      const { error: roleError } = await supabase.from('profiles').update({ role: 'staff' }).eq('id', user.id);
       if (roleError) { alert('역할 변경 실패: ' + roleError.message); setAccepting(false); return; }
     }
 
@@ -88,7 +88,7 @@ export default function InviteAccept() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">관리자 초대</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">실장 초대</h1>
           <p className="text-slate-500 mb-6">초대를 수락하려면 먼저 로그인해주세요.</p>
           <button className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors" onClick={goToLogin}>로그인하기</button>
         </div>
@@ -128,8 +128,8 @@ export default function InviteAccept() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl text-green-600">✓</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">이미 관리자입니다</h1>
-          <p className="text-slate-500 mb-4">이미 이 가게의 관리자로 등록되어 있습니다.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">이미 실장입니다</h1>
+          <p className="text-slate-500 mb-4">이미 이 가게의 실장으로 등록되어 있습니다.</p>
           <div className="p-4 bg-slate-50 rounded-lg mb-6">
             <h3 className="font-semibold text-slate-900">{store?.name}</h3>
             <p className="text-sm text-slate-500">{store?.address}</p>
@@ -143,8 +143,8 @@ export default function InviteAccept() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-lg">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">관리자 초대</h1>
-        <p className="text-slate-500 mb-6 text-center">아래 가게의 관리자로 초대되었습니다.</p>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">실장 초대</h1>
+        <p className="text-slate-500 mb-6 text-center">아래 가게의 실장으로 초대되었습니다.</p>
 
         <div className="p-4 bg-slate-50 rounded-lg mb-4">
           <h3 className="font-semibold text-slate-900">{store?.name}</h3>

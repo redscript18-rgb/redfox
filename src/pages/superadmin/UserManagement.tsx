@@ -10,6 +10,7 @@ interface User {
   role: string;
   phone: string | null;
   created_at: string;
+  is_visible?: boolean;
 }
 
 interface StoreInfo {
@@ -39,7 +40,8 @@ interface StaffProfile {
   languages: string[] | null;
 }
 
-type RoleFilter = 'all' | 'customer' | 'staff' | 'admin' | 'owner' | 'superadmin';
+type RoleFilter = 'all' | 'customer' | 'manager' | 'staff' | 'owner' | 'superadmin' | 'agency';
+type SortOption = 'newest' | 'oldest' | 'score_high' | 'score_low';
 
 export default function UserManagement() {
   const { user } = useAuth();
@@ -48,12 +50,13 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<RoleFilter>(() => {
     const roleParam = searchParams.get('role');
-    if (roleParam && ['customer', 'staff', 'admin', 'owner', 'superadmin'].includes(roleParam)) {
+    if (roleParam && ['customer', 'manager', 'staff', 'owner', 'superadmin', 'agency'].includes(roleParam)) {
       return roleParam as RoleFilter;
     }
     return 'all';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState('');
   const [userStoreMap, setUserStoreMap] = useState<Record<string, StoreInfo[]>>({});
@@ -140,13 +143,28 @@ export default function UserManagement() {
     setLoading(false);
   };
 
-  const filteredUsers = users.filter(u => {
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-    const matchesSearch = searchQuery === '' ||
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesRole && matchesSearch;
-  });
+  const filteredUsers = users
+    .filter(u => {
+      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+      const matchesSearch = searchQuery === '' ||
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesRole && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'score_high':
+          return (userScoreMap[b.id] || 0) - (userScoreMap[a.id] || 0);
+        case 'score_low':
+          return (userScoreMap[a.id] || 0) - (userScoreMap[b.id] || 0);
+        default:
+          return 0;
+      }
+    });
 
   const updateUserRole = async () => {
     if (!editingUser || !newRole) return;
@@ -180,15 +198,29 @@ export default function UserManagement() {
     }
   };
 
+  const toggleStaffVisibility = async (userId: string, currentVisibility: boolean) => {
+    const newVisibility = !currentVisibility;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_visible: newVisibility })
+      .eq('id', userId);
+
+    if (!error) {
+      setUsers(prev => prev.map(u =>
+        u.id === userId ? { ...u, is_visible: newVisibility } : u
+      ));
+    }
+  };
+
   const openUserDetail = async (u: User) => {
     setSelectedUser(u);
     setUserDetails(null);
     setStaffProfile(null);
 
     // Fetch additional user details
-    // For staff, count reservations where they are the staff (받은 예약)
+    // For manager, count reservations where they are the staff (받은 예약)
     // For customers, count reservations where they are the customer (한 예약)
-    const reservationQuery = u.role === 'staff'
+    const reservationQuery = u.role === 'manager'
       ? supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('staff_id', u.id)
       : supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('customer_id', u.id);
 
@@ -206,8 +238,8 @@ export default function UserManagement() {
       score: scoreData.data?.total_score || 0
     });
 
-    // Fetch staff profile if user is staff
-    if (u.role === 'staff') {
+    // Fetch staff profile if user is manager
+    if (u.role === 'manager') {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('bio, specialties, profile_photo_url, age, height, weight, body_size, job, mbti, is_smoker, personality, style, skin_tone, hair_length, hair_style, hair_color, is_waxed, nationalities, languages')
@@ -223,9 +255,10 @@ export default function UserManagement() {
   const getRoleName = (role: string) => {
     switch (role) {
       case 'superadmin': return 'ADMIN';
+      case 'agency': return '에이전시';
       case 'owner': return '사장';
-      case 'admin': return '관리자';
-      case 'staff': return '프리 매니저';
+      case 'staff': return '실장';
+      case 'manager': return '프리 매니저';
       case 'customer': return '손님';
       default: return role;
     }
@@ -234,9 +267,10 @@ export default function UserManagement() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'superadmin': return 'bg-purple-100 text-purple-700';
+      case 'agency': return 'bg-indigo-100 text-indigo-700';
       case 'owner': return 'bg-blue-100 text-blue-700';
-      case 'admin': return 'bg-green-100 text-green-700';
-      case 'staff': return 'bg-orange-100 text-orange-700';
+      case 'staff': return 'bg-green-100 text-green-700';
+      case 'manager': return 'bg-orange-100 text-orange-700';
       case 'customer': return 'bg-slate-100 text-slate-700';
       default: return 'bg-slate-100 text-slate-700';
     }
@@ -276,10 +310,21 @@ export default function UserManagement() {
         >
           <option value="all">전체 역할</option>
           <option value="customer">손님</option>
-          <option value="staff">프리 매니저</option>
-          <option value="admin">관리자</option>
+          <option value="manager">프리 매니저</option>
+          <option value="agency">에이전시</option>
+          <option value="staff">실장</option>
           <option value="owner">사장</option>
           <option value="superadmin">ADMIN</option>
+        </select>
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value as SortOption)}
+          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+        >
+          <option value="newest">최신 가입순</option>
+          <option value="oldest">오래된 가입순</option>
+          <option value="score_high">점수 높은순</option>
+          <option value="score_low">점수 낮은순</option>
         </select>
       </div>
 
@@ -312,7 +357,7 @@ export default function UserManagement() {
                     </span>
                   )}
                 </div>
-                {(u.role === 'owner' || u.role === 'admin') && userStoreMap[u.id]?.length > 0 && (
+                {(u.role === 'owner' || u.role === 'staff') && userStoreMap[u.id]?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {userStoreMap[u.id].map(store => (
                       <Link
@@ -328,6 +373,22 @@ export default function UserManagement() {
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {u.role === 'manager' && (
+                  <label
+                    className="relative inline-flex items-center cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                    title={u.is_visible !== false ? '손님에게 노출됨' : '손님에게 숨겨짐'}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={u.is_visible !== false}
+                      onChange={() => toggleStaffVisibility(u.id, u.is_visible !== false)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                    <span className="ml-2 text-xs text-slate-500">{u.is_visible !== false ? '노출' : '숨김'}</span>
+                  </label>
+                )}
                 <button
                   onClick={(e) => { e.stopPropagation(); setEditingUser(u); setNewRole(u.role); }}
                   className="px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
@@ -361,7 +422,7 @@ export default function UserManagement() {
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
                 {/* Profile Photo for Staff */}
-                {selectedUser.role === 'staff' && (
+                {selectedUser.role === 'manager' && (
                   <div
                     className={`w-16 h-16 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xl font-bold text-white overflow-hidden flex-shrink-0 ${staffProfile?.profile_photo_url ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
                     onClick={() => staffProfile?.profile_photo_url && setViewingPhoto(staffProfile.profile_photo_url)}
@@ -393,7 +454,7 @@ export default function UserManagement() {
 
             <div className="space-y-4">
               {/* Staff Profile Tags */}
-              {selectedUser.role === 'staff' && staffProfile && (
+              {selectedUser.role === 'manager' && staffProfile && (
                 (staffProfile.age || staffProfile.height || staffProfile.weight || staffProfile.body_size || staffProfile.job || staffProfile.mbti) && (
                   <div className="flex flex-wrap gap-2">
                     {staffProfile.job && <span className="px-2 py-1 bg-blue-50 text-blue-600 text-sm rounded">{staffProfile.job}</span>}
@@ -407,7 +468,7 @@ export default function UserManagement() {
               )}
 
               {/* Staff Specialties */}
-              {selectedUser.role === 'staff' && staffProfile?.specialties && staffProfile.specialties.length > 0 && (
+              {selectedUser.role === 'manager' && staffProfile?.specialties && staffProfile.specialties.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {staffProfile.specialties.map((s) => (
                     <span key={s} className="px-2 py-1 bg-orange-50 text-orange-600 text-sm rounded">{s}</span>
@@ -416,7 +477,7 @@ export default function UserManagement() {
               )}
 
               {/* Staff Nationalities & Languages */}
-              {selectedUser.role === 'staff' && staffProfile && ((staffProfile.nationalities && staffProfile.nationalities.length > 0) || (staffProfile.languages && staffProfile.languages.length > 0)) && (
+              {selectedUser.role === 'manager' && staffProfile && ((staffProfile.nationalities && staffProfile.nationalities.length > 0) || (staffProfile.languages && staffProfile.languages.length > 0)) && (
                 <div className="p-4 bg-slate-50 rounded-xl">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">국적 & 언어</h3>
                   <div className="space-y-2">
@@ -462,7 +523,7 @@ export default function UserManagement() {
               </div>
 
               {/* Staff Bio */}
-              {selectedUser.role === 'staff' && staffProfile?.bio && (
+              {selectedUser.role === 'manager' && staffProfile?.bio && (
                 <div className="p-4 bg-slate-50 rounded-xl">
                   <h3 className="text-sm font-medium text-slate-700 mb-2">소개</h3>
                   <p className="text-sm text-slate-600 whitespace-pre-wrap">{staffProfile.bio}</p>
@@ -470,7 +531,7 @@ export default function UserManagement() {
               )}
 
               {/* Staff Appearance */}
-              {selectedUser.role === 'staff' && staffProfile && (staffProfile.skin_tone || staffProfile.hair_length || staffProfile.hair_style || staffProfile.hair_color || staffProfile.is_waxed !== null) && (
+              {selectedUser.role === 'manager' && staffProfile && (staffProfile.skin_tone || staffProfile.hair_length || staffProfile.hair_style || staffProfile.hair_color || staffProfile.is_waxed !== null) && (
                 <div className="p-4 bg-slate-50 rounded-xl">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">외모</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -494,7 +555,7 @@ export default function UserManagement() {
               )}
 
               {/* Staff Personality & Style */}
-              {selectedUser.role === 'staff' && staffProfile && (staffProfile.personality || staffProfile.style || staffProfile.is_smoker !== null) && (
+              {selectedUser.role === 'manager' && staffProfile && (staffProfile.personality || staffProfile.style || staffProfile.is_smoker !== null) && (
                 <div className="p-4 bg-slate-50 rounded-xl">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">성격 & 스타일</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -512,7 +573,7 @@ export default function UserManagement() {
               )}
 
               {/* Stores (for owner/admin) */}
-              {(selectedUser.role === 'owner' || selectedUser.role === 'admin') && userStoreMap[selectedUser.id]?.length > 0 && (
+              {(selectedUser.role === 'owner' || selectedUser.role === 'staff') && userStoreMap[selectedUser.id]?.length > 0 && (
                 <div className="p-4 bg-slate-50 rounded-xl">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">
                     {selectedUser.role === 'owner' ? '소유 가게' : '관리 가게'}
@@ -561,7 +622,7 @@ export default function UserManagement() {
             </div>
 
             <div className="flex gap-2 mt-6">
-              {selectedUser.role === 'staff' && (
+              {selectedUser.role === 'manager' && (
                 <Link
                   to={`/staff/${selectedUser.id}`}
                   onClick={() => setSelectedUser(null)}
@@ -610,8 +671,9 @@ export default function UserManagement() {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-red-600"
             >
               <option value="customer">손님</option>
-              <option value="staff">프리 매니저</option>
-              <option value="admin">관리자</option>
+              <option value="manager">프리 매니저</option>
+              <option value="agency">에이전시</option>
+              <option value="staff">실장</option>
               <option value="owner">사장</option>
               <option value="superadmin">ADMIN</option>
             </select>

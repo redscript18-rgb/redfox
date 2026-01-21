@@ -96,19 +96,19 @@ export default function StoreManage() {
     const targetStoreId = storeId || addAdminStoreId;
     if (!targetStoreId) return;
     const existingAdmins = storeAdmins[targetStoreId] || [];
-    if (existingAdmins.some((a) => a.id === adminId)) { alert('이미 연결된 관리자입니다.'); return; }
+    if (existingAdmins.some((a) => a.id === adminId)) { alert('이미 연결된 실장입니다.'); return; }
 
     setAddingAdmin(true);
     const { error } = await supabase.from('store_admins').insert({ store_id: targetStoreId, admin_id: adminId });
-    if (error) alert('관리자 추가 실패: ' + error.message);
+    if (error) alert('실장 추가 실패: ' + error.message);
     else { setSearchQuery(''); setSearchResults([]); setAddAdminStoreId(null); fetchData(); }
     setAddingAdmin(false);
   };
 
   const handleRemoveAdmin = async (storeId: number, adminId: string) => {
-    if (!confirm('이 관리자를 해제하시겠습니까?')) return;
+    if (!confirm('이 실장을 해제하시겠습니까?')) return;
     const { error } = await supabase.from('store_admins').delete().eq('store_id', storeId).eq('admin_id', adminId);
-    if (error) alert('관리자 해제 실패: ' + error.message);
+    if (error) alert('실장 해제 실패: ' + error.message);
     else fetchData();
   };
 
@@ -163,7 +163,7 @@ export default function StoreManage() {
       {addAdminStoreId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setAddAdminStoreId(null)}>
           <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">관리자 추가</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">실장 추가</h3>
             <p className="text-sm text-slate-500 mb-4">이메일 또는 이름으로 검색하세요</p>
             <div className="flex gap-2 mb-4">
               <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="이메일 또는 이름 검색" className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()} />
@@ -200,7 +200,7 @@ export default function StoreManage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setInviteLinkStoreId(null)}>
           <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-slate-900 mb-2">초대 링크</h3>
-            <p className="text-sm text-slate-500 mb-4">이 링크를 관리자에게 공유하세요</p>
+            <p className="text-sm text-slate-500 mb-4">이 링크를 실장에게 공유하세요</p>
             <div className="flex gap-2 mb-4">
               <input type="text" value={inviteLink} readOnly className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm bg-slate-50" />
               <button className="px-4 h-11 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={copyInviteLink}>복사</button>
@@ -235,7 +235,7 @@ export default function StoreManage() {
                 {/* Admins Section */}
                 <div className="pt-4 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-slate-900">관리자</h4>
+                    <h4 className="font-medium text-slate-900">실장</h4>
                     <div className="flex gap-2">
                       {!(storeAdmins[store.id] || []).some((a) => a.id === user?.id) && (
                         <button className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100 transition-colors" onClick={() => user && handleAddAdmin(user.id, store.id)}>+ 나를 추가</button>
@@ -246,7 +246,7 @@ export default function StoreManage() {
                   </div>
 
                   {(storeAdmins[store.id] || []).length === 0 ? (
-                    <p className="text-sm text-slate-400">연결된 관리자가 없습니다.</p>
+                    <p className="text-sm text-slate-400">연결된 실장이 없습니다.</p>
                   ) : (
                     <div className="flex flex-col gap-2">
                       {(storeAdmins[store.id] || []).map((admin) => (

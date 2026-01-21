@@ -115,8 +115,8 @@ export default function AccountSettings() {
     switch (role) {
       case 'superadmin': return '서비스관리자';
       case 'owner': return '사장';
-      case 'admin': return '관리자';
-      case 'staff': return '매니저';
+      case 'staff': return '실장';
+      case 'manager': return '매니저';
       case 'customer': return '손님';
       default: return role;
     }

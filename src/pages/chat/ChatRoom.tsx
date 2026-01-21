@@ -158,9 +158,9 @@ export default function ChatRoom() {
 
   const getOtherParticipant = () => {
     if (!conversation) return null;
-    if (user?.role === 'admin') {
+    if (user?.role === 'staff') {
       return conversation.customer || conversation.staff;
-    } else if (user?.role === 'staff') {
+    } else if (user?.role === 'manager') {
       return conversation.admin;
     }
     return conversation.admin;
@@ -215,7 +215,7 @@ export default function ChatRoom() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-semibold text-slate-900">{other?.name || '알 수 없음'}</h1>
-            {user?.role === 'admin' && convType && (
+            {user?.role === 'staff' && convType && (
               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
                 {convType === 'staff' ? '매니저' : '손님'}
               </span>

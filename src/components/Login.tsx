@@ -4,9 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 const TEST_ACCOUNTS = [
   { email: 'owner@test.com', password: 'test123456', name: '김사장', role: 'owner', label: '사장' },
-  { email: 'admin@test.com', password: 'test123456', name: '이관리', role: 'admin', label: '관리자' },
-  { email: 'staff@test.com', password: 'test123456', name: '박매니저', role: 'staff', label: '매니저' },
+  { email: 'admin@test.com', password: 'test123456', name: '이관리', role: 'staff', label: '실장' },
+  { email: 'staff@test.com', password: 'test123456', name: '박매니저', role: 'manager', label: '매니저' },
   { email: 'customer@test.com', password: 'test123456', name: '최손님', role: 'customer', label: '손님' },
+  { email: 'agency@test.com', password: 'test123456', name: '정에이전시', role: 'agency', label: '에이전시' },
 ];
 
 export default function Login() {
@@ -185,9 +186,10 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2371717a%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]"
               >
                 <option value="customer">손님</option>
-                <option value="staff">매니저</option>
-                <option value="admin">관리자</option>
+                <option value="manager">매니저</option>
+                <option value="staff">실장</option>
                 <option value="owner">사장</option>
+                <option value="agency">에이전시</option>
               </select>
             </div>
           )}

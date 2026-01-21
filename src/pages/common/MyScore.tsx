@@ -14,13 +14,17 @@ export default function MyScore() {
   const {
     totalScore,
     history,
+    pendingGifts,
     loading,
     historyLoading,
     canClaimDaily,
     fetchHistory,
     claimDailyReward,
     initializeScore,
-    giftScore
+    sendGift,
+    acceptGift,
+    rejectGift,
+    pendingGiftCount
   } = useUserScore(user?.id);
 
   const [claiming, setClaiming] = useState(false);
@@ -35,6 +39,9 @@ export default function MyScore() {
   const [giftAmount, setGiftAmount] = useState(100);
   const [gifting, setGifting] = useState(false);
   const [giftMessage, setGiftMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 선물 수락/거절 처리 중 상태
+  const [processingGiftId, setProcessingGiftId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -81,7 +88,7 @@ export default function MyScore() {
       const { data } = await supabase
         .from('profiles')
         .select('id, name, email')
-        .neq('id', user?.id) // 자신 제외
+        .neq('id', user?.id)
         .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
         .limit(10);
 
@@ -93,7 +100,6 @@ export default function MyScore() {
     }
   };
 
-  // 검색어 변경 시 검색
   useEffect(() => {
     const timer = setTimeout(() => {
       searchUsers(searchQuery);
@@ -108,11 +114,10 @@ export default function MyScore() {
     setGifting(true);
     setGiftMessage(null);
 
-    const result = await giftScore(selectedUser.id, selectedUser.name, giftAmount);
+    const result = await sendGift(selectedUser.id, selectedUser.name, giftAmount);
 
     if (result.success) {
-      setGiftMessage({ type: 'success', text: `${selectedUser.name}님에게 ${giftAmount.toLocaleString()}점을 선물했습니다!` });
-      // 2초 후 모달 닫기
+      setGiftMessage({ type: 'success', text: `${selectedUser.name}님에게 ${giftAmount.toLocaleString()}점 선물을 보냈습니다!` });
       setTimeout(() => {
         closeGiftModal();
       }, 2000);
@@ -121,6 +126,28 @@ export default function MyScore() {
     }
 
     setGifting(false);
+  };
+
+  // 선물 수락
+  const handleAcceptGift = async (giftId: number) => {
+    setProcessingGiftId(giftId);
+    const result = await acceptGift(giftId);
+    if (!result.success) {
+      alert(result.error || '선물 수락에 실패했습니다.');
+    }
+    setProcessingGiftId(null);
+  };
+
+  // 선물 거절
+  const handleRejectGift = async (giftId: number) => {
+    if (!confirm('선물을 거절하시겠습니까?')) return;
+
+    setProcessingGiftId(giftId);
+    const result = await rejectGift(giftId);
+    if (!result.success) {
+      alert(result.error || '선물 거절에 실패했습니다.');
+    }
+    setProcessingGiftId(null);
   };
 
   // 모달 닫기
@@ -133,7 +160,6 @@ export default function MyScore() {
     setGiftMessage(null);
   };
 
-  // 선물 가능한 최대 금액 (100점 단위)
   const maxGiftAmount = Math.floor(totalScore / 100) * 100;
 
   if (loading) {
@@ -161,7 +187,6 @@ export default function MyScore() {
             </svg>
           </div>
         </div>
-        {/* 선물하기 버튼 */}
         <button
           onClick={() => setShowGiftModal(true)}
           disabled={totalScore < 100}
@@ -174,6 +199,51 @@ export default function MyScore() {
           선물하기
         </button>
       </div>
+
+      {/* 대기 중인 선물 */}
+      {pendingGiftCount > 0 && (
+        <div className="bg-white border-2 border-amber-300 rounded-xl p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">🎁</span>
+            <h2 className="font-semibold text-slate-900">받은 선물 ({pendingGiftCount}개)</h2>
+          </div>
+          <div className="space-y-3">
+            {pendingGifts.map((gift) => (
+              <div key={gift.id} className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                    {gift.sender?.name?.charAt(0) || '?'}
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">
+                      {gift.sender?.name || '알 수 없음'}님이 보낸 선물
+                    </p>
+                    <p className="text-lg font-bold text-amber-600">
+                      {gift.amount.toLocaleString()}점
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRejectGift(gift.id)}
+                    disabled={processingGiftId === gift.id}
+                    className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+                  >
+                    거절
+                  </button>
+                  <button
+                    onClick={() => handleAcceptGift(gift.id)}
+                    disabled={processingGiftId === gift.id}
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50"
+                  >
+                    {processingGiftId === gift.id ? '처리중...' : '수락'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 일일 보상 */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
@@ -267,7 +337,6 @@ export default function MyScore() {
 
             <div className="p-4">
               {!selectedUser ? (
-                // 사용자 검색
                 <>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-slate-700 mb-2">받는 사람</label>
@@ -307,7 +376,6 @@ export default function MyScore() {
                   )}
                 </>
               ) : (
-                // 금액 선택
                 <>
                   <div className="mb-4 p-4 bg-slate-50 rounded-xl">
                     <div className="flex items-center justify-between">
@@ -356,7 +424,6 @@ export default function MyScore() {
                     </p>
                   </div>
 
-                  {/* 빠른 선택 버튼 */}
                   <div className="flex gap-2 mb-4">
                     {[100, 500, 1000].map((amount) => (
                       <button
@@ -374,6 +441,10 @@ export default function MyScore() {
                         {amount.toLocaleString()}점
                       </button>
                     ))}
+                  </div>
+
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 mb-4">
+                    상대방이 수락해야 점수가 차감되고 전달됩니다.
                   </div>
 
                   {giftMessage && (

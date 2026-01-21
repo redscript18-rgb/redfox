@@ -164,11 +164,28 @@ export default function VirtualStaffDetail() {
 
     const { data } = await supabase
       .from('virtual_staff')
-      .select('*, store:stores(name, address)')
+      .select('*, store:stores(name, address, store_type)')
       .eq('id', id)
       .single();
 
     if (data) {
+      // Check if store type is hidden (only for customer view)
+      if (user?.role === 'customer') {
+        const storeData = data.store as unknown as { name: string; address: string; store_type?: string } | null;
+        if (storeData?.store_type) {
+          const { data: visibilityData } = await supabase
+            .from('store_type_visibility')
+            .select('is_visible')
+            .eq('store_type', storeData.store_type)
+            .single();
+
+          if (visibilityData && !visibilityData.is_visible) {
+            // Store type is hidden - don't show this virtual staff
+            setLoading(false);
+            return;
+          }
+        }
+      }
       setStaff(data);
       setName(data.name || '');
       setPhone(data.phone || '');
@@ -606,7 +623,7 @@ export default function VirtualStaffDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2 max-sm:justify-center">
               <h1 className="text-2xl font-bold text-slate-900">{staff.name}</h1>
-              <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded">관리자 등록</span>
+              <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded">실장 등록</span>
               <button
                 className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`}
                 onClick={toggleFavorite}

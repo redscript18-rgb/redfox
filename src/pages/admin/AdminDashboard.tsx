@@ -99,7 +99,7 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">관리자 대시보드</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">실장 대시보드</h1>
       <p className="text-slate-500 mb-6">안녕하세요, {user?.name}님</p>
 
       {/* Alert Cards */}

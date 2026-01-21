@@ -228,7 +228,7 @@ export default function StoreDetail() {
             {user?.role === 'customer' && (
               <button
                 onClick={() => setShowReservationModal(true)}
-                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+                className="px-4 py-2.5 min-h-[44px] bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
               >
                 예약하기
               </button>
@@ -236,12 +236,12 @@ export default function StoreDetail() {
             {user?.role === 'customer' && storeAdminId && (
               <button
                 onClick={startConversation}
-                className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
+                className="px-4 py-2.5 min-h-[44px] bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
               >
                 문의하기
               </button>
             )}
-            <button className={`w-8 h-8 flex items-center justify-center text-lg rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
+            <button className={`w-11 h-11 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
               {isFavorite ? '♥' : '♡'}
             </button>
           </div>

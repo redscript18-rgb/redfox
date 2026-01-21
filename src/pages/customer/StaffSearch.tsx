@@ -309,6 +309,20 @@ export default function StaffSearch() {
     setLoading(false);
   };
 
+  // 프로필 완성도 점수 계산 함수
+  const getProfileScore = (staff: Staff): number => {
+    let score = 0;
+    if (staff.profile_photo_url) score += 3; // 사진은 가장 중요
+    if (staff.bio) score += 2;
+    if (staff.age) score += 1;
+    if (staff.height) score += 1;
+    if (staff.weight) score += 1;
+    if (staff.body_size) score += 1;
+    if (staff.job) score += 1;
+    if (staff.mbti) score += 1;
+    return score;
+  };
+
   const filteredStaffs = staffList
     .filter((staff) => {
       if (blockedByStaff.has(staff.id)) return false;
@@ -326,10 +340,10 @@ export default function StaffSearch() {
       const bWorking = scheduleMap[b.id] ? 1 : 0;
       if (bWorking !== aWorking) return bWorking - aWorking;
 
-      // 3. 프로필 사진 있는 사람 우선
-      const aPhoto = a.profile_photo_url ? 1 : 0;
-      const bPhoto = b.profile_photo_url ? 1 : 0;
-      if (bPhoto !== aPhoto) return bPhoto - aPhoto;
+      // 3. 프로필 완성도 점수순 (사진, 소개, 나이, 키, 몸무게 등)
+      const aScore = getProfileScore(a);
+      const bScore = getProfileScore(b);
+      if (bScore !== aScore) return bScore - aScore;
 
       // 4. 선택한 정렬 기준
       if (sortBy === 'rating') {
@@ -394,7 +408,7 @@ export default function StaffSearch() {
       </div>
 
       {/* Staff Grid */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-4 max-md:grid-cols-1">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 max-sm:grid-cols-1">
         {filteredStaffs.map((staff) => {
           const todaySchedule = scheduleMap[staff.id];
           const staffRating = ratingMap[staff.id];

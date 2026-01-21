@@ -34,9 +34,14 @@ export default function InviteAccept() {
 
   const parseInviteCode = () => {
     if (!code) { setError('잘못된 초대 링크입니다.'); setLoading(false); return; }
+    // 코드 길이 제한 (악의적 페이로드 방지)
+    if (code.length > 1000) { setError('잘못된 초대 링크입니다.'); setLoading(false); return; }
     try {
       const decoded = JSON.parse(decodeURIComponent(atob(code)));
-      if (!decoded.storeId || !decoded.ownerId || !decoded.storeName) throw new Error('Invalid invite data');
+      // 필수 필드 및 타입 검증
+      if (typeof decoded.storeId !== 'number' || typeof decoded.ownerId !== 'string' || typeof decoded.storeName !== 'string' || typeof decoded.createdAt !== 'number') {
+        throw new Error('Invalid invite data');
+      }
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       if (Date.now() - decoded.createdAt > sevenDays) { setError('만료된 초대 링크입니다. 사장님께 새 링크를 요청하세요.'); setLoading(false); return; }
       setInviteData(decoded);

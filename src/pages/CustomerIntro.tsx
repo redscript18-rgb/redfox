@@ -66,40 +66,7 @@ export default function CustomerIntro() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
-              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
-                👤
-              </div>
-              <h3 className="text-xl font-bold mb-3">매니저 프로필</h3>
-              <p className="text-gray-500 leading-relaxed">
-                상세한 프로필과 실제 사진으로 당신의 취향에 맞는 매니저를 선택하세요
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
-              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
-                ⭐
-              </div>
-              <h3 className="text-xl font-bold mb-3">검증된 후기</h3>
-              <p className="text-gray-500 leading-relaxed">
-                실제 이용 손님들의 솔직한 평점으로 믿을 수 있는 선택을 하세요
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
-              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
-                📱
-              </div>
-              <h3 className="text-xl font-bold mb-3">간편한 예약</h3>
-              <p className="text-gray-500 leading-relaxed">
-                복잡한 과정 없이 몇 번의 터치로 원하는 시간에 예약 완료
-              </p>
-            </div>
-
-            {/* Feature 4 */}
+            {/* Feature 1 - 완벽한 프라이버시 */}
             <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
               <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
                 🔒
@@ -110,7 +77,7 @@ export default function CustomerIntro() {
               </p>
             </div>
 
-            {/* Feature 5 */}
+            {/* Feature 2 - 익명 채팅 */}
             <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
               <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
                 💬
@@ -121,7 +88,40 @@ export default function CustomerIntro() {
               </p>
             </div>
 
-            {/* Feature 6 */}
+            {/* Feature 3 - 실제 매니저 프로필 */}
+            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
+              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
+                👤
+              </div>
+              <h3 className="text-xl font-bold mb-3">실제 매니저 프로필</h3>
+              <p className="text-gray-500 leading-relaxed">
+                상세한 프로필과 실제 사진으로 당신의 취향에 맞는 매니저를 선택하세요
+              </p>
+            </div>
+
+            {/* Feature 4 - 검증된 후기 */}
+            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
+              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
+                ⭐
+              </div>
+              <h3 className="text-xl font-bold mb-3">검증된 후기</h3>
+              <p className="text-gray-500 leading-relaxed">
+                실제 이용 손님들의 솔직한 평점으로 믿을 수 있는 선택을 하세요
+              </p>
+            </div>
+
+            {/* Feature 5 - 간편한 예약 */}
+            <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
+              <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
+                📱
+              </div>
+              <h3 className="text-xl font-bold mb-3">간편한 예약</h3>
+              <p className="text-gray-500 leading-relaxed">
+                복잡한 과정 없이 몇 번의 터치로 원하는 시간에 예약 완료
+              </p>
+            </div>
+
+            {/* Feature 6 - VIP 혜택 */}
             <div className="group p-8 bg-gradient-to-b from-gray-900/80 to-gray-900/40 rounded-2xl border border-gray-800 hover:border-red-800/50 transition-all duration-300">
               <div className="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-3xl group-hover:bg-red-500/20 transition-colors">
                 🎁

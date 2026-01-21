@@ -78,6 +78,13 @@ const getLocalToday = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
+// UUID 형식 검증
+const isValidUUID = (str: string | undefined): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export default function StaffDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -98,9 +105,12 @@ export default function StaffDetail() {
   const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (isValidUUID(id)) {
       fetchData();
       if (user) { checkFavorite(); checkBlocked(); }
+    } else if (id) {
+      // 유효하지 않은 ID 형식
+      setLoading(false);
     }
   }, [id, user, location.key]);
 

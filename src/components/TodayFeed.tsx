@@ -135,7 +135,7 @@ export default function TodayFeed() {
 
     setWorkingManagers(managers);
 
-    // Fetch today's photos (real staff)
+    // Fetch photos (real staff) - 테스트 기간: 날짜 필터 제거
     const { data: photosData } = await supabase
       .from('staff_photos')
       .select(`
@@ -147,11 +147,11 @@ export default function TodayFeed() {
         created_at,
         staff:profiles(id, name, profile_photo_url)
       `)
-      .eq('date', today)
+      // .eq('date', today) // 테스트 기간 동안 비활성화
       .order('created_at', { ascending: false })
       .limit(20);
 
-    // Fetch today's photos (virtual staff)
+    // Fetch photos (virtual staff) - 테스트 기간: 날짜 필터 제거
     const { data: virtualPhotosData } = await supabase
       .from('virtual_staff_photos')
       .select(`
@@ -163,7 +163,7 @@ export default function TodayFeed() {
         created_at,
         virtual_staff:virtual_staff(id, name, profile_photo_url)
       `)
-      .eq('date', today)
+      // .eq('date', today) // 테스트 기간 동안 비활성화
       .order('created_at', { ascending: false })
       .limit(20);
 

@@ -28,8 +28,9 @@ export default function TodayPhotos() {
   }, [user]);
 
   const fetchPhotos = async () => {
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    // 테스트 기간: 날짜 필터 비활성화
+    // const now = new Date();
+    // const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     // Fetch favorites
     let favIds = new Set<string>();
@@ -48,7 +49,7 @@ export default function TodayPhotos() {
       }
     }
 
-    // Fetch real staff photos
+    // Fetch real staff photos - 테스트 기간: 날짜 필터 제거
     const { data: realPhotos } = await supabase
       .from('staff_photos')
       .select(`
@@ -59,10 +60,10 @@ export default function TodayPhotos() {
         created_at,
         staff:profiles(id, name, profile_photo_url)
       `)
-      .eq('date', today)
+      // .eq('date', today) // 테스트 기간 동안 비활성화
       .order('created_at', { ascending: false });
 
-    // Fetch virtual staff photos
+    // Fetch virtual staff photos - 테스트 기간: 날짜 필터 제거
     const { data: virtualPhotos } = await supabase
       .from('virtual_staff_photos')
       .select(`
@@ -73,7 +74,7 @@ export default function TodayPhotos() {
         created_at,
         virtual_staff:virtual_staff(id, name, profile_photo_url, store:stores(name))
       `)
-      .eq('date', today)
+      // .eq('date', today) // 테스트 기간 동안 비활성화
       .order('created_at', { ascending: false });
 
     const allPhotos: DailyPhoto[] = [];

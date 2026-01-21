@@ -6,20 +6,36 @@ export default function DailyCheckin() {
   const { points, loading, doCheckin } = usePoints();
   const [checking, setChecking] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [earnedPoints, setEarnedPoints] = useState(0);
 
   const handleCheckin = async () => {
     if (checking || !points?.canCheckinToday) return;
 
     setChecking(true);
-    const res = await doCheckin();
-    setChecking(false);
+    setShowError(false);
 
-    if (res.success) {
-      setEarnedPoints(res.pointsEarned);
-      setShowSuccess(true);
-      // 2초 후 성공 메시지 숨기기
-      setTimeout(() => setShowSuccess(false), 2000);
+    try {
+      const res = await doCheckin();
+      setChecking(false);
+
+      if (res.success) {
+        setEarnedPoints(res.pointsEarned);
+        setShowSuccess(true);
+        // 2초 후 성공 메시지 숨기기
+        setTimeout(() => setShowSuccess(false), 2000);
+      } else {
+        setErrorMessage(res.message || '출석체크에 실패했습니다.');
+        setShowError(true);
+        setTimeout(() => setShowError(false), 3000);
+      }
+    } catch (err) {
+      setChecking(false);
+      setErrorMessage('출석체크 중 오류가 발생했습니다.');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      console.error('Checkin error:', err);
     }
   };
 
@@ -34,6 +50,23 @@ export default function DailyCheckin() {
           <div className="text-center">
             <p className="font-bold text-green-700">출석체크 완료!</p>
             <p className="text-sm text-green-600">+{earnedPoints}P 적립되었습니다</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 메시지 표시 중
+  if (showError) {
+    return (
+      <div className="p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl">
+        <div className="flex items-center justify-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center text-2xl shadow-lg">
+            ✕
+          </div>
+          <div className="text-center">
+            <p className="font-bold text-red-700">출석체크 실패</p>
+            <p className="text-sm text-red-600">{errorMessage}</p>
           </div>
         </div>
       </div>

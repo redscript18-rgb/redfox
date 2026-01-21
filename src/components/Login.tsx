@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-const TEST_ACCOUNTS = [
+// 개발 모드에서만 테스트 계정 표시
+const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SHOW_TEST_ACCOUNTS === 'true';
+
+const TEST_ACCOUNTS = isDevelopment ? [
   { username: 'superadmin', password: 'test123456', nickname: '슈퍼관리자', role: 'superadmin', label: 'ADMIN' },
   { username: 'owner', password: 'test123456', nickname: '김사장', role: 'owner', label: '사장' },
   { username: 'admin', password: 'test123456', nickname: '이관리', role: 'staff', label: '실장' },
   { username: 'staff', password: 'test123456', nickname: '박매니저', role: 'manager', label: '매니저' },
   { username: 'customer', password: 'test123456', nickname: '최손님', role: 'customer', label: '손님' },
   { username: 'agency', password: 'test123456', nickname: '정에이전시', role: 'agency', label: '에이전시' },
-];
+] : [];
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
@@ -36,9 +39,60 @@ export default function Login() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
+  // 새 비밀번호 설정 (이메일 링크에서 돌아왔을 때)
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
 
   const { login, signup, checkUsername } = useAuth();
   const navigate = useNavigate();
+
+  // 비밀번호 복구 링크 감지
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      setError('비밀번호는 6자 이상이어야 합니다.');
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setError('');
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) {
+      setError('비밀번호 변경 중 오류가 발생했습니다.');
+      console.error('Password update error:', updateError);
+    } else {
+      setMessage('비밀번호가 변경되었습니다. 새 비밀번호로 로그인하세요.');
+      setIsPasswordRecovery(false);
+      setNewPassword('');
+      setNewPasswordConfirm('');
+      // 로그아웃 처리
+      await supabase.auth.signOut();
+    }
+
+    setRecoveryLoading(false);
+  };
 
   // 아이디 중복 체크 (디바운스)
   useEffect(() => {
@@ -200,24 +254,126 @@ export default function Login() {
     setResetError('');
     setResetMessage('');
 
-    const { data, error } = await supabase.rpc('request_password_reset', {
-      p_username: resetUsername.trim(),
-      p_reason: resetReason.trim() || null
-    });
+    try {
+      // 먼저 사용자의 이메일 확인
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', resetUsername.trim().toLowerCase())
+        .single();
+
+      if (userError || !userData) {
+        setResetError('존재하지 않는 아이디입니다.');
+        setResetLoading(false);
+        return;
+      }
+
+      // 이메일이 있으면 Supabase 이메일 재설정 링크 전송
+      if (userData.email) {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email, {
+          redirectTo: `${window.location.origin}/login`,
+        });
+
+        if (resetError) {
+          console.error('Password reset email error:', resetError);
+          setResetError('이메일 전송 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } else {
+          setResetMessage(`비밀번호 재설정 링크가 ${userData.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')}로 전송되었습니다. 이메일을 확인해주세요.`);
+          setResetUsername('');
+        }
+      } else {
+        // 이메일이 없으면 관리자에게 요청
+        const { data, error } = await supabase.rpc('request_password_reset', {
+          p_username: resetUsername.trim(),
+          p_reason: resetReason.trim() || null
+        });
+
+        if (error) {
+          setResetError('요청 중 오류가 발생했습니다.');
+          console.error('Password reset request error:', error);
+        } else if (data === false) {
+          setResetError('존재하지 않는 아이디입니다.');
+        } else {
+          setResetMessage('등록된 이메일이 없어 관리자에게 비밀번호 초기화 요청이 전송되었습니다. 승인 후 새 비밀번호를 안내받을 수 있습니다.');
+          setResetUsername('');
+          setResetReason('');
+        }
+      }
+    } catch (err) {
+      console.error('Password reset error:', err);
+      setResetError('오류가 발생했습니다. 다시 시도해주세요.');
+    }
 
     setResetLoading(false);
-
-    if (error) {
-      setResetError('요청 중 오류가 발생했습니다.');
-      console.error('Password reset request error:', error);
-    } else if (data === false) {
-      setResetError('존재하지 않는 아이디입니다.');
-    } else {
-      setResetMessage('비밀번호 초기화 요청이 접수되었습니다. 관리자 승인 후 새 비밀번호를 안내받을 수 있습니다.');
-      setResetUsername('');
-      setResetReason('');
-    }
   };
+
+  // 비밀번호 복구 모드
+  if (isPasswordRecovery) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+        <div className="w-full max-w-[400px] p-8 bg-white border border-slate-200 rounded-2xl shadow-lg">
+          <h1 className="mb-8 text-center text-3xl font-bold text-red-600 tracking-tight">
+            Red Fox
+          </h1>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2 text-center">새 비밀번호 설정</h2>
+          <p className="text-sm text-slate-500 mb-6 text-center">
+            새로운 비밀번호를 입력해주세요.
+          </p>
+
+          <form onSubmit={handleSetNewPassword}>
+            <div className="mb-4">
+              <label htmlFor="newPassword" className="block mb-2 text-sm font-medium text-slate-600">
+                새 비밀번호
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="6자 이상"
+                required
+                minLength={6}
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="newPasswordConfirm" className="block mb-2 text-sm font-medium text-slate-600">
+                새 비밀번호 확인
+              </label>
+              <input
+                type="password"
+                id="newPasswordConfirm"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                placeholder="비밀번호를 다시 입력하세요"
+                required
+                minLength={6}
+                className={`w-full px-4 py-3 bg-slate-100 border rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+                  newPasswordConfirm && newPassword !== newPasswordConfirm
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-slate-200 focus:border-red-600'
+                }`}
+              />
+              {newPasswordConfirm && newPassword !== newPasswordConfirm && (
+                <p className="text-red-500 text-xs mt-1">비밀번호가 일치하지 않습니다.</p>
+              )}
+            </div>
+
+            {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={recoveryLoading}
+              className="w-full py-4 mt-2 bg-red-600 text-white rounded-lg text-base font-semibold hover:bg-red-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+            >
+              {recoveryLoading ? '처리 중...' : '비밀번호 변경'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-white">
@@ -226,8 +382,8 @@ export default function Login() {
           Red Fox
         </h1>
 
-        {/* 빠른 로그인 버튼 */}
-        {!isSignup && (
+        {/* 빠른 로그인 버튼 - 개발 모드에서만 표시 */}
+        {!isSignup && TEST_ACCOUNTS.length > 0 && (
           <div className="mb-6 pb-6 border-b border-slate-200">
             <div className="flex flex-wrap gap-2 justify-center">
               {TEST_ACCOUNTS.map((account) => (
@@ -352,6 +508,9 @@ export default function Login() {
                 placeholder="example@email.com"
                 className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
               />
+              <p className="text-xs text-slate-400 mt-1">
+                이메일을 입력하시면 비밀번호 찾기 기능을 사용할 수 있습니다.
+              </p>
             </div>
           )}
 
@@ -449,7 +608,7 @@ export default function Login() {
             </div>
 
             <p className="text-sm text-slate-600 mb-4">
-              아이디를 입력하면 관리자에게 비밀번호 초기화 요청이 전송됩니다.
+              아이디를 입력하세요. 이메일이 등록되어 있으면 비밀번호 재설정 링크가 이메일로 전송됩니다.
             </p>
 
             <div className="space-y-4">

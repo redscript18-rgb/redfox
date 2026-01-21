@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -27,11 +27,13 @@ interface CustomerRating {
 
 export default function ReservationManage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [customerRatings, setCustomerRatings] = useState<Record<string, CustomerRating>>({});
   const [blockedCustomers, setBlockedCustomers] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'all'>('pending');
+  const [startingChat, setStartingChat] = useState<string | null>(null);
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -202,6 +204,42 @@ export default function ReservationManage() {
     }
   };
 
+  const startChatWithCustomer = async (customerId: string) => {
+    if (!user) return;
+
+    setStartingChat(customerId);
+
+    // Find existing conversation
+    const { data: existingConversations } = await supabase
+      .from('conversations')
+      .select('id, participant1_id, participant2_id')
+      .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${customerId}),and(participant1_id.eq.${customerId},participant2_id.eq.${user.id})`);
+
+    if (existingConversations && existingConversations.length > 0) {
+      setStartingChat(null);
+      navigate(`/chat/${existingConversations[0].id}`);
+      return;
+    }
+
+    // Create new conversation
+    const { data: newConv, error } = await supabase
+      .from('conversations')
+      .insert({
+        participant1_id: user.id,
+        participant2_id: customerId,
+      })
+      .select()
+      .single();
+
+    setStartingChat(null);
+
+    if (error) {
+      alert('채팅방 생성 중 오류가 발생했습니다.');
+    } else if (newConv) {
+      navigate(`/chat/${newConv.id}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-lg mx-auto p-4">
@@ -322,16 +360,25 @@ export default function ReservationManage() {
                       </div>
                     </div>
                   </div>
-                  <button
-                    className={`text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
-                      isBlocked
-                        ? 'bg-red-500 text-white'
-                        : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                    onClick={() => handleBlock(reservation.customer_id, reservation.customer?.name || '고객')}
-                  >
-                    {isBlocked ? '차단됨' : '차단'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors text-blue-500 hover:bg-blue-50"
+                      onClick={() => startChatWithCustomer(reservation.customer_id)}
+                      disabled={startingChat === reservation.customer_id}
+                    >
+                      {startingChat === reservation.customer_id ? '...' : '메시지'}
+                    </button>
+                    <button
+                      className={`text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
+                        isBlocked
+                          ? 'bg-red-500 text-white'
+                          : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
+                      }`}
+                      onClick={() => handleBlock(reservation.customer_id, reservation.customer?.name || '고객')}
+                    >
+                      {isBlocked ? '차단됨' : '차단'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Details */}

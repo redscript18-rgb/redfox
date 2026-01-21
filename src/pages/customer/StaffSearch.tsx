@@ -353,26 +353,44 @@ export default function StaffSearch() {
       <h1 className="text-2xl font-bold text-slate-900 mb-1">매니저 찾기</h1>
       <p className="text-sm text-slate-500 mb-6">원하는 매니저를 찾아 예약하세요</p>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 mb-6 p-4 bg-slate-50 rounded-xl max-md:flex-col">
-        <select
-          value={selectedStoreType}
-          onChange={(e) => setSelectedStoreType(e.target.value)}
-          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
+      {/* 업종 필터 - 가로 스크롤 */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+        <button
+          onClick={() => setSelectedStoreType('')}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+            selectedStoreType === ''
+              ? 'bg-red-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
         >
-          <option value="">전체 업종</option>
-          {allStoreTypes.map((storeType) => (
-            <option key={storeType} value={storeType}>{storeType}</option>
-          ))}
-        </select>
+          전체
+        </button>
+        {allStoreTypes.map((storeType) => (
+          <button
+            key={storeType}
+            onClick={() => setSelectedStoreType(storeType)}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+              selectedStoreType === storeType
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {storeType}
+          </button>
+        ))}
+      </div>
+
+      {/* 정렬 필터 */}
+      <div className="flex gap-2 mb-6 items-center">
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'rating' | 'reviewCount')}
-          className="min-w-[130px] h-[42px] px-4 pr-9 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 cursor-pointer appearance-none focus:outline-none focus:border-red-600 transition-colors bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20fill%3D%22%2394a3b8%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011L3%206h10l-5%205z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] max-md:w-full"
+          className="h-10 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600 bg-white"
         >
           <option value="rating">별점순</option>
           <option value="reviewCount">리뷰 많은순</option>
         </select>
+        <span className="text-sm text-slate-500 ml-auto">{filteredStaffs.length}명</span>
       </div>
 
       {/* Staff Grid */}

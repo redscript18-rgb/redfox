@@ -25,7 +25,7 @@ export default function BusinessIntro() {
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-block px-4 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-red-400 text-sm font-medium mb-6">
-            사장 & 실장을 위한 통합 관리 시스템
+            사장님 & 실장님을 위한 통합 관리 시스템
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
             가게 운영,<br />
@@ -81,7 +81,7 @@ export default function BusinessIntro() {
               역할별 맞춤 기능
             </h2>
             <p className="text-slate-400 text-lg">
-              사장과 실장, 각자의 역할에 최적화된 기능을 제공합니다
+              사장님과 실장님, 각자의 역할에 최적화된 기능을 제공합니다
             </p>
           </div>
 
@@ -91,14 +91,14 @@ export default function BusinessIntro() {
               <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 text-4xl">
                 🏢
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">사장</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">사장님</h3>
               <p className="text-slate-400 mb-6">여러 가게를 한눈에 관리하고 데이터로 경영하세요</p>
 
               <div className="space-y-4">
                 {[
                   { icon: "📊", title: "통합 대시보드", desc: "모든 가게의 매출, 예약, 매니저 현황을 실시간으로" },
                   { icon: "📈", title: "매출 분석", desc: "7일간 매출 추이, 메뉴별/매니저별 실적 한눈에" },
-                  { icon: "👔", title: "실장 관리", desc: "실장 초대, 권한 위임으로 효율적인 운영" },
+                  { icon: "👔", title: "실장님 관리", desc: "실장님 초대, 권한 위임으로 효율적인 운영" },
                   { icon: "🏪", title: "다중 가게", desc: "여러 지점을 하나의 계정에서 통합 관리" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 p-4 bg-slate-800/50 rounded-xl">
@@ -117,7 +117,7 @@ export default function BusinessIntro() {
               <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 text-4xl">
                 👔
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">실장</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">실장님</h3>
               <p className="text-slate-400 mb-6">예약과 매니저를 효율적으로 관리하세요</p>
 
               <div className="space-y-4">
@@ -146,7 +146,7 @@ export default function BusinessIntro() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              사장 대시보드 미리보기
+              사장님 대시보드 미리보기
             </h2>
             <p className="text-slate-400">실시간 현황을 한눈에 파악하세요</p>
           </div>
@@ -203,7 +203,7 @@ export default function BusinessIntro() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              실장 대시보드 미리보기
+              실장님 대시보드 미리보기
             </h2>
             <p className="text-slate-400">예약과 매니저를 효율적으로 관리하세요</p>
           </div>
@@ -283,7 +283,7 @@ export default function BusinessIntro() {
               {
                 icon: "🔒",
                 title: "권한 관리",
-                desc: "사장은 전체 관리, 실장은 매장 운영에 집중",
+                desc: "사장님은 전체 관리, 실장님은 매장 운영에 집중",
               },
               {
                 icon: "📱",

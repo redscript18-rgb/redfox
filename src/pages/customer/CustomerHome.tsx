@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import StaffSearch from './StaffSearch';
 import StoreList from '../../components/StoreList';
 import TodayFeed from '../../components/TodayFeed';
+import DailyCheckin from '../../components/DailyCheckin';
 import { supabase } from '../../lib/supabase';
 
 type View = 'staff' | 'store';
@@ -26,6 +27,11 @@ export default function CustomerHome() {
 
   return (
     <div>
+      {/* 출석체크 */}
+      <div className="mb-6">
+        <DailyCheckin />
+      </div>
+
       {/* 오늘의 피드 */}
       <div className="mb-8">
         <TodayFeed />

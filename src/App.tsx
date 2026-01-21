@@ -12,6 +12,7 @@ import CustomerHome from './pages/customer/CustomerHome';
 import StaffDetailPage from './pages/customer/StaffDetail';
 import CustomerReservations from './pages/customer/CustomerReservations';
 import Favorites from './pages/customer/Favorites';
+import PointsPage from './pages/customer/PointsPage';
 
 // 직원용 페이지
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -152,6 +153,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <Favorites />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 손님용: 포인트 */}
+      <Route
+        path="/points"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PointsPage />
             </Layout>
           </ProtectedRoute>
         }

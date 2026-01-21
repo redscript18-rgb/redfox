@@ -55,6 +55,7 @@ import SuperAdminStoreManagement from './pages/superadmin/StoreManagement';
 import ReservationOverview from './pages/superadmin/ReservationOverview';
 import VirtualStaffManagement from './pages/superadmin/VirtualStaffManagement';
 import OwnerApproval from './pages/superadmin/OwnerApproval';
+import PasswordResetManagement from './pages/superadmin/PasswordResetManagement';
 
 // 에이전시 페이지
 import AgencyDashboard from './pages/agency/AgencyDashboard';
@@ -490,6 +491,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <OwnerApproval />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 비밀번호 초기화 */}
+      <Route
+        path="/superadmin/password-reset"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PasswordResetManagement />
             </Layout>
           </ProtectedRoute>
         }

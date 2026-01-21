@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const TEST_ACCOUNTS = [
   { username: 'superadmin', password: 'test123456', nickname: '슈퍼관리자', role: 'superadmin', label: 'ADMIN' },
@@ -28,6 +29,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  // 비밀번호 찾기
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUsername, setResetUsername] = useState('');
+  const [resetReason, setResetReason] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
 
   const { login, signup, checkUsername } = useAuth();
   const navigate = useNavigate();
@@ -180,6 +188,35 @@ export default function Login() {
     setUsernameAvailable(null);
     setError('');
     setMessage('');
+  };
+
+  const handlePasswordResetRequest = async () => {
+    if (!resetUsername.trim()) {
+      setResetError('아이디를 입력해주세요.');
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError('');
+    setResetMessage('');
+
+    const { data, error } = await supabase.rpc('request_password_reset', {
+      p_username: resetUsername.trim(),
+      p_reason: resetReason.trim() || null
+    });
+
+    setResetLoading(false);
+
+    if (error) {
+      setResetError('요청 중 오류가 발생했습니다.');
+      console.error('Password reset request error:', error);
+    } else if (data === false) {
+      setResetError('존재하지 않는 아이디입니다.');
+    } else {
+      setResetMessage('비밀번호 초기화 요청이 접수되었습니다. 관리자 승인 후 새 비밀번호를 안내받을 수 있습니다.');
+      setResetUsername('');
+      setResetReason('');
+    }
   };
 
   return (
@@ -368,7 +405,7 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <button
             type="button"
             className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-orange-600 transition-colors"
@@ -379,8 +416,91 @@ export default function Login() {
           >
             {isSignup ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
           </button>
+          {!isSignup && (
+            <div>
+              <button
+                type="button"
+                className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-orange-600 transition-colors"
+                onClick={() => {
+                  setShowResetModal(true);
+                  setResetError('');
+                  setResetMessage('');
+                }}
+              >
+                비밀번호를 잊으셨나요?
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* 비밀번호 찾기 모달 */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">비밀번호 찾기</h2>
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              아이디를 입력하면 관리자에게 비밀번호 초기화 요청이 전송됩니다.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-2 text-sm font-medium text-slate-600">
+                  아이디
+                </label>
+                <input
+                  type="text"
+                  value={resetUsername}
+                  onChange={(e) => setResetUsername(e.target.value.toLowerCase())}
+                  placeholder="가입한 아이디 입력"
+                  className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-medium text-slate-600">
+                  요청 사유 <span className="text-slate-400 text-xs">(선택)</span>
+                </label>
+                <textarea
+                  value={resetReason}
+                  onChange={(e) => setResetReason(e.target.value)}
+                  placeholder="추가 정보가 있으면 입력해주세요"
+                  rows={2}
+                  className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors resize-none"
+                />
+              </div>
+
+              {resetError && <p className="text-red-600 text-sm">{resetError}</p>}
+              {resetMessage && <p className="text-green-600 text-sm">{resetMessage}</p>}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowResetModal(false)}
+                  className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handlePasswordResetRequest}
+                  disabled={resetLoading}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400"
+                >
+                  {resetLoading ? '요청 중...' : '요청하기'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

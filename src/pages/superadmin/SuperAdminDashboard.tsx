@@ -14,6 +14,7 @@ interface Stats {
   reservationsByStatus: { status: string; count: number }[];
   todayReservations: number;
   pendingOwners: number;
+  pendingPasswordResets: number;
   recentUsers: { id: string; name: string; email: string; role: string; created_at: string }[];
   recentVirtualStaff: { id: string; name: string; store_name: string; created_at: string }[];
 }
@@ -395,6 +396,10 @@ export default function SuperAdminDashboard() {
     const { data: pendingOwnersData } = await supabase.rpc('get_pending_owners');
     const pendingOwners = pendingOwnersData?.length || 0;
 
+    // Pending password reset requests
+    const { data: pendingResetData } = await supabase.rpc('get_pending_reset_count');
+    const pendingPasswordResets = pendingResetData || 0;
+
     setStats({
       totalUsers: totalUsers || 0,
       usersByRole,
@@ -405,6 +410,7 @@ export default function SuperAdminDashboard() {
       reservationsByStatus,
       todayReservations: todayReservations || 0,
       pendingOwners,
+      pendingPasswordResets,
       recentUsers: recentUsers || [],
       recentVirtualStaff: (recentVirtualStaff || []).map(vs => ({
         id: vs.id,
@@ -543,24 +549,44 @@ export default function SuperAdminDashboard() {
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">서비스 관리자 대시보드</h1>
 
-      {/* Pending Owner Approval Alert */}
-      {stats?.pendingOwners && stats.pendingOwners > 0 && (
-        <Link
-          to="/superadmin/owner-approval"
-          className="block mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⏳</span>
-              <div>
-                <p className="font-semibold text-amber-800">사장 가입 승인 대기</p>
-                <p className="text-sm text-amber-600">{stats.pendingOwners}건의 가입 신청이 대기 중입니다.</p>
+      {/* Pending Alerts */}
+      <div className="space-y-3 mb-6">
+        {stats?.pendingOwners && stats.pendingOwners > 0 && (
+          <Link
+            to="/superadmin/owner-approval"
+            className="block p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⏳</span>
+                <div>
+                  <p className="font-semibold text-amber-800">사장 가입 승인 대기</p>
+                  <p className="text-sm text-amber-600">{stats.pendingOwners}건의 가입 신청이 대기 중입니다.</p>
+                </div>
               </div>
+              <span className="text-amber-600 font-medium">승인하기 →</span>
             </div>
-            <span className="text-amber-600 font-medium">승인하기 →</span>
-          </div>
-        </Link>
-      )}
+          </Link>
+        )}
+
+        {stats?.pendingPasswordResets && stats.pendingPasswordResets > 0 && (
+          <Link
+            to="/superadmin/password-reset"
+            className="block p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🔑</span>
+                <div>
+                  <p className="font-semibold text-blue-800">비밀번호 초기화 요청</p>
+                  <p className="text-sm text-blue-600">{stats.pendingPasswordResets}건의 초기화 요청이 대기 중입니다.</p>
+                </div>
+              </div>
+              <span className="text-blue-600 font-medium">처리하기 →</span>
+            </div>
+          </Link>
+        )}
+      </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">

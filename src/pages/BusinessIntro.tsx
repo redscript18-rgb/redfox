@@ -33,10 +33,16 @@ export default function BusinessIntro() {
               이제 스마트하게
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-            예약, 매니저, 매출을 한눈에 관리하세요.<br />
-            데이터 기반 경영으로 매출을 극대화하고 운영 효율을 높이세요.
+          <p className="text-lg md:text-xl text-slate-400 mb-6 max-w-2xl mx-auto">
+            매니저 구인부터 가게 홍보, 예약 관리까지 한번에.<br />
+            데이터 기반 경영으로 매출을 극대화하세요.
           </p>
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            <span className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full text-red-400 text-sm">매니저 구인</span>
+            <span className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400 text-sm">가게 홍보</span>
+            <span className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-sm">예약 관리</span>
+            <span className="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-400 text-sm">매출 분석</span>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/login"

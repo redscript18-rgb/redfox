@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import StaffSearch from './StaffSearch';
 import StoreList from '../../components/StoreList';
+import TodayFeed from '../../components/TodayFeed';
 import { supabase } from '../../lib/supabase';
 
 type View = 'staff' | 'store';
@@ -25,6 +26,16 @@ export default function CustomerHome() {
 
   return (
     <div>
+      {/* 오늘의 피드 */}
+      <div className="mb-8">
+        <TodayFeed />
+      </div>
+
+      {/* 구분선 */}
+      <div className="border-t border-slate-200 pt-6 mb-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-4">전체 둘러보기</h2>
+      </div>
+
       {/* View Tabs */}
       <div className="flex gap-2 mb-6">
         <button
@@ -35,7 +46,7 @@ export default function CustomerHome() {
           }`}
           onClick={() => setActiveView('store')}
         >
-          가게 리스트 {storeCount > 0 && <span className="ml-1">({storeCount})</span>}
+          가게 {storeCount > 0 && <span className="ml-1">({storeCount})</span>}
         </button>
         <button
           className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
@@ -45,7 +56,7 @@ export default function CustomerHome() {
           }`}
           onClick={() => setActiveView('staff')}
         >
-          매니저 찾기 {managerCount > 0 && <span className="ml-1">({managerCount})</span>}
+          매니저 {managerCount > 0 && <span className="ml-1">({managerCount})</span>}
         </button>
       </div>
 

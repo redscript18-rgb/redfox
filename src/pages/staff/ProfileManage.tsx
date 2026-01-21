@@ -375,9 +375,9 @@ export default function ProfileManage() {
               type="button"
               onClick={() => dailyInputRef.current?.click()}
               disabled={uploadingDaily}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400 whitespace-nowrap flex-shrink-0"
             >
-              {uploadingDaily ? '업로드 중...' : '사진 업로드'}
+              {uploadingDaily ? '업로드 중...' : '업로드'}
             </button>
           </div>
         )}

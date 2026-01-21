@@ -399,12 +399,12 @@ export default function ProfileManage() {
       <Link to="/staff" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
 
       {/* Header with Save Button */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">프로필 관리</h1>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">프로필 관리</h1>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+          className="px-4 sm:px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400 whitespace-nowrap flex-shrink-0"
         >
           {saving ? '저장 중...' : '저장하기'}
         </button>
@@ -413,8 +413,8 @@ export default function ProfileManage() {
       {/* 프로필 사진 */}
       <section className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">프로필 사진</h2>
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+        <div className="flex items-center gap-4 max-sm:flex-col max-sm:items-start">
+          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl font-bold text-white overflow-hidden flex-shrink-0">
             {profilePhotoUrl ? (
               <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
             ) : (
@@ -432,7 +432,7 @@ export default function ProfileManage() {
             <button
               type="button"
               onClick={() => profileInputRef.current?.click()}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400 whitespace-nowrap"
               disabled={uploadingProfile}
             >
               {uploadingProfile ? '업로드 중...' : '사진 변경'}
@@ -461,7 +461,7 @@ export default function ProfileManage() {
               type="button"
               onClick={() => galleryInputRef.current?.click()}
               disabled={uploadingGallery}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400"
+              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:bg-slate-400 whitespace-nowrap"
             >
               {uploadingGallery ? '업로드 중...' : '+ 사진 추가'}
             </button>
@@ -508,7 +508,7 @@ export default function ProfileManage() {
               value={newPhotoCaption}
               onChange={(e) => setNewPhotoCaption(e.target.value)}
               placeholder="사진 설명 (선택)"
-              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+              className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
             <input
               type="file"
@@ -789,13 +789,13 @@ export default function ProfileManage() {
                   onChange={(e) => setNewNationality(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNationality())}
                   placeholder="예: 한국, 일본, 미국..."
-                  className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                  className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
                 />
                 <button
                   type="button"
                   onClick={handleAddNationality}
                   disabled={!newNationality.trim()}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                 >
                   추가
                 </button>
@@ -828,13 +828,13 @@ export default function ProfileManage() {
                   onChange={(e) => setNewLanguage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLanguage())}
                   placeholder="예: 한국어, 영어, 일본어..."
-                  className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                  className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
                 />
                 <button
                   type="button"
                   onClick={handleAddLanguage}
                   disabled={!newLanguage.trim()}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                 >
                   추가
                 </button>
@@ -872,13 +872,13 @@ export default function ProfileManage() {
               onChange={(e) => setNewSpecialty(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="새 전문 분야 입력"
-              className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+              className="flex-1 min-w-0 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
             />
             <button
               type="button"
               onClick={handleAddSpecialty}
               disabled={!newSpecialty.trim()}
-              className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
             >
               추가
             </button>

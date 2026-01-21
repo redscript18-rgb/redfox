@@ -105,7 +105,7 @@ export default function ReservationManage() {
     const storeIds = [...new Set([...adminStoreIds, ...ownedStoreIds])];
 
     if (storeIds.length > 0) {
-      const { data: reservationsData } = await supabase
+      const { data: reservationsData, error } = await supabase
         .from('reservations')
         .select(`
           *,
@@ -113,13 +113,16 @@ export default function ReservationManage() {
           staff:profiles!reservations_staff_id_fkey(name),
           virtual_staff:virtual_staff(name),
           customer:profiles!reservations_customer_id_fkey(name),
-          menu:menus(name, price)
+          menu:menus!left(name, price)
         `)
         .in('store_id', storeIds)
         .gte('date', today)
         .order('date', { ascending: true })
         .order('start_time', { ascending: true });
 
+      if (error) {
+        console.error('Reservations fetch error:', error);
+      }
       setReservations(reservationsData || []);
 
       if (reservationsData && reservationsData.length > 0) {

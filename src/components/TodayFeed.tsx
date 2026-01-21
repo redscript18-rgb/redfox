@@ -135,7 +135,7 @@ export default function TodayFeed() {
 
     setWorkingManagers(managers);
 
-    // Fetch today's photos
+    // Fetch today's photos (real staff)
     const { data: photosData } = await supabase
       .from('staff_photos')
       .select(`
@@ -151,7 +151,25 @@ export default function TodayFeed() {
       .order('created_at', { ascending: false })
       .limit(20);
 
+    // Fetch today's photos (virtual staff)
+    const { data: virtualPhotosData } = await supabase
+      .from('virtual_staff_photos')
+      .select(`
+        id,
+        virtual_staff_id,
+        photo_url,
+        caption,
+        date,
+        created_at,
+        virtual_staff:virtual_staff(id, name, profile_photo_url)
+      `)
+      .eq('date', today)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
     const photos: DailyPhoto[] = [];
+
+    // Process real staff photos
     photosData?.forEach(p => {
       const staff = Array.isArray(p.staff) ? p.staff[0] : p.staff;
       if (staff) {
@@ -170,7 +188,26 @@ export default function TodayFeed() {
       }
     });
 
-    // Sort: favorites first
+    // Process virtual staff photos
+    virtualPhotosData?.forEach(p => {
+      const vs = Array.isArray(p.virtual_staff) ? p.virtual_staff[0] : p.virtual_staff;
+      if (vs) {
+        photos.push({
+          id: p.id + 100000, // Offset to avoid ID collision
+          staff_id: p.virtual_staff_id,
+          staff_name: (vs as { name: string }).name,
+          staff_photo: (vs as { profile_photo_url: string | null }).profile_photo_url,
+          photo_url: p.photo_url,
+          caption: p.caption,
+          date: p.date,
+          created_at: p.created_at,
+          isVirtual: true,
+          isFavorite: favIds.has(p.virtual_staff_id),
+        });
+      }
+    });
+
+    // Sort: favorites first, then by created_at
     photos.sort((a, b) => {
       if (a.isFavorite !== b.isFavorite) return b.isFavorite ? 1 : -1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -255,8 +292,8 @@ export default function TodayFeed() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {dailyPhotos.slice(0, 8).map((photo) => (
               <Link
-                key={photo.id}
-                to={`/staff/${photo.staff_id}`}
+                key={`${photo.isVirtual ? 'v' : 'r'}-${photo.id}`}
+                to={photo.isVirtual ? `/virtual-staff/${photo.staff_id}` : `/staff/${photo.staff_id}`}
                 className={`relative group rounded-xl overflow-hidden border hover:border-red-600 transition-all ${
                   photo.isFavorite ? 'border-red-300' : 'border-slate-200'
                 }`}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -15,6 +15,7 @@ const PAGE_SIZE = 20;
 
 export default function StoreSearch() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
   const [myStoreIds, setMyStoreIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -110,10 +111,10 @@ export default function StoreSearch() {
     }
   };
 
-  const handleApply = async (storeId: number) => {
+  const handleApply = (storeId: number) => {
     // For now, just navigate to store detail
     // In the future, this could open an application modal
-    window.location.href = `/store/${storeId}`;
+    navigate(`/store/${storeId}`);
   };
 
   return (

@@ -1,31 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const TEST_ACCOUNTS = [
-  { email: 'owner@test.com', password: 'test123456', name: '김사장', role: 'owner', label: '사장' },
-  { email: 'admin@test.com', password: 'test123456', name: '이관리', role: 'staff', label: '실장' },
-  { email: 'staff@test.com', password: 'test123456', name: '박매니저', role: 'manager', label: '매니저' },
-  { email: 'customer@test.com', password: 'test123456', name: '최손님', role: 'customer', label: '손님' },
-  { email: 'agency@test.com', password: 'test123456', name: '정에이전시', role: 'agency', label: '에이전시' },
+  { username: 'owner', password: 'test123456', nickname: '김사장', role: 'owner', label: '사장' },
+  { username: 'admin', password: 'test123456', nickname: '이관리', role: 'staff', label: '실장' },
+  { username: 'staff', password: 'test123456', nickname: '박매니저', role: 'manager', label: '매니저' },
+  { username: 'customer', password: 'test123456', nickname: '최손님', role: 'customer', label: '손님' },
+  { username: 'agency', password: 'test123456', nickname: '정에이전시', role: 'agency', label: '에이전시' },
 ];
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
-  const [email, setEmail] = useState('');
+  // 로그인용
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  // 회원가입용 추가 필드
+  const [nickname, setNickname] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState('customer');
+  // 상태
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+
+  const { login, signup, checkUsername } = useAuth();
   const navigate = useNavigate();
+
+  // 아이디 중복 체크 (디바운스)
+  useEffect(() => {
+    if (!isSignup || username.length < 3) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setUsernameChecking(true);
+      const available = await checkUsername(username);
+      setUsernameAvailable(available);
+      setUsernameChecking(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [username, isSignup, checkUsername]);
 
   const handleLoginSuccess = () => {
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
     sessionStorage.removeItem('redirectAfterLogin');
     navigate(redirectUrl || '/');
+  };
+
+  const validateSignup = (): string | null => {
+    if (username.length < 3) {
+      return '아이디는 3자 이상이어야 합니다.';
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return '아이디는 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.';
+    }
+    if (usernameAvailable === false) {
+      return '이미 사용 중인 아이디입니다.';
+    }
+    if (nickname.length < 2) {
+      return '닉네임은 2자 이상이어야 합니다.';
+    }
+    if (password.length < 6) {
+      return '비밀번호는 6자 이상이어야 합니다.';
+    }
+    if (password !== passwordConfirm) {
+      return '비밀번호가 일치하지 않습니다.';
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return '올바른 이메일 형식이 아닙니다.';
+    }
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,15 +87,32 @@ export default function Login() {
 
     try {
       if (isSignup) {
-        const { error } = await signup(email, password, name, role);
+        const validationError = validateSignup();
+        if (validationError) {
+          setError(validationError);
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signup({
+          username,
+          nickname,
+          password,
+          role,
+          email: email || undefined,
+          phone: phone || undefined,
+        });
         if (error) {
           setError(error);
         } else {
-          setMessage('회원가입 완료! 이메일 확인 후 로그인하세요.');
+          setMessage('회원가입 완료! 로그인하세요.');
           setIsSignup(false);
+          // 회원가입 후 비밀번호 필드만 초기화
+          setPassword('');
+          setPasswordConfirm('');
         }
       } else {
-        const { error } = await login(email, password);
+        const { error } = await login(username, password);
         if (error) {
           setError(error);
         } else {
@@ -64,27 +132,27 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error: loginError } = await login(account.email, account.password);
+      const { error: loginError } = await login(account.username, account.password);
 
       if (loginError) {
         setMessage('계정 생성 중...');
-        const { error: signupError } = await signup(
-          account.email,
-          account.password,
-          account.name,
-          account.role
-        );
+        const { error: signupError } = await signup({
+          username: account.username,
+          nickname: account.nickname,
+          password: account.password,
+          role: account.role,
+        });
 
         if (signupError) {
           if (signupError.includes('already')) {
-            setError('이메일 확인이 필요합니다. Supabase에서 이메일 확인을 비활성화하세요.');
+            setError('이미 존재하는 계정입니다. 다시 로그인해보세요.');
           } else {
             setError(signupError);
           }
         } else {
-          const { error: retryError } = await login(account.email, account.password);
+          const { error: retryError } = await login(account.username, account.password);
           if (retryError) {
-            setMessage('회원가입 완료! 이메일 확인 후 다시 클릭하세요.');
+            setMessage('회원가입 완료! 다시 클릭하세요.');
           } else {
             handleLoginSuccess();
           }
@@ -97,6 +165,19 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setUsername('');
+    setPassword('');
+    setNickname('');
+    setPasswordConfirm('');
+    setEmail('');
+    setPhone('');
+    setRole('customer');
+    setUsernameAvailable(null);
+    setError('');
+    setMessage('');
   };
 
   return (
@@ -112,7 +193,7 @@ export default function Login() {
             <div className="flex flex-wrap gap-2 justify-center">
               {TEST_ACCOUNTS.map((account) => (
                 <button
-                  key={account.email}
+                  key={account.username}
                   type="button"
                   className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-transparent hover:border-red-600 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-w-[80px]"
                   onClick={() => handleQuickLogin(account)}
@@ -126,58 +207,137 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* 아이디 */}
+          <div className="mb-4">
+            <label htmlFor="username" className="block mb-2 text-sm font-medium text-slate-600">
+              아이디 <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                placeholder="영문, 숫자, 밑줄 사용 가능"
+                required
+                minLength={3}
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+              />
+              {isSignup && username.length >= 3 && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                  {usernameChecking ? (
+                    <span className="text-slate-400">확인 중...</span>
+                  ) : usernameAvailable === true ? (
+                    <span className="text-green-600">✓ 사용 가능</span>
+                  ) : usernameAvailable === false ? (
+                    <span className="text-red-600">✗ 사용 불가</span>
+                  ) : null}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 회원가입: 닉네임 */}
           {isSignup && (
             <div className="mb-4">
-              <label htmlFor="name" className="block mb-2 text-sm font-medium text-slate-600">
-                이름
+              <label htmlFor="nickname" className="block mb-2 text-sm font-medium text-slate-600">
+                닉네임 <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="이름을 입력하세요"
-                required={isSignup}
+                id="nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="사이트에서 표시될 이름"
+                required
+                minLength={2}
                 className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
               />
             </div>
           )}
 
-          <div className="mb-4">
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-slate-600">
-              이메일
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="이메일을 입력하세요"
-              required
-              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
-            />
-          </div>
-
+          {/* 비밀번호 */}
           <div className="mb-4">
             <label htmlFor="password" className="block mb-2 text-sm font-medium text-slate-600">
-              비밀번호
+              비밀번호 <span className="text-red-500">*</span>
             </label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
+              placeholder="6자 이상"
               required
               minLength={6}
               className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
             />
           </div>
 
+          {/* 회원가입: 비밀번호 확인 */}
+          {isSignup && (
+            <div className="mb-4">
+              <label htmlFor="passwordConfirm" className="block mb-2 text-sm font-medium text-slate-600">
+                비밀번호 확인 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="passwordConfirm"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="비밀번호를 다시 입력하세요"
+                required
+                minLength={6}
+                className={`w-full px-4 py-3 bg-slate-100 border rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors ${
+                  passwordConfirm && password !== passwordConfirm
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-slate-200 focus:border-red-600'
+                }`}
+              />
+              {passwordConfirm && password !== passwordConfirm && (
+                <p className="text-red-500 text-xs mt-1">비밀번호가 일치하지 않습니다.</p>
+              )}
+            </div>
+          )}
+
+          {/* 회원가입: 이메일 (선택) */}
+          {isSignup && (
+            <div className="mb-4">
+              <label htmlFor="email" className="block mb-2 text-sm font-medium text-slate-600">
+                이메일 <span className="text-slate-400 text-xs">(선택)</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@email.com"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+              />
+            </div>
+          )}
+
+          {/* 회원가입: 연락처 (선택) */}
+          {isSignup && (
+            <div className="mb-4">
+              <label htmlFor="phone" className="block mb-2 text-sm font-medium text-slate-600">
+                연락처 <span className="text-slate-400 text-xs">(선택)</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="010-0000-0000"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-red-600 transition-colors"
+              />
+            </div>
+          )}
+
+          {/* 회원가입: 역할 */}
           {isSignup && (
             <div className="mb-4">
               <label htmlFor="role" className="block mb-2 text-sm font-medium text-slate-600">
-                역할
+                역할 <span className="text-red-500">*</span>
               </label>
               <select
                 id="role"
@@ -200,7 +360,7 @@ export default function Login() {
           <button
             type="submit"
             className="w-full py-4 mt-2 bg-red-600 text-white rounded-lg text-base font-semibold hover:bg-red-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
-            disabled={loading}
+            disabled={loading || (isSignup && usernameChecking)}
           >
             {loading ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
           </button>
@@ -212,8 +372,7 @@ export default function Login() {
             className="bg-transparent border-none text-slate-400 cursor-pointer text-sm hover:text-orange-600 transition-colors"
             onClick={() => {
               setIsSignup(!isSignup);
-              setError('');
-              setMessage('');
+              resetForm();
             }}
           >
             {isSignup ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}

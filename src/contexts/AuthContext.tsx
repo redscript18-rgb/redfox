@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 interface Profile {
   id: string;
   email: string;
+  username: string;
+  nickname: string;
   name: string;
   role: 'owner' | 'admin' | 'staff' | 'manager' | 'customer' | 'superadmin' | 'agency';
   phone?: string;
@@ -13,11 +15,21 @@ interface Profile {
   specialties?: string[];
 }
 
+interface SignupData {
+  username: string;
+  nickname: string;
+  password: string;
+  role: string;
+  email?: string;
+  phone?: string;
+}
+
 interface AuthContextType {
   user: Profile | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ error: string | null }>;
-  signup: (email: string, password: string, name: string, role: string) => Promise<{ error: string | null }>;
+  login: (username: string, password: string) => Promise<{ error: string | null }>;
+  signup: (data: SignupData) => Promise<{ error: string | null }>;
+  checkUsername: (username: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -137,9 +149,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  // 아이디 중복 체크
+  const checkUsername = async (username: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('check_username_available', {
+        p_username: username
+      });
+      if (error) {
+        console.error('Username check error:', error);
+        return false;
+      }
+      return data === true;
+    } catch {
+      return false;
+    }
+  };
+
+  // 아이디로 가짜 이메일 생성 (Supabase Auth용)
+  const generateFakeEmail = (username: string) => `${username.toLowerCase()}@redfox.local`;
+
+  const login = async (username: string, password: string) => {
     setLoading(true);
     try {
+      // 먼저 username으로 사용자 조회하여 이메일 확인
+      const { data: userData } = await supabase.rpc('get_user_by_username', {
+        p_username: username
+      });
+
+      let email: string;
+      if (userData && userData.length > 0) {
+        // 기존 사용자의 실제 이메일 사용
+        email = userData[0].email;
+      } else {
+        // 새 형식의 가짜 이메일로 시도
+        email = generateFakeEmail(username);
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -147,6 +192,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         setLoading(false);
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: '아이디 또는 비밀번호가 올바르지 않습니다.' };
+        }
         return { error: error.message };
       }
 
@@ -157,25 +205,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setLoading(false);
       return { error: null };
-    } catch (err) {
+    } catch {
       setLoading(false);
       return { error: '로그인 중 오류가 발생했습니다.' };
     }
   };
 
-  const signup = async (email: string, password: string, name: string, role: string) => {
+  const signup = async (data: SignupData) => {
     setLoading(true);
     try {
+      // 아이디 중복 체크
+      const isAvailable = await checkUsername(data.username);
+      if (!isAvailable) {
+        setLoading(false);
+        return { error: '이미 사용 중인 아이디입니다.' };
+      }
+
+      // 이메일이 제공되면 실제 이메일 사용, 아니면 가짜 이메일 생성
+      const email = data.email || generateFakeEmail(data.username);
+
       const { error } = await supabase.auth.signUp({
         email,
-        password,
+        password: data.password,
         options: {
-          data: { name, role },
+          data: {
+            name: data.nickname,
+            username: data.username,
+            nickname: data.nickname,
+            role: data.role,
+            phone: data.phone || null,
+          },
         },
       });
       setLoading(false);
       return { error: error?.message || null };
-    } catch (err) {
+    } catch {
       setLoading(false);
       return { error: '회원가입 중 오류가 발생했습니다.' };
     }
@@ -200,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         signup,
+        checkUsername,
         logout,
         isAuthenticated: user !== null,
       }}

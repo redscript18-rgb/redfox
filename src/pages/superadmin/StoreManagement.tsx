@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -41,6 +41,8 @@ export default function StoreManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [filterType, setFilterType] = useState(searchParams.get('type') || '');
   const [filterRegion, setFilterRegion] = useState(searchParams.get('region') || '');
@@ -57,6 +59,21 @@ export default function StoreManagement() {
   const [regionCounts, setRegionCounts] = useState<Record<string, number>>({});
   const [allRegions, setAllRegions] = useState<string[]>([]);
 
+  // 검색어 디바운스 처리
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   useEffect(() => {
     if (user?.role === 'superadmin') {
       fetchTotalCount();
@@ -64,7 +81,7 @@ export default function StoreManagement() {
       fetchTypeCounts();
       fetchRegionCounts();
     }
-  }, [user, currentPage, sortBy, filterType, filterRegion]);
+  }, [user, currentPage, sortBy, filterType, filterRegion, debouncedSearchQuery]);
 
   const fetchTypeCounts = async () => {
     // First get all distinct store types from DB
@@ -182,6 +199,11 @@ export default function StoreManagement() {
 
     let query = supabase.from('stores').select('*');
 
+    // 검색어가 있으면 DB에서 검색
+    if (debouncedSearchQuery.trim()) {
+      query = query.or(`name.ilike.%${debouncedSearchQuery.trim()}%,address.ilike.%${debouncedSearchQuery.trim()}%`);
+    }
+
     if (filterType === '미분류') {
       query = query.is('store_type', null);
     } else if (filterType) {
@@ -203,7 +225,10 @@ export default function StoreManagement() {
       query = query.order('rating', { ascending: false, nullsFirst: false });
     }
 
-    const { data: storesData } = await query.range(from, to);
+    // 검색어가 있으면 페이지네이션 없이 전체 검색, 없으면 페이지네이션 적용
+    const { data: storesData } = debouncedSearchQuery.trim()
+      ? await query.limit(100)
+      : await query.range(from, to);
 
     if (!storesData) {
       setLoading(false);
@@ -278,11 +303,8 @@ export default function StoreManagement() {
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  const filteredStores = stores.filter(s =>
-    searchQuery === '' ||
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // 검색어가 있으면 이미 DB에서 검색된 결과이므로 그대로 사용
+  const filteredStores = stores;
 
   const handleSortChange = (newSort: SortBy) => {
     setSortBy(newSort);
@@ -296,6 +318,11 @@ export default function StoreManagement() {
 
   const handleRegionChange = (newRegion: string) => {
     setFilterRegion(newRegion);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
     setCurrentPage(1);
   };
 
@@ -420,16 +447,21 @@ export default function StoreManagement() {
       <div className="flex items-center gap-2 mb-6">
         <Link to="/superadmin" className="text-slate-400 hover:text-slate-600">←</Link>
         <h1 className="text-2xl font-bold text-slate-900">가게 관리</h1>
-        <span className="text-slate-400">(총 {totalCount.toLocaleString()}개)</span>
+        <span className="text-slate-400">
+          {debouncedSearchQuery.trim()
+            ? `(검색 결과: ${filteredStores.length}개)`
+            : `(총 ${totalCount.toLocaleString()}개)`
+          }
+        </span>
       </div>
 
       {/* Search & Sort */}
       <div className="flex flex-wrap gap-4 mb-6">
         <input
           type="text"
-          placeholder="가게 이름 또는 주소 검색..."
+          placeholder="가게 이름 또는 주소 검색 (전체 검색)..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
         />
         <select
@@ -554,8 +586,8 @@ export default function StoreManagement() {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
+      {/* Pagination - 검색 중일 때는 숨김 */}
+      {!debouncedSearchQuery.trim() && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}

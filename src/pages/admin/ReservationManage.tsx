@@ -212,40 +212,39 @@ export default function ReservationManage() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <Link to="/" className="inline-block mb-3 text-orange-600 text-sm hover:underline">
-        ← 대시보드
+      <Link to="/" className="inline-flex items-center gap-1 mb-4 text-slate-500 text-sm hover:text-slate-700">
+        <span>←</span> 대시보드
       </Link>
 
-      <h1 className="text-xl font-bold text-slate-900 mb-4">예약 관리</h1>
+      <h1 className="text-xl font-bold text-slate-900 mb-5">예약 관리</h1>
 
       {/* Filter Tabs */}
-      <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
+      <div className="flex gap-2 mb-5">
         <button
-          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
-            filter === 'pending' ? 'bg-red-600 text-white' : 'text-slate-500'
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filter === 'pending'
+              ? 'bg-orange-500 text-white shadow-sm'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setFilter('pending')}
         >
-          대기
-          {pendingCount > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded-lg ${
-              filter === 'pending' ? 'bg-white/30' : 'bg-slate-200 text-slate-500'
-            }`}>
-              {pendingCount}
-            </span>
-          )}
+          대기 {pendingCount > 0 && <span className="ml-1 opacity-80">({pendingCount})</span>}
         </button>
         <button
-          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
-            filter === 'confirmed' ? 'bg-red-600 text-white' : 'text-slate-500'
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filter === 'confirmed'
+              ? 'bg-green-500 text-white shadow-sm'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setFilter('confirmed')}
         >
           확정
         </button>
         <button
-          className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-colors ${
-            filter === 'all' ? 'bg-red-600 text-white' : 'text-slate-500'
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filter === 'all'
+              ? 'bg-slate-700 text-white shadow-sm'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
           onClick={() => setFilter('all')}
         >
@@ -259,109 +258,125 @@ export default function ReservationManage() {
           const customerRating = customerRatings[reservation.customer_id];
           const isLowRating = customerRating?.avgRating !== null && customerRating?.avgRating < 3;
           const isBlocked = blockedCustomers.has(reservation.customer_id);
+          const isPending = reservation.status === 'pending';
+          const staffName = reservation.staff?.name || reservation.virtual_staff?.name;
 
           return (
             <div
               key={reservation.id}
-              className={`bg-white border rounded-xl overflow-hidden ${
-                reservation.status === 'pending'
-                  ? 'border-red-600 border-2'
+              className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all ${
+                isPending
+                  ? 'border-orange-200 shadow-orange-100'
                   : isLowRating
-                  ? 'border-amber-500'
-                  : 'border-slate-200'
+                  ? 'border-amber-200'
+                  : 'border-slate-100'
               }`}
             >
-              {/* Card Top */}
-              <div className={`p-3 border-b border-slate-100 ${
-                reservation.status === 'pending'
-                  ? 'bg-orange-50'
-                  : isLowRating
-                  ? 'bg-amber-50'
-                  : 'bg-slate-50'
-              }`}>
-                <div className="flex items-center mb-1">
-                  <span className="text-lg font-bold text-slate-900 mr-2">
-                    {reservation.start_time.slice(0, 5)}
-                  </span>
-                  <span className="text-xs text-slate-500 flex-1">
-                    {formatDate(reservation.date)}
-                  </span>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                    reservation.status === 'pending'
+              {/* Main Content */}
+              <div className="p-4">
+                {/* Top Row: Time & Status */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-slate-900">
+                      {reservation.start_time.slice(0, 5)}
+                    </span>
+                    <span className="text-sm text-slate-400">
+                      {formatDate(reservation.date)}
+                    </span>
+                  </div>
+                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    isPending
                       ? 'bg-orange-100 text-orange-600'
                       : reservation.status === 'confirmed'
                       ? 'bg-green-100 text-green-600'
                       : 'bg-slate-100 text-slate-500'
                   }`}>
-                    {reservation.status === 'pending' && '대기'}
-                    {reservation.status === 'confirmed' && '확정'}
-                    {reservation.status === 'cancelled' && '취소'}
+                    {isPending && '승인 대기'}
+                    {reservation.status === 'confirmed' && '확정됨'}
+                    {reservation.status === 'cancelled' && '취소됨'}
                   </span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-slate-900">
-                    {reservation.menu?.name}
-                  </span>
-                  <span className="text-sm font-semibold text-orange-600">
-                    {reservation.menu?.price?.toLocaleString()}원
-                  </span>
-                </div>
-              </div>
 
-              {/* Card Middle */}
-              <div className="p-3">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-sm font-semibold text-slate-900">
-                    {reservation.customer?.name || '고객'}
-                  </span>
-                  {customerRating && customerRating.totalCount > 0 ? (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                      isLowRating
-                        ? 'bg-red-50 border-red-200 text-red-600'
-                        : 'bg-amber-50 border-amber-300 text-amber-700'
-                    }`}>
-                      ★ {customerRating.avgRating?.toFixed(1)} ({customerRating.totalCount})
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                      평가없음
-                    </span>
-                  )}
+                {/* Customer Info */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600">
+                      {(reservation.customer?.name || '고')[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-900">
+                          {reservation.customer?.name || '고객'}
+                        </span>
+                        {customerRating && customerRating.totalCount > 0 ? (
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                            isLowRating
+                              ? 'bg-red-50 text-red-600'
+                              : 'bg-amber-50 text-amber-600'
+                          }`}>
+                            ★ {customerRating.avgRating?.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">신규</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <button
-                    className={`ml-auto text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                    className={`text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
                       isBlocked
-                        ? 'bg-red-600 text-white border-red-600'
-                        : 'bg-white text-red-600 border-red-600 hover:bg-red-50'
+                        ? 'bg-red-500 text-white'
+                        : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
                     }`}
                     onClick={() => handleBlock(reservation.customer_id, reservation.customer?.name || '고객')}
                   >
                     {isBlocked ? '차단됨' : '차단'}
                   </button>
                 </div>
-                <div className="flex gap-3 text-xs text-slate-500 flex-wrap items-center">
-                  <span className="flex items-center gap-1">
-                    담당: {reservation.staff?.name || reservation.virtual_staff?.name || (
-                      <span className="text-blue-600 font-medium">미지정 (가게 직접 예약)</span>
-                    )}
-                  </span>
-                  <span>{reservation.store?.name}</span>
+
+                {/* Details */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+                  {reservation.menu?.name ? (
+                    <span>
+                      {reservation.menu.name}
+                      {reservation.menu.price && (
+                        <span className="text-orange-500 font-medium ml-1">
+                          {reservation.menu.price.toLocaleString()}원
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">메뉴 미지정</span>
+                  )}
+                  <span className="text-slate-300">|</span>
+                  {staffName ? (
+                    <span>담당: {staffName}</span>
+                  ) : (
+                    <span className="text-blue-500">가게 직접 예약</span>
+                  )}
+                </div>
+
+                {/* Store */}
+                <div className="mt-2 text-xs text-slate-400">
+                  {reservation.store?.name}
                 </div>
               </div>
 
-              {/* Card Bottom - Buttons */}
-              {reservation.status === 'pending' && (
-                <div className="flex border-t border-slate-200">
+              {/* Action Buttons */}
+              {isPending && (
+                <div className="flex border-t border-slate-100">
                   <button
-                    className="flex-1 py-3.5 bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
+                    className="flex-1 py-3 text-sm font-semibold text-green-600 hover:bg-green-50 transition-colors"
                     onClick={() => handleConfirm(reservation.id)}
                   >
-                    확정
+                    확정하기
                   </button>
+                  <div className="w-px bg-slate-100" />
                   <button
-                    className="flex-1 py-3.5 bg-slate-100 text-slate-500 text-sm font-semibold hover:bg-slate-200 transition-colors"
+                    className="flex-1 py-3 text-sm font-semibold text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
                     onClick={() => handleCancel(reservation.id)}
                   >
-                    취소
+                    거절
                   </button>
                 </div>
               )}
@@ -371,10 +386,13 @@ export default function ReservationManage() {
       </div>
 
       {filteredReservations.length === 0 && (
-        <div className="py-10 text-center text-slate-400 bg-slate-50 rounded-xl">
-          {filter === 'pending'
-            ? '승인 대기 중인 예약이 없습니다.'
-            : '예약이 없습니다.'}
+        <div className="py-16 text-center">
+          <div className="text-4xl mb-3">📋</div>
+          <p className="text-slate-400">
+            {filter === 'pending'
+              ? '대기 중인 예약이 없습니다'
+              : '예약이 없습니다'}
+          </p>
         </div>
       )}
     </div>

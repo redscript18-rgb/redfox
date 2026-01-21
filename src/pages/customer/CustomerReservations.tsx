@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -27,12 +27,14 @@ interface Rating {
 
 export default function CustomerReservations() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [myRatings, setMyRatings] = useState<Rating[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [ratingTargetType, setRatingTargetType] = useState<'staff' | 'store'>('staff');
+  const [startingChat, setStartingChat] = useState<number | null>(null);
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -120,8 +122,77 @@ export default function CustomerReservations() {
     setShowRatingModal(true);
   };
 
+  const startChatWithStore = async (storeId: number) => {
+    if (!user) return;
+    setStartingChat(storeId);
+
+    try {
+      // First, find admin for this store (owner or store_admin)
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('owner_id')
+        .eq('id', storeId)
+        .single();
+
+      let adminId = storeData?.owner_id;
+
+      // If no owner, try to find a store_admin
+      if (!adminId) {
+        const { data: adminData } = await supabase
+          .from('store_admins')
+          .select('admin_id')
+          .eq('store_id', storeId)
+          .limit(1)
+          .single();
+        adminId = adminData?.admin_id;
+      }
+
+      if (!adminId) {
+        alert('가게 담당자를 찾을 수 없습니다.');
+        setStartingChat(null);
+        return;
+      }
+
+      // Check for existing conversation
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('customer_id', user.id)
+        .maybeSingle();
+
+      if (existingConv) {
+        navigate(`/chat/${existingConv.id}`);
+      } else {
+        // Create new conversation
+        const { data: newConv, error } = await supabase
+          .from('conversations')
+          .insert({
+            store_id: storeId,
+            admin_id: adminId,
+            customer_id: user.id,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating conversation:', error);
+          alert('채팅방 생성 중 오류가 발생했습니다.');
+        } else if (newConv) {
+          navigate(`/chat/${newConv.id}`);
+        }
+      }
+    } catch (err) {
+      console.error('Error starting chat:', err);
+      alert('채팅 시작 중 오류가 발생했습니다.');
+    }
+
+    setStartingChat(null);
+  };
+
   const ReservationCard = ({ reservation }: { reservation: Reservation }) => {
     const isNew = isNewNotification(reservation);
+    const isChatLoading = startingChat === reservation.store_id;
 
     return (
       <div className={`relative p-4 bg-white border rounded-xl ${
@@ -139,8 +210,10 @@ export default function CustomerReservations() {
           </div>
           <div className="flex-1">
             <div className="flex items-baseline gap-2 mb-1">
-              <span className="font-semibold text-slate-900">{reservation.menu?.name}</span>
-              <span className="text-sm font-medium text-orange-600">{reservation.menu?.price?.toLocaleString()}원</span>
+              <span className="font-semibold text-slate-900">{reservation.menu?.name || '메뉴 미지정'}</span>
+              {reservation.menu?.price && (
+                <span className="text-sm font-medium text-orange-600">{reservation.menu.price.toLocaleString()}원</span>
+              )}
             </div>
             <div className="text-sm text-slate-600">{reservation.store?.name}</div>
             <div className="text-xs text-slate-500">담당: {reservation.staff?.name || reservation.virtual_staff?.name || '미정'}</div>
@@ -153,13 +226,22 @@ export default function CustomerReservations() {
             }`}>
               {getStatusText(reservation.status)}
             </span>
+            {reservation.status !== 'cancelled' && (
+              <button
+                className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded hover:bg-blue-100 transition-colors disabled:opacity-50"
+                onClick={() => startChatWithStore(reservation.store_id)}
+                disabled={isChatLoading}
+              >
+                {isChatLoading ? '...' : '메시지'}
+              </button>
+            )}
             {reservation.status === 'pending' && (
               <button className="text-xs text-red-500 hover:underline" onClick={() => handleCancel(reservation.id)}>
                 취소
               </button>
             )}
             {reservation.status === 'completed' && (
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap justify-end">
                 {!hasRated(reservation.id, 'staff') ? (
                   <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={() => openRatingModal(reservation, 'staff')}>
                     매니저 별점

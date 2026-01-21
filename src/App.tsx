@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PointsProvider } from './contexts/PointsContext';
 import Login from './components/Login';
 import Layout from './components/Layout';
 
@@ -587,7 +588,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <PointsProvider>
+          <AppRoutes />
+        </PointsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

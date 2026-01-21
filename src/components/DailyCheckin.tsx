@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usePoints } from '../hooks/usePoints';
+import { usePoints } from '../contexts/PointsContext';
 
 export default function DailyCheckin() {
   const { points, loading, doCheckin } = usePoints();

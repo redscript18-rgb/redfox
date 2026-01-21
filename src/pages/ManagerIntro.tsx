@@ -159,7 +159,7 @@ export default function ManagerIntro() {
               </div>
               <h3 className="text-lg font-bold text-slate-800 mb-2">나를 알릴 수 있어요</h3>
               <p className="text-slate-500 text-sm leading-relaxed">
-                프로필에 사진, 전문 분야, 소개를 등록해서 손님에게 어필해요
+                프로필에 사진과 소개를 등록해서 손님에게 나를 어필해요
               </p>
             </div>
 
@@ -265,27 +265,51 @@ export default function ManagerIntro() {
         </div>
       </section>
 
-      {/* Specialties */}
-      <section className="py-16 px-4 bg-gradient-to-b from-white to-pink-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
-            내 전문 분야를 등록해요
-          </h2>
-          <p className="text-slate-500 mb-8">
-            손님들이 전문 분야를 보고 선택해요
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {[
-              "스웨디시", "아로마", "타이", "스포츠", "딥티슈",
-              "경락", "발마사지", "왁싱", "림프", "핫스톤"
-            ].map((specialty, i) => (
-              <span
-                key={i}
-                className="px-4 py-2 bg-white border border-pink-200 text-slate-700 rounded-full text-sm shadow-sm hover:bg-pink-50 hover:border-pink-300 transition-colors"
-              >
-                {specialty}
-              </span>
-            ))}
+      {/* Safety Features */}
+      <section className="py-20 px-4 bg-gradient-to-b from-white to-pink-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
+              안심하고 일할 수 있어요
+            </h2>
+            <p className="text-slate-500">
+              소중한 개인정보, 안전하게 보호해드려요
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Verified Customers */}
+            <div className="p-6 bg-white rounded-3xl shadow-sm border border-green-100 text-center">
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 mx-auto text-3xl">
+                ✅
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">인증된 손님만</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                가입 시 본인 인증을 거친 손님만 예약할 수 있어요. 믿을 수 있는 손님을 만나세요
+              </p>
+            </div>
+
+            {/* Block Feature */}
+            <div className="p-6 bg-white rounded-3xl shadow-sm border border-rose-100 text-center">
+              <div className="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center mb-4 mx-auto text-3xl">
+                🚫
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">불편한 손님은 차단</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                불편했던 손님은 차단할 수 있어요. 차단하면 그 손님에게 내 프로필이 보이지 않아요
+              </p>
+            </div>
+
+            {/* In-app Messaging */}
+            <div className="p-6 bg-white rounded-3xl shadow-sm border border-purple-100 text-center">
+              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-4 mx-auto text-3xl">
+                💬
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">앱 안에서 메시지</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                개인 연락처 없이 앱 내 메시지로 소통해요. 내 번호나 SNS를 알려줄 필요 없어요
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -306,12 +330,12 @@ export default function ManagerIntro() {
                 exp: "3년차",
               },
               {
-                text: "출근 요청 오면 확인하고 수락만 하면 돼서 너무 편해요. 억지로 나가야 하는 스트레스가 없어졌어요",
+                text: "차단 기능이 있어서 안심이 돼요. 불편했던 손님 차단하니까 다시 안 만나서 좋아요",
                 name: "이** 님",
                 exp: "5년차",
               },
               {
-                text: "프로필에 사진이랑 전문 분야 올려놨더니 단골 손님이 많이 생겼어요. 지명 예약도 늘었고요 :)",
+                text: "개인 번호 안 알려줘도 앱으로 대화할 수 있어서 좋아요. 프라이버시가 지켜지는 느낌이에요 :)",
                 name: "박** 님",
                 exp: "2년차",
               },

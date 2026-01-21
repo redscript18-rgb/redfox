@@ -9,11 +9,13 @@ interface Conversation {
   admin_id: string;
   customer_id: string | null;
   staff_id: string | null;
+  agency_id: string | null;
   last_message_at: string;
   store?: { id: number; name: string };
   admin?: { id: string; name: string };
   customer?: { id: string; name: string };
   staff?: { id: string; name: string };
+  agency?: { id: string; name: string };
   lastMessage?: { content: string; sender_id: string; created_at: string };
   unreadCount: number;
 }
@@ -39,7 +41,7 @@ export default function ChatList() {
   const [stores, setStores] = useState<Store[]>([]);
   const [staffList, setStaffList] = useState<StaffWithStores[]>([]);
   const [loadingStores, setLoadingStores] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'customer' | 'staff'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'customer' | 'staff' | 'agency'>('all');
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -53,7 +55,7 @@ export default function ChatList() {
     const { data: convData } = await supabase
       .from('conversations')
       .select('*')
-      .or(`admin_id.eq.${user.id},customer_id.eq.${user.id},staff_id.eq.${user.id}`)
+      .or(`admin_id.eq.${user.id},customer_id.eq.${user.id},staff_id.eq.${user.id},agency_id.eq.${user.id}`)
       .order('last_message_at', { ascending: false });
 
     if (!convData || convData.length === 0) {
@@ -64,7 +66,7 @@ export default function ChatList() {
 
     // Fetch related data
     const storeIds = [...new Set(convData.map(c => c.store_id))];
-    const userIds = [...new Set(convData.flatMap(c => [c.admin_id, c.customer_id, c.staff_id].filter(Boolean)))];
+    const userIds = [...new Set(convData.flatMap(c => [c.admin_id, c.customer_id, c.staff_id, c.agency_id].filter(Boolean)))];
 
     const [storesRes, profilesRes] = await Promise.all([
       supabase.from('stores').select('id, name').in('id', storeIds),
@@ -99,6 +101,7 @@ export default function ChatList() {
           admin: profilesMap.get(conv.admin_id),
           customer: conv.customer_id ? profilesMap.get(conv.customer_id) : undefined,
           staff: conv.staff_id ? profilesMap.get(conv.staff_id) : undefined,
+          agency: conv.agency_id ? profilesMap.get(conv.agency_id) : undefined,
           lastMessage: lastMsg || undefined,
           unreadCount: count || 0
         };
@@ -115,7 +118,59 @@ export default function ChatList() {
     setStaffList([]);
     setStores([]);
 
-    if (user?.role === 'staff') {
+    if (user?.role === 'agency') {
+      // Agency: show connected stores
+      const { data: connectedStores } = await supabase
+        .from('store_agencies')
+        .select('store_id')
+        .eq('agency_id', user.id);
+
+      if (connectedStores && connectedStores.length > 0) {
+        const storeIds = connectedStores.map(s => s.store_id);
+        const { data: storesData } = await supabase
+          .from('stores')
+          .select('id, name')
+          .in('id', storeIds);
+
+        // Get admins for these stores (owners + store_admins)
+        const [ownersData, adminsData] = await Promise.all([
+          supabase.from('stores').select('id, owner_id').in('id', storeIds),
+          supabase.from('store_admins').select('store_id, admin_id').in('store_id', storeIds)
+        ]);
+
+        const adminIds = new Set<string>();
+        ownersData.data?.forEach(s => adminIds.add(s.owner_id));
+        adminsData.data?.forEach(a => adminIds.add(a.admin_id));
+
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', Array.from(adminIds));
+
+        const profilesMap = new Map((profilesData || []).map(p => [p.id, p]));
+
+        const storesWithAdmins = (storesData || []).map(store => {
+          const storeAdmins: { admin_id: string; admin?: { id: string; name: string } }[] = [];
+
+          // Add owner
+          const ownerData = ownersData.data?.find(s => s.id === store.id);
+          if (ownerData) {
+            storeAdmins.push({ admin_id: ownerData.owner_id, admin: profilesMap.get(ownerData.owner_id) });
+          }
+
+          // Add store admins
+          adminsData.data?.filter(a => a.store_id === store.id).forEach(a => {
+            if (!storeAdmins.some(sa => sa.admin_id === a.admin_id)) {
+              storeAdmins.push({ admin_id: a.admin_id, admin: profilesMap.get(a.admin_id) });
+            }
+          });
+
+          return { ...store, admins: storeAdmins };
+        }).filter(s => s.admins.length > 0);
+
+        setStores(storesWithAdmins);
+      }
+    } else if (user?.role === 'staff') {
       // Admin: show affiliated staff members
       const { data: adminStoresData } = await supabase
         .from('store_admins')
@@ -236,7 +291,47 @@ export default function ChatList() {
     if (!user) return;
 
     try {
-      if (user.role === 'manager') {
+      if (user.role === 'agency') {
+        // Agency starting conversation with admin
+        const { data: existing, error: findError } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('store_id', storeId)
+          .eq('admin_id', adminId)
+          .eq('agency_id', user.id)
+          .maybeSingle();
+
+        if (findError) {
+          console.error('Find conversation error:', findError);
+        }
+
+        if (existing) {
+          setShowNewChat(false);
+          navigate(`/chat/${existing.id}`);
+          return;
+        }
+
+        const { data: newConv, error } = await supabase
+          .from('conversations')
+          .insert({
+            store_id: storeId,
+            admin_id: adminId,
+            agency_id: user.id
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Create conversation error:', error);
+          alert('대화를 시작할 수 없습니다: ' + error.message);
+          return;
+        }
+
+        if (newConv) {
+          setShowNewChat(false);
+          navigate(`/chat/${newConv.id}`);
+        }
+      } else if (user.role === 'manager') {
         // Manager starting conversation with admin
         const { data: existing, error: findError } = await supabase
           .from('conversations')
@@ -359,11 +454,14 @@ export default function ChatList() {
   };
 
   const getOtherParticipant = (conv: Conversation) => {
-    if (user?.role === 'staff') {
-      // 실장 sees customer or manager
-      return conv.customer || conv.staff;
+    if (user?.role === 'staff' || user?.role === 'owner') {
+      // 실장/사장 sees customer, manager, or agency
+      return conv.customer || conv.staff || conv.agency;
     } else if (user?.role === 'manager') {
       // 프리 매니저 sees admin
+      return conv.admin;
+    } else if (user?.role === 'agency') {
+      // 에이전시 sees admin
       return conv.admin;
     }
     // Customer sees admin
@@ -371,6 +469,7 @@ export default function ChatList() {
   };
 
   const getConversationType = (conv: Conversation) => {
+    if (conv.agency_id) return 'agency';
     if (conv.staff_id) return 'staff';
     return 'customer';
   };
@@ -433,10 +532,11 @@ export default function ChatList() {
   };
 
   // Filter conversations for admin tabs
-  const filteredConversations = user?.role === 'staff'
+  const filteredConversations = (user?.role === 'staff' || user?.role === 'owner')
     ? conversations.filter(conv => {
         if (activeTab === 'customer') return conv.customer_id !== null;
         if (activeTab === 'staff') return conv.staff_id !== null;
+        if (activeTab === 'agency') return conv.agency_id !== null;
         return true;
       })
     : conversations;
@@ -448,6 +548,9 @@ export default function ChatList() {
   const staffUnreadCount = conversations
     .filter(c => c.staff_id !== null)
     .reduce((sum, c) => sum + c.unreadCount, 0);
+  const agencyUnreadCount = conversations
+    .filter(c => c.agency_id !== null)
+    .reduce((sum, c) => sum + c.unreadCount, 0);
 
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
@@ -455,7 +558,7 @@ export default function ChatList() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">메시지</h1>
-        {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager') && (
+        {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager' || user?.role === 'agency') && (
           <button
             onClick={openNewChatModal}
             className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
@@ -465,8 +568,8 @@ export default function ChatList() {
         )}
       </div>
 
-      {/* Admin Tabs */}
-      {user?.role === 'staff' && conversations.length > 0 && (
+      {/* Admin/Owner Tabs */}
+      {(user?.role === 'staff' || user?.role === 'owner') && conversations.length > 0 && (
         <div className="flex gap-1 mb-4 p-1 bg-slate-100 rounded-lg">
           <button
             onClick={() => setActiveTab('all')}
@@ -477,9 +580,9 @@ export default function ChatList() {
             }`}
           >
             전체
-            {(customerUnreadCount + staffUnreadCount) > 0 && (
+            {(customerUnreadCount + staffUnreadCount + agencyUnreadCount) > 0 && (
               <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
-                {customerUnreadCount + staffUnreadCount}
+                {customerUnreadCount + staffUnreadCount + agencyUnreadCount}
               </span>
             )}
           </button>
@@ -513,17 +616,32 @@ export default function ChatList() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('agency')}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'agency'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            에이전시
+            {agencyUnreadCount > 0 && (
+              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-purple-600 text-white text-[10px] font-semibold rounded-full">
+                {agencyUnreadCount}
+              </span>
+            )}
+          </button>
         </div>
       )}
 
       {filteredConversations.length === 0 ? (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
           <p className="text-slate-500">
-            {user?.role === 'staff' && activeTab !== 'all'
-              ? `${activeTab === 'customer' ? '손님' : '매니저'}과의 메시지가 없습니다.`
+            {(user?.role === 'staff' || user?.role === 'owner') && activeTab !== 'all'
+              ? `${activeTab === 'customer' ? '손님' : activeTab === 'staff' ? '매니저' : '에이전시'}와의 메시지가 없습니다.`
               : '메시지가 없습니다.'}
           </p>
-          {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager') && (
+          {(user?.role === 'customer' || user?.role === 'staff' || user?.role === 'manager' || user?.role === 'agency') && (
             <button
               onClick={openNewChatModal}
               className="mt-4 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
@@ -549,9 +667,12 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-slate-900">{other?.name || '알 수 없음'}</span>
-                      {user?.role === 'staff' && (
-                        <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                          {convType === 'staff' ? '매니저' : '손님'}
+                      {(user?.role === 'staff' || user?.role === 'owner') && (
+                        <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                          convType === 'agency' ? 'bg-purple-50 text-purple-600' :
+                          convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                        }`}>
+                          {convType === 'agency' ? '에이전시' : convType === 'staff' ? '매니저' : '손님'}
                         </span>
                       )}
                       <span className="text-xs text-slate-400">· {conv.store?.name}</span>
@@ -598,7 +719,7 @@ export default function ChatList() {
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h2 className="text-lg font-semibold text-slate-900">
-                {user?.role === 'staff' ? '매니저 선택' : '가게 선택'}
+                {user?.role === 'staff' ? '매니저 선택' : user?.role === 'agency' ? '연결된 가게' : '가게 선택'}
               </h2>
               <button
                 onClick={() => setShowNewChat(false)}
@@ -634,9 +755,11 @@ export default function ChatList() {
                   </div>
                 )
               ) : (
-                // Customer/Staff: show stores list
+                // Customer/Manager/Agency: show stores list
                 stores.length === 0 ? (
-                  <p className="text-slate-500 text-center py-4">문의 가능한 가게가 없습니다.</p>
+                  <p className="text-slate-500 text-center py-4">
+                    {user?.role === 'agency' ? '연결된 가게가 없습니다.' : '문의 가능한 가게가 없습니다.'}
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {stores.map((store) => (
@@ -650,7 +773,7 @@ export default function ChatList() {
                               className="flex items-center justify-between p-2 bg-white rounded-lg hover:bg-orange-50 transition-colors text-left"
                             >
                               <span className="text-sm text-slate-700">{admin.admin?.name || '관리자'}</span>
-                              <span className="text-xs text-orange-600">문의하기 →</span>
+                              <span className="text-xs text-orange-600">{user?.role === 'agency' ? '메시지 →' : '문의하기 →'}</span>
                             </button>
                           ))}
                         </div>

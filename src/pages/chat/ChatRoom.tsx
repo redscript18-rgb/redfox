@@ -18,10 +18,12 @@ interface Conversation {
   admin_id: string;
   customer_id: string | null;
   staff_id: string | null;
+  agency_id: string | null;
   store?: { id: number; name: string };
   admin?: { id: string; name: string };
   customer?: { id: string; name: string };
   staff?: { id: string; name: string };
+  agency?: { id: string; name: string };
 }
 
 export default function ChatRoom() {
@@ -59,11 +61,15 @@ export default function ChatRoom() {
 
     let customerRes = null;
     let staffRes = null;
+    let agencyRes = null;
     if (convData.customer_id) {
       customerRes = await supabase.from('profiles').select('id, name').eq('id', convData.customer_id).single();
     }
     if (convData.staff_id) {
       staffRes = await supabase.from('profiles').select('id, name').eq('id', convData.staff_id).single();
+    }
+    if (convData.agency_id) {
+      agencyRes = await supabase.from('profiles').select('id, name').eq('id', convData.agency_id).single();
     }
 
     setConversation({
@@ -71,7 +77,8 @@ export default function ChatRoom() {
       store: storeRes.data || undefined,
       admin: adminRes.data || undefined,
       customer: customerRes?.data || undefined,
-      staff: staffRes?.data || undefined
+      staff: staffRes?.data || undefined,
+      agency: agencyRes?.data || undefined
     });
   }, [conversationId]);
 
@@ -158,9 +165,11 @@ export default function ChatRoom() {
 
   const getOtherParticipant = () => {
     if (!conversation) return null;
-    if (user?.role === 'staff') {
-      return conversation.customer || conversation.staff;
+    if (user?.role === 'staff' || user?.role === 'owner') {
+      return conversation.customer || conversation.staff || conversation.agency;
     } else if (user?.role === 'manager') {
+      return conversation.admin;
+    } else if (user?.role === 'agency') {
       return conversation.admin;
     }
     return conversation.admin;
@@ -168,6 +177,7 @@ export default function ChatRoom() {
 
   const getConversationType = () => {
     if (!conversation) return null;
+    if (conversation.agency_id) return 'agency';
     return conversation.staff_id ? 'staff' : 'customer';
   };
 
@@ -215,9 +225,12 @@ export default function ChatRoom() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-semibold text-slate-900">{other?.name || '알 수 없음'}</h1>
-            {user?.role === 'staff' && convType && (
-              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                {convType === 'staff' ? '매니저' : '손님'}
+            {(user?.role === 'staff' || user?.role === 'owner') && convType && (
+              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                convType === 'agency' ? 'bg-purple-50 text-purple-600' :
+                convType === 'staff' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+              }`}>
+                {convType === 'agency' ? '에이전시' : convType === 'staff' ? '매니저' : '손님'}
               </span>
             )}
           </div>

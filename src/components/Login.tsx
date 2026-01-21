@@ -3,17 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-// 개발 모드에서만 테스트 계정 표시
-const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SHOW_TEST_ACCOUNTS === 'true';
-
-const TEST_ACCOUNTS = isDevelopment ? [
+// 테스트용 빠른 로그인 계정
+const TEST_ACCOUNTS = [
   { username: 'superadmin', password: 'test123456', nickname: '슈퍼관리자', role: 'superadmin', label: 'ADMIN' },
   { username: 'owner', password: 'test123456', nickname: '김사장', role: 'owner', label: '사장' },
   { username: 'admin', password: 'test123456', nickname: '이관리', role: 'staff', label: '실장' },
   { username: 'staff', password: 'test123456', nickname: '박매니저', role: 'manager', label: '매니저' },
   { username: 'customer', password: 'test123456', nickname: '최손님', role: 'customer', label: '손님' },
   { username: 'agency', password: 'test123456', nickname: '정에이전시', role: 'agency', label: '에이전시' },
-] : [];
+];
 
 export default function Login() {
   const [isSignup, setIsSignup] = useState(false);

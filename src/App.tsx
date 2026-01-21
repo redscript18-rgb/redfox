@@ -67,6 +67,8 @@ import AgencyManagerManagement from './pages/agency/AgencyManagerManagement';
 import AgencyDispatchManagement from './pages/agency/AgencyDispatchManagement';
 import AgencyInviteAccept from './pages/common/AgencyInviteAccept';
 import AgencySearch from './pages/staff/AgencySearch';
+import StoreRequestsManage from './pages/agency/StoreRequestsManage';
+import AdminAgencySearch from './pages/admin/AgencySearch';
 
 // 랜딩 페이지
 import LandingPage from './pages/LandingPage';
@@ -603,6 +605,30 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <AgencySearch />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 에이전시: 가게 요청 관리 */}
+      <Route
+        path="/agency/store-requests"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreRequestsManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 관리자용: 에이전시 탐색 (사장/실장) */}
+      <Route
+        path="/admin/agencies"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AdminAgencySearch />
             </Layout>
           </ProtectedRoute>
         }

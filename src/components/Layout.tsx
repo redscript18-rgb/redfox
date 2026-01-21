@@ -50,13 +50,13 @@ export default function Layout({ children }: LayoutProps) {
   }, [user]);
 
   const fetchUnreadMessages = useCallback(async () => {
-    if (!user || (user.role !== 'customer' && user.role !== 'staff' && user.role !== 'owner' && user.role !== 'manager')) return;
+    if (!user || (user.role !== 'customer' && user.role !== 'staff' && user.role !== 'owner' && user.role !== 'manager' && user.role !== 'agency')) return;
 
     // Get conversations where user is a participant
     const { data: conversations } = await supabase
       .from('conversations')
       .select('id')
-      .or(`admin_id.eq.${user.id},customer_id.eq.${user.id},staff_id.eq.${user.id}`);
+      .or(`admin_id.eq.${user.id},customer_id.eq.${user.id},staff_id.eq.${user.id},agency_id.eq.${user.id}`);
 
     if (!conversations || conversations.length === 0) {
       setUnreadMessages(0);
@@ -188,6 +188,9 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/admin/find-staff" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 매니저
               </Link>
+              <Link to="/admin/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
+                에이전시
+              </Link>
               <Link to="/admin/join-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 가입요청
               </Link>
@@ -215,11 +218,19 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/agency/managers" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 매니저
               </Link>
+              <Link to="/agency/store-requests" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
+                가게요청
+              </Link>
               <Link to="/agency/dispatches" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 파견
               </Link>
-              <Link to="/chat" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
+              <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 메시지
+                {unreadMessages > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 ml-1 bg-red-600 text-white text-[10px] font-semibold rounded-full">
+                    {unreadMessages}
+                  </span>
+                )}
               </Link>
             </>
           )}

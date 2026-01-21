@@ -225,7 +225,7 @@ export default function StoreDetail() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {user?.role === 'customer' && menus.length > 0 && (
+            {user?.role === 'customer' && (
               <button
                 onClick={() => setShowReservationModal(true)}
                 className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
@@ -450,10 +450,6 @@ function StoreReservationModal({
       alert('날짜를 선택해주세요.');
       return;
     }
-    if (!selectedMenuId) {
-      alert('메뉴를 선택해주세요.');
-      return;
-    }
     if (startTime >= endTime) {
       alert('종료 시간은 시작 시간보다 늦어야 합니다.');
       return;
@@ -461,14 +457,14 @@ function StoreReservationModal({
 
     setSubmitting(true);
 
-    const selectedMenu = menus.find(m => m.id === selectedMenuId);
+    const selectedMenu = selectedMenuId ? menus.find(m => m.id === selectedMenuId) : null;
 
     const { error } = await supabase.from('reservations').insert({
       store_id: storeId,
       customer_id: userId,
       staff_id: null,
       virtual_staff_id: null,
-      menu_id: selectedMenuId,
+      menu_id: selectedMenuId || null,
       date: selectedDate,
       start_time: startTime,
       end_time: endTime,
@@ -542,21 +538,23 @@ function StoreReservationModal({
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-2">메뉴 선택</label>
-          <select
-            value={selectedMenuId}
-            onChange={(e) => setSelectedMenuId(Number(e.target.value))}
-            className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
-          >
-            <option value="">메뉴를 선택하세요</option>
-            {menus.map((menu) => (
-              <option key={menu.id} value={menu.id}>
-                {menu.name} - {menu.price.toLocaleString()}원
-              </option>
-            ))}
-          </select>
-        </div>
+        {menus.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 mb-2">메뉴 선택 (선택)</label>
+            <select
+              value={selectedMenuId}
+              onChange={(e) => setSelectedMenuId(e.target.value ? Number(e.target.value) : '')}
+              className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-600"
+            >
+              <option value="">메뉴 없이 예약</option>
+              {menus.map((menu) => (
+                <option key={menu.id} value={menu.id}>
+                  {menu.name} - {menu.price.toLocaleString()}원
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">요청사항 (선택)</label>
@@ -582,7 +580,7 @@ function StoreReservationModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!selectedDate || !selectedMenuId || submitting}
+            disabled={!selectedDate || submitting}
             className="flex-1 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors disabled:bg-slate-400"
           >
             {submitting ? '예약 중...' : '예약하기'}

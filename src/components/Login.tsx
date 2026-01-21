@@ -94,7 +94,7 @@ export default function Login() {
           return;
         }
 
-        const { error } = await signup({
+        const result = await signup({
           username,
           nickname,
           password,
@@ -102,10 +102,11 @@ export default function Login() {
           email: email || undefined,
           phone: phone || undefined,
         });
-        if (error) {
-          setError(error);
+        if (result.error) {
+          setError(result.error);
         } else {
-          setMessage('회원가입 완료! 로그인하세요.');
+          // 사장 가입은 승인 대기 메시지 표시
+          setMessage(result.message || '회원가입 완료! 로그인하세요.');
           setIsSignup(false);
           // 회원가입 후 비밀번호 필드만 초기화
           setPassword('');

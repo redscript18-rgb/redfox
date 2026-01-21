@@ -13,6 +13,7 @@ interface Stats {
   totalReservations: number;
   reservationsByStatus: { status: string; count: number }[];
   todayReservations: number;
+  pendingOwners: number;
   recentUsers: { id: string; name: string; email: string; role: string; created_at: string }[];
   recentVirtualStaff: { id: string; name: string; store_name: string; created_at: string }[];
 }
@@ -390,6 +391,10 @@ export default function SuperAdminDashboard() {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    // Pending owner approvals
+    const { data: pendingOwnersData } = await supabase.rpc('get_pending_owners');
+    const pendingOwners = pendingOwnersData?.length || 0;
+
     setStats({
       totalUsers: totalUsers || 0,
       usersByRole,
@@ -399,6 +404,7 @@ export default function SuperAdminDashboard() {
       totalReservations: totalReservations || 0,
       reservationsByStatus,
       todayReservations: todayReservations || 0,
+      pendingOwners,
       recentUsers: recentUsers || [],
       recentVirtualStaff: (recentVirtualStaff || []).map(vs => ({
         id: vs.id,
@@ -536,6 +542,25 @@ export default function SuperAdminDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">서비스 관리자 대시보드</h1>
+
+      {/* Pending Owner Approval Alert */}
+      {stats?.pendingOwners && stats.pendingOwners > 0 && (
+        <Link
+          to="/superadmin/owner-approval"
+          className="block mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⏳</span>
+              <div>
+                <p className="font-semibold text-amber-800">사장 가입 승인 대기</p>
+                <p className="text-sm text-amber-600">{stats.pendingOwners}건의 가입 신청이 대기 중입니다.</p>
+              </div>
+            </div>
+            <span className="text-amber-600 font-medium">승인하기 →</span>
+          </div>
+        </Link>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">

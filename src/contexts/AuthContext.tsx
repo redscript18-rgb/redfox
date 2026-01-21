@@ -28,7 +28,7 @@ interface AuthContextType {
   user: Profile | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<{ error: string | null }>;
-  signup: (data: SignupData) => Promise<{ error: string | null }>;
+  signup: (data: SignupData) => Promise<{ error: string | null; message?: string }>;
   checkUsername: (username: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -200,6 +200,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         const profile = await fetchProfile(data.user.id);
+
+        // 사장 계정 승인 여부 확인
+        if (profile?.role === 'owner') {
+          const { data: approvalData } = await supabase
+            .from('profiles')
+            .select('is_approved')
+            .eq('id', data.user.id)
+            .single();
+
+          if (approvalData && approvalData.is_approved === false) {
+            // 승인 대기 중인 사장은 로그아웃 처리
+            await supabase.auth.signOut();
+            setLoading(false);
+            return { error: '가입 승인 대기 중입니다. 관리자 승인 후 로그인 가능합니다.' };
+          }
+        }
+
         setUser(profile);
       }
 
@@ -224,7 +241,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 이메일이 제공되면 실제 이메일 사용, 아니면 가짜 이메일 생성
       const email = data.email || generateFakeEmail(data.username);
 
-      const { error } = await supabase.auth.signUp({
+      // 사장 역할은 승인 대기 상태로 시작
+      const isOwner = data.role === 'owner';
+
+      const { data: signupData, error } = await supabase.auth.signUp({
         email,
         password: data.password,
         options: {
@@ -234,11 +254,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             nickname: data.nickname,
             role: data.role,
             phone: data.phone || null,
+            is_approved: !isOwner, // 사장은 false, 나머지는 true
           },
         },
       });
+
+      if (error) {
+        setLoading(false);
+        return { error: error.message };
+      }
+
+      // 사장인 경우 프로필의 is_approved를 false로 설정
+      if (isOwner && signupData?.user) {
+        await supabase
+          .from('profiles')
+          .update({ is_approved: false })
+          .eq('id', signupData.user.id);
+      }
+
       setLoading(false);
-      return { error: error?.message || null };
+
+      // 사장은 승인 대기 메시지 반환
+      if (isOwner) {
+        return { error: null, message: '가입 신청이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.' };
+      }
+
+      return { error: null };
     } catch {
       setLoading(false);
       return { error: '회원가입 중 오류가 발생했습니다.' };

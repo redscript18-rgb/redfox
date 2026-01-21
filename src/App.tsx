@@ -54,6 +54,7 @@ import UserManagement from './pages/superadmin/UserManagement';
 import SuperAdminStoreManagement from './pages/superadmin/StoreManagement';
 import ReservationOverview from './pages/superadmin/ReservationOverview';
 import VirtualStaffManagement from './pages/superadmin/VirtualStaffManagement';
+import OwnerApproval from './pages/superadmin/OwnerApproval';
 
 // 에이전시 페이지
 import AgencyDashboard from './pages/agency/AgencyDashboard';
@@ -477,6 +478,18 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <VirtualStaffManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 서비스 관리자: 사장 가입 승인 */}
+      <Route
+        path="/superadmin/owner-approval"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <OwnerApproval />
             </Layout>
           </ProtectedRoute>
         }

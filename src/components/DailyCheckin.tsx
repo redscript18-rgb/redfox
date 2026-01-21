@@ -5,23 +5,43 @@ import { usePoints } from '../contexts/PointsContext';
 export default function DailyCheckin() {
   const { points, loading, doCheckin } = usePoints();
   const [checking, setChecking] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   const handleCheckin = async () => {
     if (checking || !points?.canCheckinToday) return;
 
     setChecking(true);
     const res = await doCheckin();
-    setResult({ success: res.success, message: res.message });
     setChecking(false);
 
-    // 3초 후 결과 메시지 숨기기
     if (res.success) {
-      setTimeout(() => setResult(null), 3000);
+      setEarnedPoints(res.pointsEarned);
+      setShowSuccess(true);
+      // 2초 후 성공 메시지 숨기기
+      setTimeout(() => setShowSuccess(false), 2000);
     }
   };
 
-  if (loading) {
+  // 성공 메시지 표시 중
+  if (showSuccess) {
+    return (
+      <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+        <div className="flex items-center justify-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-2xl shadow-lg">
+            ✓
+          </div>
+          <div className="text-center">
+            <p className="font-bold text-green-700">출석체크 완료!</p>
+            <p className="text-sm text-green-600">+{earnedPoints}P 적립되었습니다</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 로딩 중이거나 이미 출석 완료했으면 숨김
+  if (loading || !points?.canCheckinToday) {
     return null;
   }
 
@@ -42,11 +62,7 @@ export default function DailyCheckin() {
               )}
             </div>
             <p className="text-sm text-slate-600">
-              {points?.canCheckinToday ? (
-                '오늘의 포인트를 받아가세요!'
-              ) : (
-                <span className="text-green-600">✓ 오늘 출석 완료!</span>
-              )}
+              오늘의 포인트를 받아가세요!
             </p>
           </div>
         </div>
@@ -59,32 +75,15 @@ export default function DailyCheckin() {
             {points?.balance?.toLocaleString() || 0}P
           </Link>
 
-          {points?.canCheckinToday ? (
-            <button
-              onClick={handleCheckin}
-              disabled={checking}
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
-            >
-              {checking ? '...' : '출석'}
-            </button>
-          ) : (
-            <span className="px-4 py-2 bg-slate-200 text-slate-500 font-medium rounded-lg text-sm">
-              완료
-            </span>
-          )}
+          <button
+            onClick={handleCheckin}
+            disabled={checking}
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+          >
+            {checking ? '...' : '출석'}
+          </button>
         </div>
       </div>
-
-      {/* 결과 메시지 */}
-      {result && (
-        <div className={`mt-3 p-3 rounded-lg text-sm font-medium text-center ${
-          result.success
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-700'
-        }`}>
-          {result.message}
-        </div>
-      )}
     </div>
   );
 }

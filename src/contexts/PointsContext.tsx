@@ -57,7 +57,9 @@ export function PointsProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (data) {
-      const today = new Date().toISOString().split('T')[0];
+      // 로컬 시간대 기준으로 오늘 날짜 계산 (YYYY-MM-DD 형식)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       setPoints({
         balance: data.balance,
         totalEarned: data.total_earned,

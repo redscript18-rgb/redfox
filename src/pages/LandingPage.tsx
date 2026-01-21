@@ -267,6 +267,9 @@ export default function LandingPage() {
             <Link to="/customer-intro" className="text-slate-400 hover:text-white text-sm transition-colors">
               손님용 소개
             </Link>
+            <Link to="/manager-intro" className="text-slate-400 hover:text-white text-sm transition-colors">
+              매니저용 소개
+            </Link>
           </div>
           <p className="text-slate-500 text-sm">
             © 2024 RedFox. All rights reserved.

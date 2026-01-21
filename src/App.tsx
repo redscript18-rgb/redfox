@@ -71,6 +71,7 @@ import AgencySearch from './pages/staff/AgencySearch';
 // 랜딩 페이지
 import LandingPage from './pages/LandingPage';
 import CustomerIntro from './pages/CustomerIntro';
+import ManagerIntro from './pages/ManagerIntro';
 
 import './App.css';
 
@@ -123,6 +124,7 @@ function AppRoutes() {
       {/* 인트로/랜딩 페이지 */}
       <Route path="/intro" element={<LandingPage />} />
       <Route path="/customer-intro" element={<CustomerIntro />} />
+      <Route path="/manager-intro" element={<ManagerIntro />} />
 
       {/* 홈 - 역할별 다른 화면 */}
       <Route

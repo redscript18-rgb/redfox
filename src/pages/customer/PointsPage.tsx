@@ -87,15 +87,15 @@ export default function PointsPage() {
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-slate-600">📅 매일 출석체크</span>
-            <span className="font-medium text-green-600">+10P</span>
+            <span className="font-medium text-green-600">+100P</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-600">🔥 3일 연속 출석 보너스</span>
-            <span className="font-medium text-orange-600">+20P</span>
+            <span className="font-medium text-orange-600">+200P</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-600">🎉 7일 연속 출석 보너스</span>
-            <span className="font-medium text-orange-600">+50P</span>
+            <span className="font-medium text-orange-600">+500P</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-600">⭐ 리뷰 작성</span>

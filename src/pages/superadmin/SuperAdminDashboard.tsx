@@ -647,392 +647,379 @@ export default function SuperAdminDashboard() {
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">서비스 관리자 대시보드</h1>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold text-slate-900">서비스 관리자 대시보드</h1>
 
-      {/* Pending Alerts */}
-      <div className="space-y-3 mb-6">
-        {stats?.pendingOwners && stats.pendingOwners > 0 && (
-          <Link
-            to="/superadmin/owner-approval"
-            className="block p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+      {/* 알림 섹션 - 처리 필요 항목 */}
+      {((stats?.pendingOwners && stats.pendingOwners > 0) || (stats?.pendingPasswordResets && stats.pendingPasswordResets > 0)) && (
+        <section>
+          <h2 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-3">처리 필요</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {stats?.pendingOwners && stats.pendingOwners > 0 && (
+              <Link
+                to="/superadmin/owner-approval"
+                className="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
+              >
                 <span className="text-2xl">⏳</span>
-                <div>
-                  <p className="font-semibold text-amber-800">사장 가입 승인 대기</p>
-                  <p className="text-sm text-amber-600">{stats.pendingOwners}건의 가입 신청이 대기 중입니다.</p>
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-800">사장 가입 승인</p>
+                  <p className="text-sm text-amber-600">{stats.pendingOwners}건 대기</p>
                 </div>
-              </div>
-              <span className="text-amber-600 font-medium">승인하기 →</span>
-            </div>
-          </Link>
-        )}
-
-        {stats?.pendingPasswordResets && stats.pendingPasswordResets > 0 && (
-          <Link
-            to="/superadmin/password-reset"
-            className="block p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+                <span className="text-amber-500">→</span>
+              </Link>
+            )}
+            {stats?.pendingPasswordResets && stats.pendingPasswordResets > 0 && (
+              <Link
+                to="/superadmin/password-reset"
+                className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
+              >
                 <span className="text-2xl">🔑</span>
-                <div>
-                  <p className="font-semibold text-blue-800">비밀번호 초기화 요청</p>
-                  <p className="text-sm text-blue-600">{stats.pendingPasswordResets}건의 초기화 요청이 대기 중입니다.</p>
+                <div className="flex-1">
+                  <p className="font-semibold text-blue-800">비밀번호 초기화</p>
+                  <p className="text-sm text-blue-600">{stats.pendingPasswordResets}건 대기</p>
                 </div>
-              </div>
-              <span className="text-blue-600 font-medium">처리하기 →</span>
-            </div>
-          </Link>
-        )}
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <Link to="/superadmin/users" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">전체 사용자</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalUsers}</p>
-        </Link>
-        <Link to="/superadmin/virtual-staff" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">등록 매니저</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
-          <p className="text-xs text-slate-400 mt-1">관리자가 등록</p>
-        </Link>
-        <Link to="/superadmin/stores" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">전체 가게</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalStores}</p>
-        </Link>
-        <Link to="/superadmin/reservations" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">전체 예약</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalReservations}</p>
-        </Link>
-        <Link to="/superadmin/reservations" className="p-5 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-          <p className="text-sm text-slate-500 mb-1">오늘 예약</p>
-          <p className="text-3xl font-bold text-orange-600">{stats?.todayReservations}</p>
-        </Link>
-      </div>
-
-      {/* Chat Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <p className="text-sm text-slate-500 mb-1">전체 대화</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalConversations}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <p className="text-sm text-slate-500 mb-1">전체 메시지</p>
-          <p className="text-3xl font-bold text-slate-900">{stats?.totalMessages}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <p className="text-sm text-slate-500 mb-1">오늘 메시지</p>
-          <p className="text-3xl font-bold text-blue-600">{stats?.todayMessages}</p>
-        </div>
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <p className="text-sm text-slate-500 mb-2">대화 유형별</p>
-          <div className="flex flex-wrap gap-2">
-            {stats?.conversationsByType.map(({ type, count }) => (
-              <span key={type} className={`px-2 py-1 text-xs rounded ${
-                type === '에이전시' ? 'bg-purple-50 text-purple-600' :
-                type === '매니저' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
-              }`}>
-                {type}: {count}
-              </span>
-            ))}
-            {stats?.conversationsByType.length === 0 && (
-              <span className="text-xs text-slate-400">대화 없음</span>
+                <span className="text-blue-500">→</span>
+              </Link>
             )}
           </div>
-        </div>
-      </div>
+        </section>
+      )}
 
-      {/* Visitor Stats */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <span>📊</span> 방문자 통계
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      {/* 오늘의 현황 */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">오늘의 현황</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
-            <p className="text-sm text-green-600 mb-1">오늘 페이지뷰</p>
+            <p className="text-sm text-green-600 mb-1">방문자</p>
+            <p className="text-3xl font-bold text-green-700">{stats?.todayUniqueVisitors || 0}</p>
+          </div>
+          <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+            <p className="text-sm text-green-600 mb-1">페이지뷰</p>
             <p className="text-3xl font-bold text-green-700">{stats?.todayPageViews || 0}</p>
           </div>
-          <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
-            <p className="text-sm text-green-600 mb-1">오늘 방문자</p>
-            <p className="text-3xl font-bold text-green-700">{stats?.todayUniqueVisitors || 0}</p>
-            <p className="text-xs text-green-500 mt-1">유니크 방문자</p>
-          </div>
-          <div className="p-5 bg-white border border-slate-200 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">주간 페이지뷰</p>
-            <p className="text-3xl font-bold text-slate-900">{stats?.weekPageViews || 0}</p>
-            <p className="text-xs text-slate-400 mt-1">최근 7일</p>
-          </div>
-          <div className="p-5 bg-white border border-slate-200 rounded-xl">
-            <p className="text-sm text-slate-500 mb-1">월간 페이지뷰</p>
-            <p className="text-3xl font-bold text-slate-900">{stats?.monthPageViews || 0}</p>
-            <p className="text-xs text-slate-400 mt-1">최근 30일</p>
+          <Link to="/superadmin/reservations" className="p-5 bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl hover:shadow-sm transition-all">
+            <p className="text-sm text-orange-600 mb-1">예약</p>
+            <p className="text-3xl font-bold text-orange-700">{stats?.todayReservations}</p>
+          </Link>
+          <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <p className="text-sm text-blue-600 mb-1">메시지</p>
+            <p className="text-3xl font-bold text-blue-700">{stats?.todayMessages}</p>
           </div>
         </div>
-        {/* Top Pages */}
-        {stats?.topPages && stats.topPages.length > 0 && (
-          <div className="p-5 bg-white border border-slate-200 rounded-xl">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">인기 페이지 (주간)</h3>
-            <div className="space-y-2">
-              {stats.topPages.map(({ path, count }, index) => (
-                <div key={path} className="flex items-center gap-3">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                    index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                    index === 1 ? 'bg-slate-200 text-slate-600' :
-                    index === 2 ? 'bg-orange-100 text-orange-700' :
-                    'bg-slate-100 text-slate-500'
-                  }`}>
-                    {index + 1}
-                  </span>
-                  <span className="flex-1 text-sm text-slate-600 truncate">{path}</span>
-                  <span className="text-sm font-medium text-slate-900">{count}</span>
-                </div>
-              ))}
+      </section>
+
+      {/* 전체 통계 */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">전체 통계</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Link to="/superadmin/users" className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+            <p className="text-xs text-slate-500 mb-1">사용자</p>
+            <p className="text-2xl font-bold text-slate-900">{stats?.totalUsers}</p>
+          </Link>
+          <Link to="/superadmin/virtual-staff" className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+            <p className="text-xs text-slate-500 mb-1">등록 매니저</p>
+            <p className="text-2xl font-bold text-slate-900">{stats?.totalVirtualStaff}</p>
+          </Link>
+          <Link to="/superadmin/stores" className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+            <p className="text-xs text-slate-500 mb-1">가게</p>
+            <p className="text-2xl font-bold text-slate-900">{stats?.totalStores}</p>
+          </Link>
+          <Link to="/superadmin/reservations" className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
+            <p className="text-xs text-slate-500 mb-1">예약</p>
+            <p className="text-2xl font-bold text-slate-900">{stats?.totalReservations}</p>
+          </Link>
+          <div className="p-4 bg-white border border-slate-200 rounded-xl">
+            <p className="text-xs text-slate-500 mb-1">대화</p>
+            <p className="text-2xl font-bold text-slate-900">{stats?.totalConversations}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 방문자 & 메시지 통계 */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 방문자 통계 */}
+        <div className="p-5 bg-white border border-slate-200 rounded-xl">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4">방문자 통계</h3>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <p className="text-xs text-slate-500">주간</p>
+              <p className="text-xl font-bold text-slate-900">{stats?.weekPageViews || 0}</p>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <p className="text-xs text-slate-500">월간</p>
+              <p className="text-xl font-bold text-slate-900">{stats?.monthPageViews || 0}</p>
             </div>
           </div>
-        )}
-      </div>
+          {stats?.topPages && stats.topPages.length > 0 && (
+            <div>
+              <p className="text-xs text-slate-500 mb-2">인기 페이지 (주간)</p>
+              <div className="space-y-1.5">
+                {stats.topPages.slice(0, 5).map(({ path, count }, index) => (
+                  <div key={path} className="flex items-center gap-2 text-sm">
+                    <span className={`w-5 h-5 flex items-center justify-center rounded text-xs font-medium ${
+                      index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                      index === 1 ? 'bg-slate-200 text-slate-600' :
+                      index === 2 ? 'bg-orange-100 text-orange-700' :
+                      'bg-slate-100 text-slate-500'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <span className="flex-1 text-slate-600 truncate">{path}</span>
+                    <span className="font-medium text-slate-900">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Users by Role */}
+        {/* 메시지 통계 */}
         <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">역할별 사용자</h2>
-          <div className="space-y-2">
-            {stats?.usersByRole.filter(({ role }) => role !== 'superadmin').map(({ role, count }) => {
-              const showToggle = ['owner', 'staff', 'manager', 'agency'].includes(role);
-              return (
-                <div
-                  key={role}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+          <h3 className="text-sm font-semibold text-slate-700 mb-4">메시지 통계</h3>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <p className="text-xs text-slate-500">전체 대화</p>
+              <p className="text-xl font-bold text-slate-900">{stats?.totalConversations}</p>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <p className="text-xs text-slate-500">전체 메시지</p>
+              <p className="text-xl font-bold text-slate-900">{stats?.totalMessages}</p>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 mb-2">대화 유형별</p>
+            <div className="flex flex-wrap gap-2">
+              {stats?.conversationsByType.map(({ type, count }) => (
+                <span key={type} className={`px-3 py-1.5 text-sm rounded-lg ${
+                  type === '에이전시' ? 'bg-purple-50 text-purple-600' :
+                  type === '매니저' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                }`}>
+                  {type}: {count}
+                </span>
+              ))}
+              {stats?.conversationsByType.length === 0 && (
+                <span className="text-sm text-slate-400">대화 없음</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 데이터 관리 */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">데이터 관리</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 역할별 사용자 */}
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">역할별 사용자</h3>
+            <div className="space-y-2">
+              {stats?.usersByRole.filter(({ role }) => role !== 'superadmin').map(({ role, count }) => {
+                const showToggle = ['owner', 'staff', 'manager', 'agency'].includes(role);
+                return (
+                  <div key={role} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                    <Link
+                      to={`/superadmin/users?role=${role}`}
+                      className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors text-sm"
+                    >
+                      <span className="text-slate-700">{getRoleName(role)}</span>
+                      <span className="font-semibold text-slate-900">{count}명</span>
+                    </Link>
+                    {showToggle && (
+                      <div className="ml-2">
+                        <ToggleSwitch
+                          enabled={roleVisibility[role] ?? true}
+                          onChange={(v) => handleRoleVisibilityChange(role, v)}
+                          size="sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <Link
+                  to="/superadmin/virtual-staff"
+                  className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors text-sm"
                 >
-                  <Link
-                    to={`/superadmin/users?role=${role}`}
-                    className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
-                  >
-                    <span className="text-slate-700">{getRoleName(role)}</span>
-                    <span className="font-semibold text-slate-900">{count}명 →</span>
-                  </Link>
-                  {showToggle && (
-                    <div className="ml-3 flex items-center gap-2">
-                      <span className="text-xs text-slate-400">노출</span>
-                      <ToggleSwitch
-                        enabled={roleVisibility[role] ?? true}
-                        onChange={(v) => handleRoleVisibilityChange(role, v)}
-                        size="sm"
-                      />
-                    </div>
-                  )}
+                  <span className="text-slate-700">등록 매니저</span>
+                  <span className="font-semibold text-slate-900">{stats?.totalVirtualStaff}명</span>
+                </Link>
+                <div className="ml-2">
+                  <ToggleSwitch
+                    enabled={roleVisibility['virtual_staff'] ?? true}
+                    onChange={(v) => handleRoleVisibilityChange('virtual_staff', v)}
+                    size="sm"
+                  />
                 </div>
-              );
-            })}
-            {/* 등록 매니저 (virtual_staff) */}
-            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-              <Link
-                to="/superadmin/virtual-staff"
-                className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
-              >
-                <span className="text-slate-700">등록 매니저</span>
-                <span className="font-semibold text-slate-900">{stats?.totalVirtualStaff}명 →</span>
-              </Link>
-              <div className="ml-3 flex items-center gap-2">
-                <span className="text-xs text-slate-400">노출</span>
-                <ToggleSwitch
-                  enabled={roleVisibility['virtual_staff'] ?? true}
-                  onChange={(v) => handleRoleVisibilityChange('virtual_staff', v)}
-                  size="sm"
-                />
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Reservations by Status */}
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">예약 상태별 현황</h2>
-          <div className="space-y-2">
-            {stats?.reservationsByStatus.map(({ status, count }) => (
-              <Link
-                key={status}
-                to={`/superadmin/reservations?status=${status}`}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <span className="text-slate-700">{getStatusName(status)}</span>
-                <span className="font-semibold text-slate-900">{count}건 →</span>
-              </Link>
-            ))}
-            {stats?.reservationsByStatus.length === 0 && (
-              <p className="text-slate-500 text-sm">예약 데이터가 없습니다.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Stores by Type */}
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">업종별 가게 현황</h2>
-            <button
-              onClick={() => setShowAddTypeModal(true)}
-              className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
-            >
-              + 업종 추가
-            </button>
-          </div>
-          <p className="text-xs text-slate-400 mb-2">드래그하여 순서를 변경할 수 있습니다</p>
-          <div className="space-y-2">
-            {stats?.storesByType.map(({ type, count }) => (
-              <div
-                key={type}
-                draggable
-                onDragStart={(e) => handleDragStart(e, type)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, type)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-move transition-all ${
-                  draggedType === type ? 'opacity-50 scale-95' : ''
-                } ${draggedType && draggedType !== type ? 'hover:bg-slate-100' : ''}`}
-              >
-                {/* Drag Handle */}
-                <div className="mr-2 text-slate-400 cursor-grab active:cursor-grabbing">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <circle cx="5" cy="4" r="1.5" />
-                    <circle cx="11" cy="4" r="1.5" />
-                    <circle cx="5" cy="8" r="1.5" />
-                    <circle cx="11" cy="8" r="1.5" />
-                    <circle cx="5" cy="12" r="1.5" />
-                    <circle cx="11" cy="12" r="1.5" />
-                  </svg>
-                </div>
+          {/* 예약 상태 */}
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">예약 상태</h3>
+            <div className="space-y-2">
+              {stats?.reservationsByStatus.map(({ status, count }) => (
                 <Link
-                  to={`/superadmin/stores?type=${encodeURIComponent(type)}`}
-                  className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                  draggable={false}
+                  key={status}
+                  to={`/superadmin/reservations?status=${status}`}
+                  className="flex items-center justify-between p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors text-sm"
                 >
-                  <span className="text-slate-700">{type}</span>
-                  <span className="font-semibold text-slate-900">{count}개 →</span>
+                  <span className="text-slate-700">{getStatusName(status)}</span>
+                  <span className="font-semibold text-slate-900">{count}건 →</span>
                 </Link>
-                <div className="ml-3 flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">노출</span>
-                    <ToggleSwitch
-                      enabled={typeVisibility[type] ?? true}
-                      onChange={(v) => handleTypeVisibilityChange(type, v)}
-                      size="sm"
-                    />
+              ))}
+              {stats?.reservationsByStatus.length === 0 && (
+                <p className="text-slate-500 text-sm py-2">예약 없음</p>
+              )}
+            </div>
+          </div>
+
+          {/* 업종별 가게 */}
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-700">업종별 가게</h3>
+              <button
+                onClick={() => setShowAddTypeModal(true)}
+                className="px-2 py-1 text-xs font-medium text-orange-600 bg-orange-50 rounded hover:bg-orange-100 transition-colors"
+              >
+                + 추가
+              </button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {stats?.storesByType.map(({ type, count }) => (
+                <div
+                  key={type}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, type)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, type)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-2 p-2 bg-slate-50 rounded-lg cursor-move transition-all text-sm ${
+                    draggedType === type ? 'opacity-50 scale-95' : ''
+                  }`}
+                >
+                  <div className="text-slate-300 cursor-grab active:cursor-grabbing">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                      <circle cx="5" cy="4" r="1.5" />
+                      <circle cx="11" cy="4" r="1.5" />
+                      <circle cx="5" cy="8" r="1.5" />
+                      <circle cx="11" cy="8" r="1.5" />
+                      <circle cx="5" cy="12" r="1.5" />
+                      <circle cx="11" cy="12" r="1.5" />
+                    </svg>
                   </div>
+                  <Link
+                    to={`/superadmin/stores?type=${encodeURIComponent(type)}`}
+                    className="flex-1 flex items-center justify-between hover:text-orange-600 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                    draggable={false}
+                  >
+                    <span className="text-slate-700 truncate">{type}</span>
+                    <span className="font-semibold text-slate-900">{count}</span>
+                  </Link>
+                  <ToggleSwitch
+                    enabled={typeVisibility[type] ?? true}
+                    onChange={(v) => handleTypeVisibilityChange(type, v)}
+                    size="sm"
+                  />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDeleteConfirm(type);
                     }}
-                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                    title="업종 삭제"
+                    className="p-1 text-slate-300 hover:text-red-500 transition-colors"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
                     </svg>
                   </button>
                 </div>
-              </div>
-            ))}
-            {stats?.storesByType.length === 0 && (
-              <p className="text-slate-500 text-sm">가게 데이터가 없습니다.</p>
-            )}
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Recent Users */}
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">최근 가입 사용자</h2>
-            <Link to="/superadmin/users" className="text-sm text-orange-600 hover:underline">
-              전체 보기 →
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">이름</th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">이메일</th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">역할</th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">가입일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.recentUsers.map((u) => (
-                  <tr
-                    key={u.id}
-                    onClick={() => openUserDetail(u.id)}
-                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
-                  >
-                    <td className="py-3 px-3 text-slate-900">{u.name}</td>
-                    <td className="py-3 px-3 text-slate-600 text-sm">{u.email}</td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-1 bg-orange-50 text-orange-600 text-xs rounded">
-                        {getRoleName(u.role)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-500 text-sm">
+      {/* 최근 활동 */}
+      <section>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">최근 활동</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 최근 가입 사용자 */}
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-700">최근 가입</h3>
+              <Link to="/superadmin/users" className="text-xs text-orange-600 hover:underline">
+                전체 보기 →
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {stats?.recentUsers.map((u) => (
+                <div
+                  key={u.id}
+                  onClick={() => openUserDetail(u.id)}
+                  className="flex items-center justify-between p-2 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-bold text-white">
+                      {u.name?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{u.name}</p>
+                      <p className="text-xs text-slate-500">{u.email}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2 py-0.5 bg-orange-50 text-orange-600 text-xs rounded">
+                      {getRoleName(u.role)}
+                    </span>
+                    <p className="text-xs text-slate-400 mt-0.5">
                       {new Date(u.created_at).toLocaleDateString('ko-KR')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Recent Virtual Staff (Admin-registered) */}
-        <div className="p-5 bg-white border border-slate-200 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">최근 등록된 매니저</h2>
-            <Link to="/superadmin/virtual-staff" className="text-sm text-orange-600 hover:underline">
-              전체 보기 →
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">이름</th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">소속 가게</th>
-                  <th className="text-left py-2 px-3 text-sm font-medium text-slate-500">등록일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.recentVirtualStaff.map((vs) => (
-                  <tr
-                    key={vs.id}
-                    onClick={() => openStaffDetail(vs.id)}
-                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
-                  >
-                    <td className="py-3 px-3 text-slate-900">{vs.name}</td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded">
-                        {vs.store_name}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-500 text-sm">
+          {/* 최근 등록 매니저 */}
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-700">최근 등록 매니저</h3>
+              <Link to="/superadmin/virtual-staff" className="text-xs text-orange-600 hover:underline">
+                전체 보기 →
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {stats?.recentVirtualStaff.map((vs) => (
+                <div
+                  key={vs.id}
+                  onClick={() => openStaffDetail(vs.id)}
+                  className="flex items-center justify-between p-2 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+                      {vs.name?.charAt(0) || '?'}
+                    </div>
+                    <p className="text-sm font-medium text-slate-900">{vs.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                      {vs.store_name}
+                    </span>
+                    <p className="text-xs text-slate-400 mt-0.5">
                       {new Date(vs.created_at).toLocaleDateString('ko-KR')}
-                    </td>
-                  </tr>
-                ))}
-                {stats?.recentVirtualStaff.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-4 text-center text-slate-500 text-sm">
-                      등록된 매니저가 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {stats?.recentVirtualStaff.length === 0 && (
+                <p className="text-sm text-slate-500 py-4 text-center">등록된 매니저 없음</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* User Detail Modal */}
       {selectedUser && (

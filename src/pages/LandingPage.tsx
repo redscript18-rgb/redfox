@@ -163,7 +163,7 @@ export default function LandingPage() {
                 {[
                   "가게/매니저 자유롭게 탐색",
                   "간편한 예약 시스템",
-                  "즐겨찾기로 빠른 재예약",
+                  "고정으로 빠른 재예약",
                   "포인트 적립 & 선물",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">

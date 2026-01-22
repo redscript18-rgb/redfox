@@ -14,6 +14,8 @@ interface DailyPhoto {
   created_at: string;
   isVirtual: boolean;
   isFavorite: boolean;
+  like_count: number;
+  is_liked: boolean;
 }
 
 export default function TodayPhotos() {
@@ -58,10 +60,23 @@ export default function TodayPhotos() {
         photo_url,
         caption,
         created_at,
+        like_count,
         staff:profiles(id, name, profile_photo_url)
       `)
       // .eq('date', today) // 테스트 기간 동안 비활성화
       .order('created_at', { ascending: false });
+
+    // Fetch user's liked photos
+    let likedPhotoIds = new Set<number>();
+    if (user && realPhotos) {
+      const photoIds = realPhotos.map(p => p.id);
+      const { data: likesData } = await supabase
+        .from('staff_photo_likes')
+        .select('photo_id')
+        .eq('user_id', user.id)
+        .in('photo_id', photoIds);
+      likedPhotoIds = new Set(likesData?.map(l => l.photo_id) || []);
+    }
 
     // Fetch virtual staff photos - 테스트 기간: 날짜 필터 제거
     const { data: virtualPhotos } = await supabase
@@ -94,6 +109,8 @@ export default function TodayPhotos() {
           created_at: p.created_at,
           isVirtual: false,
           isFavorite: favIds.has(p.staff_id),
+          like_count: p.like_count || 0,
+          is_liked: likedPhotoIds.has(p.id),
         });
       }
     });
@@ -116,6 +133,8 @@ export default function TodayPhotos() {
           created_at: p.created_at,
           isVirtual: true,
           isFavorite: favIds.has(p.virtual_staff_id),
+          like_count: 0, // Virtual staff photos don't have likes yet
+          is_liked: false,
         });
       }
     });
@@ -135,6 +154,35 @@ export default function TodayPhotos() {
     return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const togglePhotoLike = async (photo: DailyPhoto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || photo.isVirtual) return;
+
+    if (photo.is_liked) {
+      // Unlike
+      await supabase.from('staff_photo_likes').delete().eq('photo_id', photo.id).eq('user_id', user.id);
+      setPhotos(prev => prev.map(p =>
+        p.id === photo.id && !p.isVirtual ? { ...p, is_liked: false, like_count: Math.max(0, p.like_count - 1) } : p
+      ));
+    } else {
+      // Like
+      await supabase.from('staff_photo_likes').insert({ photo_id: photo.id, user_id: user.id });
+      setPhotos(prev => prev.map(p =>
+        p.id === photo.id && !p.isVirtual ? { ...p, is_liked: true, like_count: p.like_count + 1 } : p
+      ));
+
+      // Send notification to the staff
+      const { data: userData } = await supabase.from('profiles').select('name').eq('id', user.id).single();
+      await supabase.from('notifications').insert({
+        user_id: photo.staff_id,
+        type: 'photo_like',
+        title: '사진에 좋아요가 눌렸어요!',
+        message: `${userData?.name || '누군가'}님이 내 사진을 좋아합니다.`,
+        data: { photo_id: photo.id, liker_id: user.id, liker_name: userData?.name }
+      });
+    }
+  };
+
   const filteredPhotos = filter === 'favorites'
     ? photos.filter(p => p.isFavorite)
     : photos;
@@ -150,7 +198,7 @@ export default function TodayPhotos() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">오늘의 사진</h1>
-          <p className="text-slate-500 text-sm mt-1">매니저들이 올린 오늘의 사진 ({photos.length}장)</p>
+          <p className="text-slate-500 text-sm mt-1">매니저들이 올린 오늘의 사진 ({photos.length}장) • 매일 자정에 리셋됩니다</p>
         </div>
       </div>
 
@@ -174,14 +222,14 @@ export default function TodayPhotos() {
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
-          즐겨찾기 ({photos.filter(p => p.isFavorite).length})
+          고정 ({photos.filter(p => p.isFavorite).length})
         </button>
       </div>
 
       {filteredPhotos.length === 0 ? (
         <div className="p-8 bg-slate-50 rounded-xl text-center">
           <p className="text-slate-500">
-            {filter === 'favorites' ? '즐겨찾기한 매니저의 사진이 없습니다.' : '오늘 올라온 사진이 없습니다.'}
+            {filter === 'favorites' ? '고정한 매니저의 사진이 없습니다.' : '오늘 올라온 사진이 없습니다.'}
           </p>
         </div>
       ) : (
@@ -217,7 +265,20 @@ export default function TodayPhotos() {
                       <span className="text-white/70 text-xs truncate block">{photo.store_name}</span>
                     )}
                   </div>
-                  {photo.isFavorite && <span className="text-red-400">♥</span>}
+                  <div className="flex items-center gap-2">
+                    {!photo.isVirtual && (
+                      <button
+                        onClick={(e) => togglePhotoLike(photo, e)}
+                        className={`flex items-center gap-1 text-sm transition-colors ${
+                          photo.is_liked ? 'text-red-400' : 'text-white/70 hover:text-red-400'
+                        }`}
+                      >
+                        <span>{photo.is_liked ? '♥' : '♡'}</span>
+                        <span>{photo.like_count}</span>
+                      </button>
+                    )}
+                    {photo.isFavorite && <span className="text-amber-400">★</span>}
+                  </div>
                 </div>
                 {photo.caption && (
                   <p className="text-white/80 text-xs truncate">{photo.caption}</p>

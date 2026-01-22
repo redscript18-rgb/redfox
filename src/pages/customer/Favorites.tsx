@@ -139,7 +139,7 @@ export default function Favorites() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">즐겨찾기</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">고정</h1>
 
       <div className="flex gap-2 mb-6">
         {canShowStores && (
@@ -168,14 +168,14 @@ export default function Favorites() {
                   </div>
                   <p className="text-sm text-slate-500">{fav.store.address}</p>
                 </Link>
-                <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteStore(fav.id)} title="즐겨찾기 해제">
+                <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteStore(fav.id)} title="고정 해제">
                   ♥
                 </button>
               </div>
             ))
           ) : (
             <div className="p-8 bg-slate-50 rounded-xl text-center">
-              <p className="text-slate-500">즐겨찾기한 가게가 없습니다.</p>
+              <p className="text-slate-500">고정한 가게가 없습니다.</p>
             </div>
           )}
         </div>
@@ -212,7 +212,7 @@ export default function Favorites() {
                   )}
                 </div>
               </Link>
-              <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteVirtualStaff(fav.id)} title="즐겨찾기 해제">
+              <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteVirtualStaff(fav.id)} title="고정 해제">
                 ♥
               </button>
             </div>
@@ -244,7 +244,7 @@ export default function Favorites() {
                   )}
                 </div>
               </Link>
-              <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteStaff(fav.id)} title="즐겨찾기 해제">
+              <button className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-xl text-red-500 bg-red-50 rounded-full hover:bg-red-100 transition-colors" onClick={() => removeFavoriteStaff(fav.id)} title="고정 해제">
                 ♥
               </button>
             </div>
@@ -252,7 +252,7 @@ export default function Favorites() {
 
           {totalStaffCount === 0 && (
             <div className="p-8 bg-slate-50 rounded-xl text-center">
-              <p className="text-slate-500">즐겨찾기한 매니저가 없습니다.</p>
+              <p className="text-slate-500">고정한 매니저가 없습니다.</p>
             </div>
           )}
         </div>

@@ -475,6 +475,8 @@ export function getReasonLabel(reason: string): string {
       return '일일 로그인';
     case 'review':
       return '리뷰 작성';
+    case 'post':
+      return '글 작성';
     case 'referral':
       return '추천인 보상';
     case 'reservation':

@@ -330,7 +330,7 @@ export default function StaffSearch() {
       return matchesStoreType;
     })
     .sort((a, b) => {
-      // 1. 즐겨찾기 우선
+      // 1. 고정 우선
       const aFav = favoriteStaffIds.has(a.id) ? 1 : 0;
       const bFav = favoriteStaffIds.has(b.id) ? 1 : 0;
       if (bFav !== aFav) return bFav - aFav;

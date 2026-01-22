@@ -608,7 +608,7 @@ export default function UserManagement() {
                     </div>
                     <div className="p-3 bg-white rounded-lg">
                       <p className="text-2xl font-bold text-slate-900">{userDetails.favoriteCount}</p>
-                      <p className="text-xs text-slate-500">즐겨찾기</p>
+                      <p className="text-xs text-slate-500">고정</p>
                     </div>
                     <div className="p-3 bg-white rounded-lg">
                       <p className="text-2xl font-bold text-slate-900">{userDetails.chatCount}</p>

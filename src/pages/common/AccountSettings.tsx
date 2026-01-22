@@ -10,6 +10,7 @@ export default function AccountSettings() {
   // Profile form
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMessage, setProfileMessage] = useState('');
 
@@ -29,8 +30,22 @@ export default function AccountSettings() {
     if (user) {
       setName(user.name || '');
       setPhone(user.phone || '');
+      // Fetch gender from profile
+      fetchGender();
     }
   }, [user]);
+
+  const fetchGender = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('gender')
+      .eq('id', user.id)
+      .single();
+    if (data?.gender) {
+      setGender(data.gender);
+    }
+  };
 
   const updateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +56,7 @@ export default function AccountSettings() {
 
     const { error } = await supabase
       .from('profiles')
-      .update({ name, phone: phone || null })
+      .update({ name, phone: phone || null, gender: gender || null })
       .eq('id', user.id);
 
     if (error) {
@@ -166,6 +181,19 @@ export default function AccountSettings() {
               placeholder="010-0000-0000"
               className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">성별 (선택)</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+            >
+              <option value="">선택안함</option>
+              <option value="male">남성</option>
+              <option value="female">여성</option>
+              <option value="other">기타</option>
+            </select>
           </div>
           {profileMessage && (
             <p className={`text-sm ${profileMessage.includes('실패') ? 'text-red-600' : 'text-green-600'}`}>

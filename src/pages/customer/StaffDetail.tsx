@@ -33,6 +33,8 @@ interface DailyPhoto {
   photo_url: string;
   date: string;
   caption: string | null;
+  like_count?: number;
+  is_liked?: boolean;
 }
 
 interface GalleryPhoto {
@@ -139,6 +141,38 @@ export default function StaffDetail() {
     }
   };
 
+  const togglePhotoLike = async (photoId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !id) return;
+
+    const photo = dailyPhotos.find(p => p.id === photoId);
+    if (!photo) return;
+
+    if (photo.is_liked) {
+      // Unlike
+      await supabase.from('staff_photo_likes').delete().eq('photo_id', photoId).eq('user_id', user.id);
+      setDailyPhotos(prev => prev.map(p =>
+        p.id === photoId ? { ...p, is_liked: false, like_count: Math.max(0, (p.like_count || 1) - 1) } : p
+      ));
+    } else {
+      // Like
+      await supabase.from('staff_photo_likes').insert({ photo_id: photoId, user_id: user.id });
+      setDailyPhotos(prev => prev.map(p =>
+        p.id === photoId ? { ...p, is_liked: true, like_count: (p.like_count || 0) + 1 } : p
+      ));
+
+      // Send notification to the staff
+      const { data: userData } = await supabase.from('profiles').select('name').eq('id', user.id).single();
+      await supabase.from('notifications').insert({
+        user_id: id,
+        type: 'photo_like',
+        title: '사진에 좋아요가 눌렸어요!',
+        message: `${userData?.name || '누군가'}님이 내 사진을 좋아합니다.`,
+        data: { photo_id: photoId, liker_id: user.id, liker_name: userData?.name }
+      });
+    }
+  };
+
   const fetchData = async () => {
     if (!id) return;
 
@@ -197,7 +231,25 @@ export default function StaffDetail() {
     }
 
     const { data: photosData } = await supabase.from('staff_photos').select('*').eq('staff_id', id).order('date', { ascending: false }).limit(20);
-    setDailyPhotos(photosData || []);
+
+    // Fetch like status if user is logged in
+    if (photosData && photosData.length > 0 && user) {
+      const photoIds = photosData.map(p => p.id);
+      const { data: likesData } = await supabase
+        .from('staff_photo_likes')
+        .select('photo_id')
+        .eq('user_id', user.id)
+        .in('photo_id', photoIds);
+
+      const likedPhotoIds = new Set(likesData?.map(l => l.photo_id) || []);
+      const photosWithLikes = photosData.map(p => ({
+        ...p,
+        is_liked: likedPhotoIds.has(p.id)
+      }));
+      setDailyPhotos(photosWithLikes);
+    } else {
+      setDailyPhotos(photosData || []);
+    }
 
     // Fetch gallery photos
     const { data: galleryData } = await supabase.from('staff_gallery').select('*').eq('staff_id', id).order('sort_order', { ascending: true });
@@ -268,8 +320,8 @@ export default function StaffDetail() {
             ) : (
               <span className="px-2 py-1 bg-green-50 text-green-600 text-xs font-medium rounded">본인 등록</span>
             )}
-            <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-red-500 bg-red-50' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`} onClick={toggleFavorite}>
-              {isFavorite ? '♥' : '♡'}
+            <button className={`w-9 h-9 flex items-center justify-center text-xl rounded-full transition-colors ${isFavorite ? 'text-amber-500 bg-amber-50' : 'text-slate-300 hover:text-amber-500 hover:bg-amber-50'}`} onClick={toggleFavorite} title="고정">
+              {isFavorite ? '★' : '☆'}
             </button>
           </div>
 
@@ -392,14 +444,24 @@ export default function StaffDetail() {
             {dailyPhotos.filter(p => p.date === today).map((photo, index) => (
               <div
                 key={photo.id}
-                className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
                 onClick={() => {
                   const todayPhotos = dailyPhotos.filter(p => p.date === today);
                   setSelectedPhotoList(todayPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: p.caption })));
                   setSelectedPhotoIndex(index);
                 }}
               >
-                <img src={photo.photo_url} alt={photo.caption || '작업 사진'} className="w-full h-full object-cover" />
+                <img src={photo.photo_url} alt={photo.caption || '작업 사진'} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" />
+                {/* Like button overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                  <button
+                    onClick={(e) => togglePhotoLike(photo.id, e)}
+                    className={`flex items-center gap-1 text-sm ${photo.is_liked ? 'text-red-400' : 'text-white/80 hover:text-red-400'} transition-colors`}
+                  >
+                    <span>{photo.is_liked ? '♥' : '♡'}</span>
+                    <span>{photo.like_count || 0}</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>

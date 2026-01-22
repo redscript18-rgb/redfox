@@ -282,82 +282,78 @@ export default function ProfileManage() {
         </button>
       </div>
 
-      {/* 프로필 사진 + 갤러리 */}
-      <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border border-pink-100 p-5">
-        <div className="flex items-start gap-4">
-          {/* 메인 프로필 사진 */}
-          <div className="flex flex-col items-center gap-2 flex-shrink-0">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-3xl font-bold text-white overflow-hidden shadow-lg shadow-pink-200">
+      {/* 프로필 사진 + 갤러리 - 4칸 그리드 */}
+      <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border border-pink-100 p-4 sm:p-5">
+        <input type="file" ref={profileInputRef} onChange={handleProfilePhotoUpload} accept="image/*" className="hidden" />
+        <input type="file" ref={galleryInputRef} onChange={handleGalleryPhotoUpload} accept="image/*" multiple className="hidden" />
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          {/* 프로필 사진 */}
+          <div className="relative group">
+            <div className="aspect-square rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden shadow-lg shadow-pink-200">
               {profilePhotoUrl ? (
                 <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
               ) : (
                 user?.name?.charAt(0) || '?'
               )}
             </div>
-            <input type="file" ref={profileInputRef} onChange={handleProfilePhotoUpload} accept="image/*" className="hidden" />
             <button
               onClick={() => profileInputRef.current?.click()}
               disabled={uploadingProfile}
-              className="px-3 py-1.5 bg-white text-pink-600 text-xs font-medium rounded-full border border-pink-200 hover:bg-pink-50 transition-colors disabled:opacity-50"
+              className="absolute inset-0 bg-black/0 hover:bg-black/40 rounded-2xl flex items-center justify-center opacity-0 hover:opacity-100 transition-all"
             >
-              {uploadingProfile ? '...' : '변경'}
+              <span className="px-3 py-1.5 bg-white text-pink-600 text-xs font-medium rounded-full shadow-lg">
+                {uploadingProfile ? '업로드 중...' : '사진 변경'}
+              </span>
             </button>
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-pink-500 text-white text-[10px] font-medium rounded-full shadow">
+              프로필
+            </div>
           </div>
 
-          {/* 갤러리 사진 */}
-          <div className="flex-1 bg-white/60 rounded-2xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-slate-600">갤러리 ({galleryPhotos.length}/3)</span>
-              {galleryPhotos.length < 3 && (
-                <>
-                  <input type="file" ref={galleryInputRef} onChange={handleGalleryPhotoUpload} accept="image/*" multiple className="hidden" />
-                  <button
-                    onClick={() => galleryInputRef.current?.click()}
-                    disabled={uploadingGallery}
-                    className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                  >
-                    {uploadingGallery ? '...' : '+ 추가'}
-                  </button>
-                </>
-              )}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[0, 1, 2].map((i) => {
-                const photo = galleryPhotos[i];
-                if (photo) {
-                  return (
-                    <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden shadow-sm group">
-                      <img
-                        src={photo.photo_url}
-                        alt=""
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => {
-                          setSelectedPhotoList(galleryPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: null })));
-                          setSelectedPhotoIndex(i);
-                        }}
-                      />
-                      <button
-                        onClick={() => handleDeleteGalleryPhoto(photo.id)}
-                        className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={`empty-${i}`}
-                    onClick={() => galleryInputRef.current?.click()}
-                    className="aspect-square rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-lg cursor-pointer hover:border-pink-300 hover:text-pink-300 transition-colors"
-                  >
-                    +
+          {/* 갤러리 사진 3장 */}
+          {[0, 1, 2].map((i) => {
+            const photo = galleryPhotos[i];
+            if (photo) {
+              return (
+                <div key={photo.id} className="relative group">
+                  <div className="aspect-square rounded-2xl overflow-hidden shadow-md bg-white">
+                    <img
+                      src={photo.photo_url}
+                      alt=""
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => {
+                        setSelectedPhotoList(galleryPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: null })));
+                        setSelectedPhotoIndex(i);
+                      }}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <button
+                    onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                    className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white text-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            }
+            return (
+              <div
+                key={`empty-${i}`}
+                onClick={() => !uploadingGallery && galleryInputRef.current?.click()}
+                className={`aspect-square rounded-2xl bg-white/80 border-2 border-dashed border-pink-200 flex flex-col items-center justify-center text-pink-300 cursor-pointer hover:border-pink-400 hover:text-pink-400 hover:bg-white transition-all ${uploadingGallery ? 'opacity-50 cursor-wait' : ''}`}
+              >
+                <span className="text-2xl mb-1">{uploadingGallery ? '...' : '+'}</span>
+                <span className="text-xs font-medium">{uploadingGallery ? '업로드 중' : '갤러리 추가'}</span>
+              </div>
+            );
+          })}
         </div>
+
+        {/* 안내 텍스트 */}
+        <p className="text-center text-xs text-slate-400 mt-3">
+          프로필 사진 1장 + 갤러리 사진 최대 3장
+        </p>
       </div>
 
       {/* 기본 정보 */}

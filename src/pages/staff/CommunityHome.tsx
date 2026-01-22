@@ -133,7 +133,7 @@ export default function CommunityHome() {
           <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">⭐</div>
           <div>
             <span className="font-semibold text-slate-800 text-sm">가게 리뷰</span>
-            <p className="text-xs text-slate-400">출근 후기 공유</p>
+            <p className="text-xs text-slate-400">여우들의 블라인드, 출근 후기 공유</p>
           </div>
         </Link>
 

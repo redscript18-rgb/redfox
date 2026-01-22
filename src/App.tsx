@@ -24,7 +24,15 @@ import StoreSearch from './pages/staff/StoreSearch';
 import AvailabilityManage from './pages/staff/AvailabilityManage';
 import WorkRequests from './pages/staff/WorkRequests';
 import ProfileManage from './pages/staff/ProfileManage';
+import TodayPhotoManage from './pages/staff/TodayPhotoManage';
 import MySchedule from './pages/staff/MySchedule';
+import StoreReviews from './pages/staff/StoreReviews';
+import StoreReviewDetail from './pages/staff/StoreReviewDetail';
+import WriteStoreReview from './pages/staff/WriteStoreReview';
+import CommunityHome from './pages/staff/CommunityHome';
+import InfoBoard from './pages/staff/InfoBoard';
+import InfoBoardDetail from './pages/staff/InfoBoardDetail';
+import WriteInfoPost from './pages/staff/WriteInfoPost';
 
 // 관리자용 페이지
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -166,7 +174,7 @@ function AppRoutes() {
         }
       />
 
-      {/* 손님용: 즐겨찾기 */}
+      {/* 손님용: 고정 */}
       <Route
         path="/customer/favorites"
         element={
@@ -202,7 +210,7 @@ function AppRoutes() {
         }
       />
 
-      {/* 공통: 즐겨찾기 (모든 역할) */}
+      {/* 공통: 고정 (모든 역할) */}
       <Route
         path="/favorites"
         element={
@@ -293,6 +301,126 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <ProfileManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 오늘의 사진 관리 */}
+      <Route
+        path="/staff/today-photos"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TodayPhotoManage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 가게 리뷰 목록 */}
+      <Route
+        path="/staff/reviews"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreReviews />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 리뷰 작성 */}
+      <Route
+        path="/staff/reviews/write"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WriteStoreReview />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 리뷰 상세 */}
+      <Route
+        path="/staff/reviews/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StoreReviewDetail />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 리뷰 수정 */}
+      <Route
+        path="/staff/reviews/:id/edit"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WriteStoreReview />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 커뮤니티 홈 */}
+      <Route
+        path="/staff/community"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <CommunityHome />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 정보공유 게시판 */}
+      <Route
+        path="/staff/community/board"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <InfoBoard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 정보공유 글쓰기 */}
+      <Route
+        path="/staff/community/board/write"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WriteInfoPost />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 정보공유 상세 */}
+      <Route
+        path="/staff/community/board/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <InfoBoardDetail />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 직원용: 정보공유 수정 */}
+      <Route
+        path="/staff/community/board/:id/edit"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WriteInfoPost />
             </Layout>
           </ProtectedRoute>
         }

@@ -193,14 +193,14 @@ export default function StoreSearch() {
           onClick={() => cancelRequest(store.id)}
           className="px-3 py-1.5 bg-amber-100 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-200 transition-colors"
         >
-          대기중
+          ⏳ 대기중
         </button>
       );
     }
 
     if (requestStatus === 'rejected') {
       return (
-        <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-sm font-medium rounded-lg">
+        <span className="px-3 py-1.5 bg-slate-100 text-slate-400 text-sm font-medium rounded-lg">
           거절됨
         </span>
       );
@@ -209,7 +209,7 @@ export default function StoreSearch() {
     return (
       <button
         onClick={() => handleApply(store)}
-        className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+        className="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-lg shadow-sm hover:from-pink-600 hover:to-rose-600 transition-all"
       >
         지원하기
       </button>
@@ -217,27 +217,36 @@ export default function StoreSearch() {
   };
 
   return (
-    <div>
-      <Link to="/staff" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
-
-      <h1 className="text-2xl font-bold text-slate-900 mb-2">가게 탐색</h1>
-      <p className="text-slate-500 mb-6">새로운 가게를 찾아보고 지원해보세요</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <Link to="/staff" className="text-pink-500 text-sm hover:text-pink-600 mb-1 inline-block">← 대시보드</Link>
+        <h1 className="text-2xl font-bold text-slate-800">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">가게 탐색</span>
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">새로운 가게를 찾아보고 지원해보세요</p>
+      </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="가게 이름 또는 주소로 검색..."
-          className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-red-600"
+          className="w-full h-12 pl-11 pr-4 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
         />
       </div>
 
       {loading ? (
-        <div className="text-slate-500 py-8 text-center">로딩 중...</div>
+        <div className="text-slate-500 py-12 text-center">
+          <div className="w-14 h-14 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3 text-xl animate-pulse">🏪</div>
+          <p>로딩 중...</p>
+        </div>
       ) : stores.length === 0 ? (
-        <div className="p-8 bg-slate-50 rounded-xl text-center">
+        <div className="py-12 bg-gradient-to-br from-slate-50 to-pink-50 rounded-3xl text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔍</div>
           <p className="text-slate-500">검색 결과가 없습니다.</p>
         </div>
       ) : (
@@ -251,40 +260,40 @@ export default function StoreSearch() {
               return (
                 <div
                   key={store.id}
-                  className={`p-4 bg-white border rounded-xl ${isHot ? 'border-orange-300' : 'border-slate-200'}`}
+                  className={`p-5 bg-white rounded-2xl border transition-all hover:shadow-md ${isHot ? 'border-amber-200 bg-gradient-to-br from-white to-amber-50' : 'border-slate-100'}`}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-semibold text-slate-900 truncate">{store.name}</h3>
+                        <h3 className="font-semibold text-slate-800 truncate">{store.name}</h3>
                         {isMyStore && (
-                          <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded flex-shrink-0">소속</span>
+                          <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs font-medium rounded-full flex-shrink-0">✓ 소속</span>
                         )}
                         {joinRequests[store.id] === 'pending' && (
-                          <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded flex-shrink-0">승인대기</span>
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-600 text-xs font-medium rounded-full flex-shrink-0">⏳ 승인대기</span>
                         )}
                         {isHot && !isMyStore && (
-                          <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-semibold rounded flex-shrink-0">수요 높음</span>
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-orange-100 to-red-100 text-orange-600 text-xs font-semibold rounded-full flex-shrink-0">🔥 수요 높음</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 truncate">{store.address}</p>
+                      <p className="text-sm text-slate-400 truncate">{store.address}</p>
                     </div>
                   </div>
 
                   {store.description && (
-                    <p className="text-sm text-slate-600 line-clamp-2 mb-3">{store.description}</p>
+                    <p className="text-sm text-slate-500 line-clamp-2 mb-3">{store.description}</p>
                   )}
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">
-                      오늘 예약 <span className="font-semibold text-slate-900">{demand}</span>건
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <span className="text-sm text-slate-500">
+                      오늘 예약 <span className="font-bold text-pink-600">{demand}</span>건
                     </span>
                     <div className="flex gap-2">
                       <Link
                         to={`/store/${store.id}`}
                         className="px-3 py-1.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
                       >
-                        상세보기
+                        상세
                       </Link>
                       {getButtonForStore(store)}
                     </div>
@@ -295,11 +304,11 @@ export default function StoreSearch() {
           </div>
 
           {hasMore && (
-            <div className="mt-6 text-center">
+            <div className="text-center pt-4">
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="px-6 py-3 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="px-8 py-3 bg-gradient-to-r from-slate-100 to-pink-50 text-slate-700 font-medium rounded-full hover:from-slate-200 hover:to-pink-100 transition-all disabled:opacity-50 border border-slate-200"
               >
                 {loadingMore ? '로딩 중...' : '더 보기'}
               </button>
@@ -310,12 +319,15 @@ export default function StoreSearch() {
 
       {/* Apply Modal */}
       {applyingStore && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setApplyingStore(null)}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">가게 가입 신청</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setApplyingStore(null)}>
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex items-center justify-center text-lg">📝</div>
+              <h2 className="text-xl font-bold text-slate-800">가게 가입 신청</h2>
+            </div>
 
-            <div className="p-4 bg-slate-50 rounded-lg mb-4">
-              <h3 className="font-semibold text-slate-900">{applyingStore.name}</h3>
+            <div className="p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl mb-5">
+              <h3 className="font-semibold text-slate-800">{applyingStore.name}</h3>
               <p className="text-sm text-slate-500">{applyingStore.address}</p>
             </div>
 
@@ -326,21 +338,21 @@ export default function StoreSearch() {
                 onChange={(e) => setApplyMessage(e.target.value)}
                 placeholder="실장님께 전달할 메시지를 입력하세요..."
                 rows={3}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all resize-none"
               />
             </div>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setApplyingStore(null)}
-                className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+                className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={submitApplication}
                 disabled={submitting}
-                className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400"
+                className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50 disabled:shadow-none"
               >
                 {submitting ? '신청 중...' : '신청하기'}
               </button>

@@ -167,56 +167,61 @@ export default function WorkRequests() {
   }
 
   return (
-    <div>
-      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
-
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">출근 요청</h1>
-        {pendingCount > 0 && filter !== 'pending' && (
-          <span className="px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
-            {pendingCount}건 대기중
-          </span>
-        )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <Link to="/" className="text-pink-500 text-sm hover:text-pink-600 mb-1 inline-block">← 대시보드</Link>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-800">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">출근 요청</span>
+          </h1>
+          {pendingCount > 0 && filter !== 'pending' && (
+            <span className="px-2.5 py-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-semibold rounded-full shadow-md shadow-pink-200">
+              {pendingCount}건 대기중
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      {/* Filter Tabs */}
+      <div className="flex bg-gradient-to-r from-pink-50 to-purple-50 p-1.5 rounded-2xl border border-pink-100">
         <button
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl transition-all ${
             filter === 'pending'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200'
+              : 'text-slate-500 hover:text-pink-600'
           }`}
           onClick={() => setFilter('pending')}
         >
-          대기중 ({requests.filter((r) => r.status === 'pending').length})
+          📩 대기중 ({requests.filter((r) => r.status === 'pending').length})
         </button>
         <button
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl transition-all ${
             filter === 'all'
-              ? 'bg-red-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200'
+              : 'text-slate-500 hover:text-pink-600'
           }`}
           onClick={() => setFilter('all')}
         >
-          전체
+          📋 전체
         </button>
       </div>
 
       {requests.length > 0 ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {requests.map((request) => (
             <div
               key={request.id}
-              className={`p-4 bg-white border rounded-xl ${
-                request.status === 'pending' ? 'border-orange-300' :
-                request.status === 'accepted' ? 'border-green-300' :
-                request.status === 'rejected' ? 'border-red-200 opacity-60' : 'border-slate-200'
+              className={`p-5 bg-white rounded-2xl border transition-all ${
+                request.status === 'pending' ? 'border-amber-200 bg-gradient-to-br from-white to-amber-50' :
+                request.status === 'accepted' ? 'border-green-200' :
+                request.status === 'rejected' ? 'border-slate-200 opacity-60' : 'border-slate-200'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <span className="font-semibold text-slate-900">{request.store?.name}</span>
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  request.status === 'pending' ? 'bg-orange-100 text-orange-600' :
+                <span className="font-semibold text-slate-800">{request.store?.name}</span>
+                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                  request.status === 'pending' ? 'bg-amber-100 text-amber-600' :
                   request.status === 'accepted' ? 'bg-green-100 text-green-600' :
                   request.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'
                 }`}>
@@ -224,33 +229,39 @@ export default function WorkRequests() {
                 </span>
               </div>
 
-              <div className="text-lg font-bold text-slate-900 mb-1">{formatDate(request.date)}</div>
-              <div className="text-slate-600 mb-3">
-                {request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                  <span className="text-lg font-bold text-pink-600">{new Date(request.date).getDate()}</span>
+                  <span className="text-[10px] text-pink-500">{DAY_NAMES[new Date(request.date).getDay()]}</span>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-slate-800">{formatDate(request.date)}</div>
+                  <div className="text-slate-500">{request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}</div>
+                </div>
               </div>
 
               {request.message && (
-                <div className="p-3 bg-slate-50 rounded-lg mb-3">
-                  <span className="text-xs text-slate-500">메시지:</span>
+                <div className="p-3 bg-gradient-to-r from-slate-50 to-pink-50 rounded-xl mb-3">
+                  <span className="text-xs text-pink-500 font-medium">💬 메시지</span>
                   <p className="text-sm text-slate-700 mt-1">{request.message}</p>
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
                 <span>요청자: {request.admin?.name}</span>
                 <span>{formatDateTime(request.created_at)}</span>
               </div>
 
               {request.status === 'pending' && (
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-3 mt-4">
                   <button
-                    className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+                    className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors"
                     onClick={() => handleReject(request)}
                   >
                     거절
                   </button>
                   <button
-                    className="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    className="flex-1 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all"
                     onClick={() => handleAccept(request)}
                   >
                     수락
@@ -261,7 +272,7 @@ export default function WorkRequests() {
               {request.status === 'accepted' && request.schedule_id && (
                 <Link
                   to="/staff/schedule"
-                  className="block mt-4 text-center text-sm text-orange-600 hover:underline"
+                  className="block mt-4 text-center text-sm text-pink-500 hover:text-pink-600 font-medium"
                 >
                   스케줄 확인 →
                 </Link>
@@ -270,7 +281,8 @@ export default function WorkRequests() {
           ))}
         </div>
       ) : (
-        <div className="p-8 bg-slate-50 rounded-xl text-center">
+        <div className="py-12 bg-gradient-to-br from-slate-50 to-pink-50 rounded-3xl text-center">
+          <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📩</div>
           <p className="text-slate-500">
             {filter === 'pending'
               ? '대기 중인 출근 요청이 없습니다.'

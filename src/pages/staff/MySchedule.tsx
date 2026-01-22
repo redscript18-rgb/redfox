@@ -383,223 +383,293 @@ export default function MySchedule() {
   }
 
   return (
-    <div>
-      <Link to="/" className="inline-block mb-4 text-orange-600 text-sm hover:underline">← 대시보드</Link>
-
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">내 스케줄</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <Link to="/" className="text-pink-500 text-sm hover:text-pink-600 mb-1 inline-block">← 대시보드</Link>
+        <h1 className="text-2xl font-bold text-slate-800">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">내 스케줄</span>
+        </h1>
+      </div>
 
       {/* Tab Navigation */}
-      <div className="flex bg-slate-100 p-1 rounded-xl mb-6 overflow-x-auto">
+      <div className="flex bg-gradient-to-r from-pink-50 to-purple-50 p-1.5 rounded-2xl overflow-x-auto border border-pink-100">
         <button
-          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${activeTab === 'schedule' ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === 'schedule' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200' : 'text-slate-500 hover:text-pink-600'}`}
           onClick={() => setActiveTab('schedule')}
         >
-          출근
-          {mySchedules.length > 0 && <span className={`text-xs px-1.5 py-0.5 rounded ${activeTab === 'schedule' ? 'bg-white/30' : 'bg-slate-200'}`}>{mySchedules.length}</span>}
+          <span>📅</span> 출근
+          {mySchedules.length > 0 && <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === 'schedule' ? 'bg-white/30' : 'bg-pink-100 text-pink-600'}`}>{mySchedules.length}</span>}
         </button>
         <button
-          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${activeTab === 'reservation' ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === 'reservation' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200' : 'text-slate-500 hover:text-pink-600'}`}
           onClick={() => setActiveTab('reservation')}
         >
-          예약
-          {pendingReservations.length > 0 && <span className={`text-xs px-1.5 py-0.5 rounded ${activeTab === 'reservation' ? 'bg-white/30' : 'bg-orange-100 text-orange-600'}`}>{pendingReservations.length}</span>}
+          <span>💆‍♀️</span> 예약
+          {pendingReservations.length > 0 && <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === 'reservation' ? 'bg-white/30' : 'bg-amber-100 text-amber-600'}`}>{pendingReservations.length}</span>}
         </button>
         <button
-          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${activeTab === 'request' ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === 'request' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200' : 'text-slate-500 hover:text-pink-600'}`}
           onClick={() => setActiveTab('request')}
         >
-          출근요청
-          {pendingRequests.length > 0 && <span className={`text-xs px-1.5 py-0.5 rounded ${activeTab === 'request' ? 'bg-white/30' : 'bg-orange-100 text-orange-600'}`}>{pendingRequests.length}</span>}
+          <span>📩</span> 출근요청
+          {pendingRequests.length > 0 && <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === 'request' ? 'bg-white/30' : 'bg-amber-100 text-amber-600'}`}>{pendingRequests.length}</span>}
         </button>
         <button
-          className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === 'availability' ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === 'availability' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200' : 'text-slate-500 hover:text-pink-600'}`}
           onClick={() => setActiveTab('availability')}
         >
-          가용시간
+          <span>⏰</span> 가용시간
         </button>
       </div>
 
       {/* Schedule Tab */}
       {activeTab === 'schedule' && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">이번 주 출근</h2>
-            <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => setShowAddScheduleModal(true)}>
-              + 출근 등록
-            </button>
-          </div>
-
-          {mySchedules.length > 0 ? (
-            <div className="flex flex-col gap-3 mb-8">
-              {mySchedules.map(schedule => (
-                <div key={schedule.id} className={`flex items-center gap-4 p-4 bg-white border rounded-xl ${schedule.status === 'approved' ? 'border-green-300' : schedule.status === 'pending' ? 'border-orange-300' : 'border-red-300'}`}>
-                  <div className="text-center min-w-[70px]">
-                    <span className="block text-sm font-medium text-slate-900">{formatDate(schedule.date)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-slate-900 truncate">{schedule.store?.name}</div>
-                    <div className="text-sm text-slate-600">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${schedule.status === 'approved' ? 'bg-green-100 text-green-600' : schedule.status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'}`}>
-                      {schedule.status === 'approved' ? '승인됨' : schedule.status === 'pending' ? '대기중' : '거절됨'}
-                    </span>
-                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
-                      {schedule.type === 'assigned' ? '배정' : schedule.type === 'requested' ? '신청' : '자율'}
-                    </span>
-                  </div>
-                  {schedule.status === 'pending' && (
-                    <button className="px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors" onClick={() => handleCancelSchedule(schedule.id)}>취소</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 bg-slate-50 rounded-xl text-center mb-8">
-              <p className="text-slate-500 mb-3">등록된 스케줄이 없습니다.</p>
-              <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => setShowAddScheduleModal(true)}>
-                출근 등록하기
+        <div className="space-y-6">
+          {/* This Week Section */}
+          <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-3xl border border-pink-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <span className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-base">📅</span>
+                이번 주 출근
+              </h2>
+              <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-xl shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all" onClick={() => setShowAddScheduleModal(true)}>
+                + 출근 등록
               </button>
             </div>
-          )}
 
-          {pastSchedules.length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">지난 출근</h2>
-              <div className="flex flex-col gap-2 opacity-80">
-                {pastSchedules.slice(0, 5).map(schedule => (
-                  <div key={schedule.id} className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl">
-                    <div className="text-center min-w-[70px]">
-                      <span className="block text-sm text-slate-600">{formatDate(schedule.date)}</span>
+            {mySchedules.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {mySchedules.map(schedule => (
+                  <div key={schedule.id} className={`flex items-center gap-4 p-4 bg-white/80 backdrop-blur rounded-2xl border ${schedule.status === 'approved' ? 'border-green-200' : schedule.status === 'pending' ? 'border-amber-200' : 'border-red-200'}`}>
+                    <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                      <span className="text-lg font-bold text-pink-600">{new Date(schedule.date).getDate()}</span>
+                      <span className="text-[10px] text-pink-500">{DAY_NAMES[new Date(schedule.date).getDay()]}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-slate-700 truncate">{schedule.store?.name}</div>
+                      <div className="font-semibold text-slate-800 truncate">{schedule.store?.name}</div>
                       <div className="text-sm text-slate-500">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
                     </div>
-                    {!hasScheduleRated(schedule.id) ? (
-                      <button className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors" onClick={() => { setSelectedSchedule(schedule); setShowScheduleRatingModal(true); }}>
-                        가게 별점
-                      </button>
-                    ) : (
-                      <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">평가완료</span>
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${schedule.status === 'approved' ? 'bg-green-100 text-green-600' : schedule.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+                        {schedule.status === 'approved' ? '승인됨' : schedule.status === 'pending' ? '대기중' : '거절됨'}
+                      </span>
+                      <span className="px-2.5 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-full">
+                        {schedule.type === 'assigned' ? '배정' : schedule.type === 'requested' ? '신청' : '자율'}
+                      </span>
+                    </div>
+                    {schedule.status === 'pending' && (
+                      <button className="px-3 py-1.5 text-xs text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0" onClick={() => handleCancelSchedule(schedule.id)}>취소</button>
                     )}
                   </div>
                 ))}
               </div>
-            </section>
+            ) : (
+              <div className="py-10 text-center">
+                <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📅</div>
+                <p className="text-slate-500 mb-4">등록된 스케줄이 없습니다.</p>
+                <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-full shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all" onClick={() => setShowAddScheduleModal(true)}>
+                  출근 등록하기
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Past Schedules */}
+          {pastSchedules.length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-base">🕐</span>
+                지난 출근
+              </h2>
+              <div className="flex flex-col gap-2">
+                {pastSchedules.slice(0, 5).map(schedule => (
+                  <div key={schedule.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+                    <div className="w-12 h-12 bg-white rounded-lg flex flex-col items-center justify-center flex-shrink-0 border border-slate-100">
+                      <span className="text-sm font-semibold text-slate-600">{new Date(schedule.date).getDate()}</span>
+                      <span className="text-[10px] text-slate-400">{DAY_NAMES[new Date(schedule.date).getDay()]}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-slate-700 truncate">{schedule.store?.name}</div>
+                      <div className="text-sm text-slate-400">{schedule.start_time.slice(0, 5)} - {schedule.end_time.slice(0, 5)}</div>
+                    </div>
+                    {!hasScheduleRated(schedule.id) ? (
+                      <button className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors" onClick={() => { setSelectedSchedule(schedule); setShowScheduleRatingModal(true); }}>
+                        ⭐ 가게 별점
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-1 bg-slate-100 text-slate-400 text-xs rounded-full">평가완료</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
 
       {/* Reservation Tab */}
       {activeTab === 'reservation' && (
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">오늘 예약 ({todayReservations.length}건)</h2>
-          {todayReservations.length > 0 ? (
-            <div className="flex flex-col gap-3 mb-8">
-              {todayReservations.map(r => <ReservationCard key={r.id} reservation={r} customerRatings={customerRatings} blockedCustomers={blockedCustomers} onConfirm={handleConfirmReservation} onReject={handleRejectReservation} onComplete={handleCompleteReservation} onBlock={handleBlockCustomer} hasRated={hasReservationRated} onRate={() => { setSelectedReservation(r); setShowReservationRatingModal(true); }} />)}
-            </div>
-          ) : (
-            <p className="text-slate-400 text-sm py-4 mb-8">오늘 예약이 없습니다.</p>
-          )}
+        <div className="space-y-6">
+          {/* Today's Reservations */}
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl border border-rose-100 p-5">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-base">💆‍♀️</span>
+              오늘 예약
+              <span className="px-2.5 py-0.5 bg-rose-200 text-rose-700 text-sm font-medium rounded-full">{todayReservations.length}건</span>
+            </h2>
+            {todayReservations.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {todayReservations.map(r => <ReservationCard key={r.id} reservation={r} customerRatings={customerRatings} blockedCustomers={blockedCustomers} onConfirm={handleConfirmReservation} onReject={handleRejectReservation} onComplete={handleCompleteReservation} onBlock={handleBlockCustomer} hasRated={hasReservationRated} onRate={() => { setSelectedReservation(r); setShowReservationRatingModal(true); }} />)}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <div className="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">💆‍♀️</div>
+                <p className="text-slate-500 text-sm">오늘 예약이 없습니다.</p>
+              </div>
+            )}
+          </div>
 
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">예정된 예약 ({upcomingReservations.length}건)</h2>
-          {upcomingReservations.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {upcomingReservations.map(r => <ReservationCard key={r.id} reservation={r} customerRatings={customerRatings} blockedCustomers={blockedCustomers} onConfirm={handleConfirmReservation} onReject={handleRejectReservation} onComplete={handleCompleteReservation} onBlock={handleBlockCustomer} hasRated={hasReservationRated} onRate={() => { setSelectedReservation(r); setShowReservationRatingModal(true); }} />)}
-            </div>
-          ) : (
-            <p className="text-slate-400 text-sm py-4">예정된 예약이 없습니다.</p>
-          )}
+          {/* Upcoming Reservations */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">📋</span>
+              예정된 예약
+              <span className="px-2.5 py-0.5 bg-purple-100 text-purple-600 text-sm font-medium rounded-full">{upcomingReservations.length}건</span>
+            </h2>
+            {upcomingReservations.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {upcomingReservations.map(r => <ReservationCard key={r.id} reservation={r} customerRatings={customerRatings} blockedCustomers={blockedCustomers} onConfirm={handleConfirmReservation} onReject={handleRejectReservation} onComplete={handleCompleteReservation} onBlock={handleBlockCustomer} hasRated={hasReservationRated} onRate={() => { setSelectedReservation(r); setShowReservationRatingModal(true); }} />)}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">📋</div>
+                <p className="text-slate-500 text-sm">예정된 예약이 없습니다.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Work Request Tab */}
       {activeTab === 'request' && (
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">대기 중인 출근 요청 ({pendingRequests.length}건)</h2>
-          {pendingRequests.length > 0 ? (
-            <div className="flex flex-col gap-3 mb-8">
-              {pendingRequests.map(request => (
-                <div key={request.id} className="p-4 bg-white border border-orange-300 rounded-xl">
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="font-semibold text-slate-900">{request.store?.name}</span>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-600">대기중</span>
-                  </div>
-                  <div className="text-lg font-bold text-slate-900 mb-1">{formatDate(request.date)}</div>
-                  <div className="text-slate-600 mb-3">{request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}</div>
-                  {request.message && (
-                    <div className="p-3 bg-slate-50 rounded-lg mb-3">
-                      <span className="text-xs text-slate-500">메시지:</span>
-                      <p className="text-sm text-slate-700 mt-1">{request.message}</p>
+        <div className="space-y-6">
+          {/* Pending Requests */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border border-amber-100 p-5">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-base">📩</span>
+              대기 중인 출근 요청
+              {pendingRequests.length > 0 && <span className="px-2.5 py-0.5 bg-amber-200 text-amber-700 text-sm font-medium rounded-full">{pendingRequests.length}건</span>}
+            </h2>
+            {pendingRequests.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {pendingRequests.map(request => (
+                  <div key={request.id} className="p-5 bg-white/80 backdrop-blur rounded-2xl border border-amber-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="font-semibold text-slate-800">{request.store?.name}</span>
+                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-600">대기중</span>
                     </div>
-                  )}
-                  <div className="text-xs text-slate-500 mb-4">요청자: {request.admin?.name}</div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors" onClick={() => handleRejectRequest(request.id)}>거절</button>
-                    <button className="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors" onClick={() => handleAcceptRequest(request)}>수락</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-400 text-sm py-4 mb-8">대기 중인 출근 요청이 없습니다.</p>
-          )}
-
-          {workRequests.filter(r => r.status !== 'pending').length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">지난 요청</h2>
-              <div className="flex flex-col gap-2 opacity-80">
-                {workRequests.filter(r => r.status !== 'pending').slice(0, 5).map(request => (
-                  <div key={request.id} className={`p-4 bg-white border rounded-xl ${request.status === 'accepted' ? 'border-green-300' : 'border-slate-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-slate-700">{request.store?.name}</span>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'accepted' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                        {request.status === 'accepted' ? '수락됨' : '거절됨'}
-                      </span>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex flex-col items-center justify-center">
+                        <span className="text-lg font-bold text-amber-600">{new Date(request.date).getDate()}</span>
+                        <span className="text-[10px] text-amber-500">{DAY_NAMES[new Date(request.date).getDay()]}</span>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-slate-800">{formatDate(request.date)}</div>
+                        <div className="text-slate-600">{request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-slate-600">{formatDate(request.date)} · {request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}</div>
+                    {request.message && (
+                      <div className="p-3 bg-amber-50 rounded-xl mb-3">
+                        <span className="text-xs text-amber-600 font-medium">💬 메시지</span>
+                        <p className="text-sm text-slate-700 mt-1">{request.message}</p>
+                      </div>
+                    )}
+                    <div className="text-xs text-slate-500 mb-4">요청자: {request.admin?.name}</div>
+                    <div className="flex gap-3">
+                      <button className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors" onClick={() => handleRejectRequest(request.id)}>거절</button>
+                      <button className="flex-1 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all" onClick={() => handleAcceptRequest(request)}>수락</button>
+                    </div>
                   </div>
                 ))}
               </div>
-            </section>
+            ) : (
+              <div className="py-8 text-center">
+                <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">📩</div>
+                <p className="text-slate-500 text-sm">대기 중인 출근 요청이 없습니다.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Past Requests */}
+          {workRequests.filter(r => r.status !== 'pending').length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-base">🕐</span>
+                지난 요청
+              </h2>
+              <div className="flex flex-col gap-2">
+                {workRequests.filter(r => r.status !== 'pending').slice(0, 5).map(request => (
+                  <div key={request.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+                    <div className="w-12 h-12 bg-white rounded-lg flex flex-col items-center justify-center flex-shrink-0 border border-slate-100">
+                      <span className="text-sm font-semibold text-slate-600">{new Date(request.date).getDate()}</span>
+                      <span className="text-[10px] text-slate-400">{DAY_NAMES[new Date(request.date).getDay()]}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-slate-700 truncate">{request.store?.name}</div>
+                      <div className="text-sm text-slate-400">{request.start_time.slice(0, 5)} - {request.end_time.slice(0, 5)}</div>
+                    </div>
+                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${request.status === 'accepted' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                      {request.status === 'accepted' ? '수락됨' : '거절됨'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
 
       {/* Availability Tab */}
       {activeTab === 'availability' && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">가용 시간 관리</h2>
-            <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" onClick={() => setShowAddAvailabilityModal(true)}>
-              + 시간 추가
-            </button>
-          </div>
-          <p className="text-sm text-slate-500 mb-6">출근 가능한 요일과 시간대를 등록하면, 관리자가 해당 시간에 출근 요청을 보낼 수 있습니다.</p>
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl border border-purple-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">⏰</span>
+                가용 시간 관리
+              </h2>
+              <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-xl shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all" onClick={() => setShowAddAvailabilityModal(true)}>
+                + 시간 추가
+              </button>
+            </div>
+            <div className="bg-white/60 rounded-2xl p-4 mb-5">
+              <p className="text-sm text-slate-600">출근 가능한 요일과 시간대를 등록하면, 관리자가 해당 시간에 출근 요청을 보낼 수 있습니다.</p>
+            </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-8 max-md:grid-cols-4 max-sm:grid-cols-2">
-            {[0, 1, 2, 3, 4, 5, 6].map(day => (
-              <div key={day} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="p-3 bg-slate-50 border-b border-slate-200 text-center">
-                  <span className="font-semibold text-slate-900">{DAY_NAMES[day]}요일</span>
+            <div className="grid grid-cols-7 gap-3 max-lg:grid-cols-4 max-sm:grid-cols-2">
+              {[0, 1, 2, 3, 4, 5, 6].map(day => (
+                <div key={day} className="bg-white/80 backdrop-blur rounded-2xl border border-purple-100 overflow-hidden">
+                  <div className={`p-3 text-center ${day === 0 ? 'bg-red-50' : day === 6 ? 'bg-blue-50' : 'bg-purple-50'}`}>
+                    <span className={`font-semibold ${day === 0 ? 'text-red-600' : day === 6 ? 'text-blue-600' : 'text-purple-600'}`}>{DAY_NAMES[day]}</span>
+                  </div>
+                  <div className="p-2 min-h-[80px]">
+                    {groupedAvailabilities[day]?.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {groupedAvailabilities[day].map(avail => (
+                          <div key={avail.id} className="flex items-center justify-between p-2 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg text-xs group">
+                            <span className="text-pink-700 font-medium">{avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}</span>
+                            <button className="w-5 h-5 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteAvailability(avail.id)}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-300 text-center py-6">-</p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-2 min-h-[80px]">
-                  {groupedAvailabilities[day]?.length > 0 ? (
-                    <div className="flex flex-col gap-1">
-                      {groupedAvailabilities[day].map(avail => (
-                        <div key={avail.id} className="flex items-center justify-between p-2 bg-orange-50 rounded-lg text-xs">
-                          <span className="text-orange-700 font-medium">{avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}</span>
-                          <button className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded" onClick={() => handleDeleteAvailability(avail.id)}>×</button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-400 text-center py-4">없음</p>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -637,53 +707,47 @@ function ReservationCard({ reservation, customerRatings, blockedCustomers, onCon
 }) {
   const customerRating = customerRatings[reservation.customer_id];
   const isBlocked = blockedCustomers.has(reservation.customer_id);
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})`;
-  };
 
   return (
-    <div className={`p-4 bg-white border rounded-xl ${reservation.status === 'confirmed' ? 'border-green-300' : reservation.status === 'pending' ? 'border-orange-300' : 'border-slate-200 opacity-60'}`}>
+    <div className={`p-4 bg-white/80 backdrop-blur rounded-2xl border ${reservation.status === 'confirmed' ? 'border-green-200' : reservation.status === 'pending' ? 'border-amber-200' : 'border-slate-200 opacity-70'}`}>
       <div className="flex gap-4">
-        <div className="text-center min-w-[60px]">
-          <span className="block text-lg font-bold text-slate-900">{reservation.start_time.slice(0, 5)}</span>
-          <span className="text-xs text-slate-500">{formatDate(reservation.date)}</span>
+        <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+          <span className="text-lg font-bold text-pink-600">{reservation.start_time.slice(0, 5)}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-1">
-            <span className="font-semibold text-slate-900 truncate">{reservation.menu?.name}</span>
-            <span className="text-sm font-medium text-orange-600 flex-shrink-0">{reservation.menu?.price?.toLocaleString()}원</span>
+            <span className="font-semibold text-slate-800 truncate">{reservation.menu?.name}</span>
+            <span className="text-sm font-medium text-rose-500 flex-shrink-0">{reservation.menu?.price?.toLocaleString()}원</span>
           </div>
-          <div className="text-sm text-slate-600 truncate">{reservation.store?.name}</div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
-            <span>손님: {reservation.customer?.name || '고객'}</span>
+          <div className="text-sm text-slate-500 truncate">{reservation.store?.name}</div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mt-2 flex-wrap">
+            <span className="px-2 py-0.5 bg-slate-100 rounded-full">👤 {reservation.customer?.name || '고객'}</span>
             {customerRating && customerRating.totalCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded">★ {customerRating.avgRating?.toFixed(1)}</span>
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full">⭐ {customerRating.avgRating?.toFixed(1)}</span>
             )}
-            <button className={`px-2 py-0.5 text-xs rounded ${isBlocked ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`} onClick={() => onBlock(reservation.customer_id, reservation.customer?.name || '고객')}>
-              {isBlocked ? '차단됨' : '차단'}
+            <button className={`px-2 py-0.5 text-xs rounded-full transition-colors ${isBlocked ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500'}`} onClick={() => onBlock(reservation.customer_id, reservation.customer?.name || '고객')}>
+              {isBlocked ? '🚫 차단됨' : '차단'}
             </button>
           </div>
         </div>
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' : reservation.status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'}`}>
+          <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${reservation.status === 'confirmed' ? 'bg-green-100 text-green-600' : reservation.status === 'pending' ? 'bg-amber-100 text-amber-600' : reservation.status === 'completed' ? 'bg-slate-100 text-slate-500' : 'bg-red-100 text-red-500'}`}>
             {reservation.status === 'confirmed' ? '확정' : reservation.status === 'pending' ? '대기' : reservation.status === 'completed' ? '완료' : '취소'}
           </span>
           {reservation.status === 'pending' && (
-            <div className="flex gap-1">
-              <button className="px-2 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700" onClick={() => onConfirm(reservation.id)}>확정</button>
-              <button className="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded hover:bg-red-200" onClick={() => onReject(reservation.id)}>거절</button>
+            <div className="flex gap-1.5">
+              <button className="px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-medium rounded-lg shadow-sm hover:from-green-600 hover:to-emerald-600 transition-all" onClick={() => onConfirm(reservation.id)}>확정</button>
+              <button className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-medium rounded-lg hover:bg-slate-200 transition-colors" onClick={() => onReject(reservation.id)}>거절</button>
             </div>
           )}
           {reservation.status === 'confirmed' && (
-            <button className="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700" onClick={() => onComplete(reservation.id)}>완료</button>
+            <button className="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-medium rounded-lg shadow-sm hover:from-pink-600 hover:to-rose-600 transition-all" onClick={() => onComplete(reservation.id)}>완료</button>
           )}
           {reservation.status === 'completed' && !hasRated(reservation.id) && (
-            <button className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded hover:bg-amber-200" onClick={onRate}>별점</button>
+            <button className="px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors" onClick={onRate}>⭐ 별점</button>
           )}
           {reservation.status === 'completed' && hasRated(reservation.id) && (
-            <span className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded">평가완료</span>
+            <span className="px-2.5 py-1 bg-slate-100 text-slate-400 text-xs rounded-full">평가완료</span>
           )}
         </div>
       </div>
@@ -719,21 +783,24 @@ function AddScheduleModal({ stores, staffId, onClose, onSuccess }: { stores: Sto
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">출근 등록</h2>
-        <div className="mb-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex items-center justify-center text-lg">📅</div>
+          <h2 className="text-xl font-bold text-slate-800">출근 등록</h2>
+        </div>
+        <div className="mb-5">
           <label className="block text-sm font-medium text-slate-700 mb-2">가게 선택</label>
-          <select value={storeId} onChange={e => setStoreId(Number(e.target.value))} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+          <select value={storeId} onChange={e => setStoreId(Number(e.target.value))} className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all">
             <option value="">가게를 선택하세요</option>
             {stores.map(store => <option key={store.id} value={store.id}>{store.name}</option>)}
           </select>
         </div>
-        <div className="mb-4">
+        <div className="mb-5">
           <label className="block text-sm font-medium text-slate-700 mb-2">날짜 선택</label>
           <div className="grid grid-cols-4 gap-2 max-sm:grid-cols-3">
             {dateOptions.map(d => (
-              <button key={d} type="button" className={`px-3 py-2 text-sm rounded-lg border transition-colors ${date === d ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-700 border-slate-200 hover:border-red-600'}`} onClick={() => setDate(d)}>
+              <button key={d} type="button" className={`px-3 py-2.5 text-sm rounded-xl border transition-all ${date === d ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white border-transparent shadow-md shadow-pink-200' : 'bg-white text-slate-700 border-slate-200 hover:border-pink-300'}`} onClick={() => setDate(d)}>
                 {formatDateOption(d)}
               </button>
             ))}
@@ -742,20 +809,20 @@ function AddScheduleModal({ stores, staffId, onClose, onSuccess }: { stores: Sto
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
-            <select value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+            <select value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all">
               {Array.from({ length: 24 }, (_, i) => i).map(h => <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
-            <select value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+            <select value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all">
               {Array.from({ length: 24 }, (_, i) => i).map(h => <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>)}
             </select>
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={!storeId || !date || submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">취소</button>
+          <button onClick={handleSubmit} disabled={!storeId || !date || submitting} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50 disabled:shadow-none">
             {submitting ? '신청 중...' : '신청하기'}
           </button>
         </div>
@@ -786,14 +853,17 @@ function AddAvailabilityModal({ staffId, onClose, onSuccess }: { staffId: string
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">가용 시간 추가</h2>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-2">요일 선택 (복수 선택 가능)</label>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center text-lg">⏰</div>
+          <h2 className="text-xl font-bold text-slate-800">가용 시간 추가</h2>
+        </div>
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-slate-700 mb-3">요일 선택 (복수 선택 가능)</label>
           <div className="flex gap-2 flex-wrap">
             {[1, 2, 3, 4, 5, 6, 0].map(day => (
-              <button key={day} type="button" className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${selectedDays.includes(day) ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`} onClick={() => toggleDay(day)}>
+              <button key={day} type="button" className={`w-11 h-11 rounded-xl text-sm font-semibold transition-all ${selectedDays.includes(day) ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200' : day === 0 ? 'bg-red-50 text-red-400 hover:bg-red-100' : day === 6 ? 'bg-blue-50 text-blue-400 hover:bg-blue-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`} onClick={() => toggleDay(day)}>
                 {DAY_NAMES[day]}
               </button>
             ))}
@@ -802,20 +872,20 @@ function AddAvailabilityModal({ staffId, onClose, onSuccess }: { staffId: string
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">시작 시간</label>
-            <select value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+            <select value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all">
               {Array.from({ length: 24 }, (_, i) => i).map(h => <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">종료 시간</label>
-            <select value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600">
+            <select value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all">
               {Array.from({ length: 24 }, (_, i) => i).map(h => <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>{h.toString().padStart(2, '0')}:00</option>)}
             </select>
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={selectedDays.length === 0 || submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">취소</button>
+          <button onClick={handleSubmit} disabled={selectedDays.length === 0 || submitting} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50 disabled:shadow-none">
             {submitting ? '등록 중...' : '등록하기'}
           </button>
         </div>
@@ -838,24 +908,27 @@ function ScheduleRatingModal({ schedule, raterId, onClose, onSuccess }: { schedu
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">가게 별점</h2>
-        <p className="text-slate-600 mb-4">{schedule.store?.name}에 별점을 주세요</p>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-2">별점</label>
-          <div className="flex items-center gap-2">
-            <div className="flex">{[1, 2, 3, 4, 5].map(star => <span key={star} className={`text-2xl cursor-pointer ${rating >= star ? 'text-amber-400' : 'text-slate-300'}`} onClick={() => setRating(star)}>★</span>)}</div>
-            <span className="text-sm text-slate-600">{rating}점</span>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-lg">⭐</div>
+          <h2 className="text-xl font-bold text-slate-800">가게 별점</h2>
+        </div>
+        <p className="text-slate-500 mb-5">{schedule.store?.name}에 별점을 주세요</p>
+        <div className="mb-5 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl">
+          <label className="block text-sm font-medium text-slate-700 mb-3">별점</label>
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex gap-1">{[1, 2, 3, 4, 5].map(star => <span key={star} className={`text-3xl cursor-pointer transition-transform hover:scale-110 ${rating >= star ? 'text-amber-400' : 'text-slate-200'}`} onClick={() => setRating(star)}>★</span>)}</div>
+            <span className="text-lg font-semibold text-amber-600">{rating}점</span>
           </div>
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">코멘트 (선택)</label>
-          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all resize-none" />
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">{submitting ? '등록 중...' : '별점 등록'}</button>
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">취소</button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50 disabled:shadow-none">{submitting ? '등록 중...' : '별점 등록'}</button>
         </div>
       </div>
     </div>
@@ -876,24 +949,27 @@ function ReservationRatingModal({ reservation, raterId, onClose, onSuccess }: { 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">손님 별점</h2>
-        <p className="text-slate-600 mb-4">{reservation.customer?.name || '손님'}님에게 별점을 주세요</p>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-2">별점</label>
-          <div className="flex items-center gap-2">
-            <div className="flex">{[1, 2, 3, 4, 5].map(star => <span key={star} className={`text-2xl cursor-pointer ${rating >= star ? 'text-amber-400' : 'text-slate-300'}`} onClick={() => setRating(star)}>★</span>)}</div>
-            <span className="text-sm text-slate-600">{rating}점</span>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-lg">⭐</div>
+          <h2 className="text-xl font-bold text-slate-800">손님 별점</h2>
+        </div>
+        <p className="text-slate-500 mb-5">{reservation.customer?.name || '손님'}님에게 별점을 주세요</p>
+        <div className="mb-5 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl">
+          <label className="block text-sm font-medium text-slate-700 mb-3">별점</label>
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex gap-1">{[1, 2, 3, 4, 5].map(star => <span key={star} className={`text-3xl cursor-pointer transition-transform hover:scale-110 ${rating >= star ? 'text-amber-400' : 'text-slate-200'}`} onClick={() => setRating(star)}>★</span>)}</div>
+            <span className="text-lg font-semibold text-amber-600">{rating}점</span>
           </div>
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-slate-700 mb-2">코멘트 (선택)</label>
-          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-red-600" />
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="코멘트를 남겨주세요..." rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all resize-none" />
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">취소</button>
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-slate-400">{submitting ? '등록 중...' : '별점 등록'}</button>
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">취소</button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50 disabled:shadow-none">{submitting ? '등록 중...' : '별점 등록'}</button>
         </div>
       </div>
     </div>

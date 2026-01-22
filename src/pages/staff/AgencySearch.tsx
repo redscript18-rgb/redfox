@@ -165,25 +165,33 @@ export default function AgencySearch() {
   if (loading) return <div className="text-slate-500">로딩 중...</div>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">에이전시</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">에이전시</span>
+        </h1>
+      </div>
 
       {/* My Agencies */}
       {myAgencies.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">내 에이전시</h2>
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl border border-purple-100 p-5">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">🏢</span>
+            내 에이전시
+          </h2>
           <div className="space-y-3">
             {myAgencies.map((membership) => (
-              <div key={membership.agency_id} className="p-4 bg-white border border-slate-200 rounded-xl">
+              <div key={membership.agency_id} className="p-4 bg-white/80 backdrop-blur rounded-2xl border border-purple-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md shadow-purple-200">
                       {membership.agency.name.charAt(0)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-900">{membership.agency.name}</span>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${getStatusColor(membership.status)}`}>
+                        <span className="font-semibold text-slate-800">{membership.agency.name}</span>
+                        <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getStatusColor(membership.status)}`}>
                           {getStatusName(membership.status)}
                         </span>
                       </div>
@@ -194,14 +202,14 @@ export default function AgencySearch() {
                     {membership.status === 'pending' ? (
                       <button
                         onClick={() => cancelRequest(membership.agency_id)}
-                        className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                        className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                       >
                         요청 취소
                       </button>
                     ) : (
                       <button
                         onClick={() => leaveAgency(membership.agency_id)}
-                        className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                        className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                       >
                         탈퇴
                       </button>
@@ -215,33 +223,42 @@ export default function AgencySearch() {
       )}
 
       {/* Search */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">에이전시 탐색</h2>
-        <input
-          type="text"
-          placeholder="에이전시 이름 또는 이메일로 검색..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <span className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-base">🔍</span>
+          에이전시 탐색
+        </h2>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <input
+            type="text"
+            placeholder="에이전시 이름 또는 이메일로 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 transition-all"
+          />
+        </div>
       </div>
 
       {/* Available Agencies */}
       {availableAgencies.length === 0 ? (
-        <div className="p-8 text-center text-slate-500 bg-white border border-slate-200 rounded-xl">
-          {searchQuery ? '검색 결과가 없습니다.' : '가입 가능한 에이전시가 없습니다.'}
+        <div className="py-12 bg-gradient-to-br from-slate-50 to-pink-50 rounded-3xl text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🏢</div>
+          <p className="text-slate-500">
+            {searchQuery ? '검색 결과가 없습니다.' : '가입 가능한 에이전시가 없습니다.'}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
           {availableAgencies.map((agency) => (
-            <div key={agency.id} className="p-4 bg-white border border-slate-200 rounded-xl">
+            <div key={agency.id} className="p-4 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md shadow-purple-200">
                     {agency.name.charAt(0)}
                   </div>
                   <div>
-                    <span className="font-medium text-slate-900">{agency.name}</span>
+                    <span className="font-semibold text-slate-800">{agency.name}</span>
                     <p className="text-sm text-slate-500">{agency.email}</p>
                     {agency.bio && (
                       <p className="text-sm text-slate-400 mt-1 line-clamp-1">{agency.bio}</p>
@@ -251,7 +268,7 @@ export default function AgencySearch() {
                 <button
                   onClick={() => requestJoin(agency.id)}
                   disabled={requesting === agency.id}
-                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 disabled:bg-slate-400 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 disabled:shadow-none transition-all"
                 >
                   {requesting === agency.id ? '요청 중...' : '가입 요청'}
                 </button>

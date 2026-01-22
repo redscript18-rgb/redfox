@@ -147,7 +147,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </Link>
               <Link to="/customer/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
-                즐겨찾기
+                고정
               </Link>
             </>
           )}
@@ -167,6 +167,9 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/staff/agencies" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 에이전시
               </Link>
+              <Link to="/staff/community" className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium text-sm rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all shadow-sm shadow-pink-200 max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
+                라운지
+              </Link>
               <Link to="/chat" className="relative px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 메시지
                 {unreadMessages > 0 && (
@@ -176,7 +179,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </Link>
               <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
-                즐겨찾기
+                고정
               </Link>
               <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 차단
@@ -206,7 +209,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </Link>
               <Link to="/favorites" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
-                즐겨찾기
+                고정
               </Link>
               <Link to="/blocks" className="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors max-md:px-3 max-md:py-2.5 max-md:text-xs max-md:min-h-[44px] max-md:flex max-md:items-center flex-shrink-0 whitespace-nowrap">
                 차단
@@ -378,14 +381,24 @@ export default function Layout({ children }: LayoutProps) {
                 {/* Menu Items */}
                 <div className="py-2">
                   {user?.role === 'manager' && (
-                    <Link
-                      to="/staff/profile"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                      <span className="w-5 text-center">👤</span>
-                      내 프로필
-                    </Link>
+                    <>
+                      <Link
+                        to="/staff/profile"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="w-5 text-center">👤</span>
+                        내 프로필
+                      </Link>
+                      <Link
+                        to="/staff/today-photos"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="w-5 text-center">📸</span>
+                        오늘의 사진
+                      </Link>
+                    </>
                   )}
                   <Link
                     to="/my-score"

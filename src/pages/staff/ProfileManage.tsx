@@ -289,8 +289,16 @@ export default function ProfileManage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {/* 프로필 사진 */}
-          <div className="relative group">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden shadow-lg shadow-pink-200">
+          <div className="relative">
+            <div
+              onClick={() => {
+                if (profilePhotoUrl) {
+                  setSelectedPhotoList([{ id: 0, photo_url: profilePhotoUrl, caption: '프로필 사진' }]);
+                  setSelectedPhotoIndex(0);
+                }
+              }}
+              className="aspect-square rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden shadow-lg shadow-pink-300 ring-4 ring-pink-400 cursor-pointer hover:ring-pink-500 transition-all"
+            >
               {profilePhotoUrl ? (
                 <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
               ) : (
@@ -300,15 +308,10 @@ export default function ProfileManage() {
             <button
               onClick={() => profileInputRef.current?.click()}
               disabled={uploadingProfile}
-              className="absolute inset-0 bg-black/0 hover:bg-black/40 rounded-2xl flex items-center justify-center opacity-0 hover:opacity-100 transition-all"
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-white text-pink-600 text-xs font-medium rounded-full border border-pink-200 shadow-md hover:bg-pink-50 transition-colors disabled:opacity-50"
             >
-              <span className="px-3 py-1.5 bg-white text-pink-600 text-xs font-medium rounded-full shadow-lg">
-                {uploadingProfile ? '업로드 중...' : '사진 변경'}
-              </span>
+              {uploadingProfile ? '...' : '변경'}
             </button>
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-pink-500 text-white text-[10px] font-medium rounded-full shadow">
-              프로필
-            </div>
           </div>
 
           {/* 갤러리 사진 3장 */}

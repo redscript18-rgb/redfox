@@ -11,6 +11,7 @@ interface Review {
   rating: number;
   content: string;
   is_anonymous: boolean;
+  is_verified?: boolean;
   view_count?: number;
   created_at: string;
   updated_at: string;
@@ -274,8 +275,11 @@ export default function StoreReviews() {
                 }`}>
                   {index + 1}
                 </span>
-                <span className="flex-1 text-sm text-slate-700 truncate font-medium">
+                <span className="flex-1 text-sm text-slate-700 truncate font-medium flex items-center gap-1.5">
                   <span className="text-amber-400">{'★'.repeat(review.rating)}</span> {review.store?.name}
+                  {review.is_verified && (
+                    <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded">✓</span>
+                  )}
                 </span>
                 <div className="flex items-center gap-2 text-xs text-slate-400 flex-shrink-0">
                   <span>👁 {review.view_count || 0}</span>

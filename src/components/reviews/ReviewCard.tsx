@@ -9,6 +9,7 @@ interface ReviewCardProps {
     rating: number;
     content: string;
     is_anonymous: boolean;
+    is_verified?: boolean;
     view_count?: number;
     created_at: string;
     updated_at: string;
@@ -60,8 +61,13 @@ export default function ReviewCard({
       className="block p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
     >
       {showStoreName && review.store && (
-        <div className="mb-2">
+        <div className="flex items-center gap-2 mb-2">
           <span className="font-semibold text-slate-900">{review.store.name}</span>
+          {review.is_verified && (
+            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+              ✓ 인증
+            </span>
+          )}
         </div>
       )}
 

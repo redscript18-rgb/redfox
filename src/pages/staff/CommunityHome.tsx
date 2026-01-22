@@ -9,6 +9,7 @@ interface RecentReview {
   rating: number;
   content: string;
   is_anonymous: boolean;
+  is_verified?: boolean;
   created_at: string;
   store?: { name: string };
   author?: { name: string };
@@ -168,7 +169,12 @@ export default function CommunityHome() {
                 className="p-4 bg-white/80 backdrop-blur rounded-2xl border border-amber-100 hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-slate-800">{review.store?.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-800">{review.store?.name}</span>
+                    {review.is_verified && (
+                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded">✓ 인증</span>
+                    )}
+                  </div>
                   <StarRating rating={review.rating} readonly size="sm" />
                 </div>
                 <p className="text-sm text-slate-500 line-clamp-2">{review.content}</p>

@@ -10,6 +10,7 @@ interface ReviewableStore {
   store_address: string;
   work_count: number;
   has_review: boolean;
+  is_worked: boolean;
 }
 
 interface Review {
@@ -48,51 +49,52 @@ export default function WriteStoreReview() {
   const fetchReviewableStores = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase.rpc('get_reviewable_stores', {
+    // 새 RPC: 모든 가게 + 출근 이력 표시
+    const { data, error } = await supabase.rpc('get_all_stores_for_review', {
       p_user_id: user.id
     });
 
     if (error) {
-      console.error('Error fetching reviewable stores:', error);
-      // Fallback: fetch stores from schedules
-      const { data: scheduleStores } = await supabase
+      console.error('Error fetching stores:', error);
+      // Fallback: 모든 가게 직접 조회
+      const { data: allStores } = await supabase
+        .from('stores')
+        .select('id, name, address')
+        .order('name');
+
+      // 출근 이력 조회
+      const { data: schedules } = await supabase
         .from('schedules')
-        .select('store_id, stores(id, name, address)')
+        .select('store_id')
         .eq('staff_id', user.id)
         .eq('status', 'approved');
 
-      const storeMap = new Map<number, ReviewableStore>();
-      scheduleStores?.forEach(s => {
-        const storeData = s.stores as unknown as { id: number; name: string; address: string } | null;
-        if (storeData && !storeMap.has(s.store_id)) {
-          storeMap.set(s.store_id, {
-            store_id: storeData.id,
-            store_name: storeData.name,
-            store_address: storeData.address || '',
-            work_count: 1,
-            has_review: false
-          });
-        }
+      const workedStoreIds = new Set(schedules?.map(s => s.store_id) || []);
+
+      // 기존 리뷰 조회
+      const { data: reviews } = await supabase
+        .from('store_reviews')
+        .select('store_id')
+        .eq('author_id', user.id);
+
+      const reviewedStoreIds = new Set(reviews?.map(r => r.store_id) || []);
+
+      const storeList: ReviewableStore[] = (allStores || []).map(s => ({
+        store_id: s.id,
+        store_name: s.name,
+        store_address: s.address || '',
+        work_count: workedStoreIds.has(s.id) ? 1 : 0,
+        has_review: reviewedStoreIds.has(s.id),
+        is_worked: workedStoreIds.has(s.id)
+      }));
+
+      // 출근 이력 있는 가게 먼저 정렬
+      storeList.sort((a, b) => {
+        if (a.is_worked !== b.is_worked) return a.is_worked ? -1 : 1;
+        return a.store_name.localeCompare(b.store_name);
       });
 
-      // Check for existing reviews
-      if (storeMap.size > 0) {
-        const storeIds = Array.from(storeMap.keys());
-        const { data: reviews } = await supabase
-          .from('store_reviews')
-          .select('store_id')
-          .eq('author_id', user.id)
-          .in('store_id', storeIds);
-
-        reviews?.forEach(r => {
-          const store = storeMap.get(r.store_id);
-          if (store) {
-            store.has_review = true;
-          }
-        });
-      }
-
-      setStores(Array.from(storeMap.values()));
+      setStores(storeList);
     } else {
       setStores(data || []);
     }
@@ -200,6 +202,7 @@ export default function WriteStoreReview() {
   }
 
   const availableStores = stores.filter(s => !s.has_review);
+  const selectedStore = stores.find(s => s.store_id === selectedStoreId);
 
   return (
     <div>
@@ -211,8 +214,8 @@ export default function WriteStoreReview() {
 
       {!isEditMode && availableStores.length === 0 && (
         <div className="p-6 bg-slate-50 rounded-xl text-center">
-          <p className="text-slate-500 mb-2">리뷰를 작성할 수 있는 가게가 없습니다.</p>
-          <p className="text-sm text-slate-400">출근 이력이 있는 가게에만 리뷰를 작성할 수 있습니다.</p>
+          <p className="text-slate-500 mb-2">모든 가게에 리뷰를 작성했습니다.</p>
+          <p className="text-sm text-slate-400">가게당 1개의 리뷰만 작성 가능합니다.</p>
         </div>
       )}
 
@@ -239,13 +242,32 @@ export default function WriteStoreReview() {
                 required
               >
                 <option value="">가게를 선택하세요</option>
-                {availableStores.map((store) => (
-                  <option key={store.store_id} value={store.store_id}>
-                    {store.store_name} (출근 {store.work_count}회)
-                  </option>
-                ))}
+                {availableStores.filter(s => s.is_worked).length > 0 && (
+                  <optgroup label="✓ 출근 이력 있음 (인증 리뷰)">
+                    {availableStores.filter(s => s.is_worked).map((store) => (
+                      <option key={store.store_id} value={store.store_id}>
+                        {store.store_name} (출근 {store.work_count}회)
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {availableStores.filter(s => !s.is_worked).length > 0 && (
+                  <optgroup label="일반 리뷰">
+                    {availableStores.filter(s => !s.is_worked).map((store) => (
+                      <option key={store.store_id} value={store.store_id}>
+                        {store.store_name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
-              <p className="text-xs text-slate-500 mt-1">출근 이력이 있는 가게만 표시됩니다.</p>
+              {selectedStore && (
+                <p className={`text-xs mt-2 ${selectedStore.is_worked ? 'text-green-600' : 'text-slate-500'}`}>
+                  {selectedStore.is_worked
+                    ? '✓ 인증 리뷰로 작성됩니다 (출근 이력 확인됨)'
+                    : '일반 리뷰로 작성됩니다'}
+                </p>
+              )}
             </div>
           )}
 

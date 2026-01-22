@@ -12,6 +12,7 @@ interface Review {
   rating: number;
   content: string;
   is_anonymous: boolean;
+  is_verified?: boolean;
   view_count: number;
   created_at: string;
   updated_at: string;
@@ -142,7 +143,14 @@ export default function StoreReviewDetail() {
 
       {/* Store Info */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold text-slate-900">{review.store?.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900">{review.store?.name}</h1>
+          {review.is_verified && (
+            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+              ✓ 인증 리뷰
+            </span>
+          )}
+        </div>
         {review.store?.address && (
           <p className="text-sm text-slate-500">{review.store.address}</p>
         )}

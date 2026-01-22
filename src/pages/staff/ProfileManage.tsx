@@ -269,8 +269,8 @@ export default function ProfileManage() {
       <div className="flex items-center justify-between">
         <div>
           <Link to="/" className="text-pink-500 text-sm hover:text-pink-600 mb-1 inline-block">← 대시보드</Link>
-          <h1 className="text-2xl font-bold text-slate-800">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">프로필</span> 관리
+          <h1 className="text-2xl font-bold">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">프로필</span>
           </h1>
         </div>
         <button
@@ -594,6 +594,17 @@ export default function ProfileManage() {
             <button onClick={handleAddSpecialty} disabled={!newSpecialty.trim()} className="px-4 py-2 bg-orange-100 text-orange-600 text-sm rounded-xl hover:bg-orange-200 disabled:opacity-50">추가</button>
           </div>
         )}
+      </div>
+
+      {/* 하단 저장 버튼 */}
+      <div className="flex justify-center pt-4 pb-8">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-10 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold rounded-full shadow-lg shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50"
+        >
+          {saving ? '저장 중...' : '프로필 저장하기'}
+        </button>
       </div>
 
       {/* Photo Viewer Modal */}

@@ -651,7 +651,7 @@ export default function SuperAdminDashboard() {
       <h1 className="text-2xl font-bold text-slate-900">서비스 관리자 대시보드</h1>
 
       {/* 알림 섹션 - 처리 필요 항목 */}
-      {((stats?.pendingOwners && stats.pendingOwners > 0) || (stats?.pendingPasswordResets && stats.pendingPasswordResets > 0)) && (
+      {((stats?.pendingOwners ?? 0) > 0 || (stats?.pendingPasswordResets ?? 0) > 0) && (
         <section>
           <h2 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-3">처리 필요</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

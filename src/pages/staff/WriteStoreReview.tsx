@@ -21,6 +21,11 @@ interface Review {
   is_anonymous: boolean;
 }
 
+interface SearchStore {
+  id: number;
+  name: string;
+}
+
 export default function WriteStoreReview() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +34,8 @@ export default function WriteStoreReview() {
 
   const [stores, setStores] = useState<ReviewableStore[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  const [selectedStoreName, setSelectedStoreName] = useState<string>('');
+  const [isVerifiedReview, setIsVerifiedReview] = useState(false);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -36,70 +43,109 @@ export default function WriteStoreReview() {
   const [submitting, setSubmitting] = useState(false);
   const [existingReview, setExistingReview] = useState<Review | null>(null);
 
+  // 일반 리뷰용 검색 상태
+  const [storeSearch, setStoreSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchStore[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [reviewedStoreIds, setReviewedStoreIds] = useState<Set<number>>(new Set());
+
   useEffect(() => {
     if (user) {
       if (isEditMode) {
         fetchReview();
       } else {
-        fetchReviewableStores();
+        fetchWorkedStores();
       }
     }
   }, [user, id]);
 
-  const fetchReviewableStores = async () => {
+  // 일반 리뷰용 가게 검색
+  useEffect(() => {
+    const searchStores = async () => {
+      if (storeSearch.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('stores')
+        .select('id, name')
+        .ilike('name', `%${storeSearch}%`)
+        .limit(10);
+
+      // 이미 리뷰 작성한 가게는 제외
+      const filtered = (data || []).filter(s => !reviewedStoreIds.has(s.id));
+      setSearchResults(filtered);
+    };
+
+    const debounce = setTimeout(searchStores, 300);
+    return () => clearTimeout(debounce);
+  }, [storeSearch, reviewedStoreIds]);
+
+  const fetchWorkedStores = async () => {
     if (!user) return;
 
-    // 새 RPC: 모든 가게 + 출근 이력 표시
-    const { data, error } = await supabase.rpc('get_all_stores_for_review', {
-      p_user_id: user.id
+    // 출근 이력 있는 가게 조회
+    const { data: schedules } = await supabase
+      .from('schedules')
+      .select('store_id, stores(id, name, address)')
+      .eq('staff_id', user.id)
+      .eq('status', 'approved');
+
+    // 기존 리뷰 조회 (중복 방지용)
+    const { data: reviews } = await supabase
+      .from('store_reviews')
+      .select('store_id')
+      .eq('author_id', user.id);
+
+    const reviewedIds = new Set(reviews?.map(r => r.store_id) || []);
+    setReviewedStoreIds(reviewedIds);
+
+    // 출근 이력 있는 가게 정리
+    const storeMap = new Map<number, ReviewableStore>();
+    schedules?.forEach(s => {
+      const store = s.stores as unknown as { id: number; name: string; address: string } | null;
+      if (store && !storeMap.has(store.id)) {
+        storeMap.set(store.id, {
+          store_id: store.id,
+          store_name: store.name,
+          store_address: store.address || '',
+          work_count: 1,
+          has_review: reviewedIds.has(store.id),
+          is_worked: true
+        });
+      } else if (store && storeMap.has(store.id)) {
+        const existing = storeMap.get(store.id)!;
+        existing.work_count++;
+      }
     });
 
-    if (error) {
-      console.error('Error fetching stores:', error);
-      // Fallback: 모든 가게 직접 조회
-      const { data: allStores } = await supabase
-        .from('stores')
-        .select('id, name, address')
-        .order('name');
-
-      // 출근 이력 조회
-      const { data: schedules } = await supabase
-        .from('schedules')
-        .select('store_id')
-        .eq('staff_id', user.id)
-        .eq('status', 'approved');
-
-      const workedStoreIds = new Set(schedules?.map(s => s.store_id) || []);
-
-      // 기존 리뷰 조회
-      const { data: reviews } = await supabase
-        .from('store_reviews')
-        .select('store_id')
-        .eq('author_id', user.id);
-
-      const reviewedStoreIds = new Set(reviews?.map(r => r.store_id) || []);
-
-      const storeList: ReviewableStore[] = (allStores || []).map(s => ({
-        store_id: s.id,
-        store_name: s.name,
-        store_address: s.address || '',
-        work_count: workedStoreIds.has(s.id) ? 1 : 0,
-        has_review: reviewedStoreIds.has(s.id),
-        is_worked: workedStoreIds.has(s.id)
-      }));
-
-      // 출근 이력 있는 가게 먼저 정렬
-      storeList.sort((a, b) => {
-        if (a.is_worked !== b.is_worked) return a.is_worked ? -1 : 1;
-        return a.store_name.localeCompare(b.store_name);
-      });
-
-      setStores(storeList);
-    } else {
-      setStores(data || []);
-    }
-
+    const storeList = Array.from(storeMap.values()).sort((a, b) => b.work_count - a.work_count);
+    setStores(storeList);
     setLoading(false);
+  };
+
+  const selectWorkedStore = (store: ReviewableStore) => {
+    setSelectedStoreId(store.store_id);
+    setSelectedStoreName(store.store_name);
+    setIsVerifiedReview(true);
+    // 검색 초기화
+    setStoreSearch('');
+    setSearchResults([]);
+  };
+
+  const selectSearchedStore = (store: SearchStore) => {
+    setSelectedStoreId(store.id);
+    setSelectedStoreName(store.name);
+    setIsVerifiedReview(false);
+    setStoreSearch('');
+    setShowSearchResults(false);
+  };
+
+  const clearSelectedStore = () => {
+    setSelectedStoreId(null);
+    setSelectedStoreName('');
+    setIsVerifiedReview(false);
   };
 
   const fetchReview = async () => {
@@ -201,8 +247,7 @@ export default function WriteStoreReview() {
     return <div className="text-slate-500">로딩 중...</div>;
   }
 
-  const availableStores = stores.filter(s => !s.has_review);
-  const selectedStore = stores.find(s => s.store_id === selectedStoreId);
+  const workedStores = stores.filter(s => !s.has_review);
 
   return (
     <div>
@@ -212,64 +257,112 @@ export default function WriteStoreReview() {
         {isEditMode ? '리뷰 수정' : '리뷰 작성'}
       </h1>
 
-      {!isEditMode && availableStores.length === 0 && (
-        <div className="p-6 bg-slate-50 rounded-xl text-center">
-          <p className="text-slate-500 mb-2">모든 가게에 리뷰를 작성했습니다.</p>
-          <p className="text-sm text-slate-400">가게당 1개의 리뷰만 작성 가능합니다.</p>
-        </div>
-      )}
-
-      {(isEditMode || availableStores.length > 0) && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Store Selection */}
-          {isEditMode ? (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">가게</label>
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="text-slate-900">
-                  {stores.find(s => s.store_id === selectedStoreId)?.store_name ||
-                   existingReview?.store_id}
-                </span>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {/* Store Selection */}
+        {isEditMode ? (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">가게</label>
+            <div className="p-4 bg-slate-50 rounded-lg">
+              <span className="text-slate-900">
+                {stores.find(s => s.store_id === selectedStoreId)?.store_name ||
+                 existingReview?.store_id}
+              </span>
+            </div>
+          </div>
+        ) : selectedStoreId ? (
+          /* 선택된 가게 표시 */
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">선택한 가게</label>
+            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex-1">
+                <span className="font-medium text-slate-900">{selectedStoreName}</span>
+                {isVerifiedReview && (
+                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+                    ✓ 인증 리뷰
+                  </span>
+                )}
+                {!isVerifiedReview && (
+                  <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-600 text-xs font-medium rounded">
+                    일반 리뷰
+                  </span>
+                )}
               </div>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">가게 선택</label>
-              <select
-                value={selectedStoreId || ''}
-                onChange={(e) => setSelectedStoreId(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                required
+              <button
+                type="button"
+                onClick={clearSelectedStore}
+                className="text-slate-400 hover:text-slate-600 text-lg"
               >
-                <option value="">가게를 선택하세요</option>
-                {availableStores.filter(s => s.is_worked).length > 0 && (
-                  <optgroup label="✓ 출근 이력 있음 (인증 리뷰)">
-                    {availableStores.filter(s => s.is_worked).map((store) => (
-                      <option key={store.store_id} value={store.store_id}>
-                        {store.store_name} (출근 {store.work_count}회)
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {availableStores.filter(s => !s.is_worked).length > 0 && (
-                  <optgroup label="일반 리뷰">
-                    {availableStores.filter(s => !s.is_worked).map((store) => (
-                      <option key={store.store_id} value={store.store_id}>
-                        {store.store_name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              {selectedStore && (
-                <p className={`text-xs mt-2 ${selectedStore.is_worked ? 'text-green-600' : 'text-slate-500'}`}>
-                  {selectedStore.is_worked
-                    ? '✓ 인증 리뷰로 작성됩니다 (출근 이력 확인됨)'
-                    : '일반 리뷰로 작성됩니다'}
-                </p>
-              )}
+                ×
+              </button>
             </div>
-          )}
+          </div>
+        ) : (
+          /* 가게 선택 UI */
+          <div className="space-y-4">
+            {/* 인증 리뷰 - 출근 이력 있는 가게 */}
+            {workedStores.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  ✓ 인증 리뷰 <span className="text-slate-400 font-normal">(출근 이력 있는 가게)</span>
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  {workedStores.map((store) => (
+                    <button
+                      key={store.store_id}
+                      type="button"
+                      onClick={() => selectWorkedStore(store)}
+                      className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left"
+                    >
+                      <span className="font-medium text-slate-800">{store.store_name}</span>
+                      <span className="text-xs text-green-600">출근 {store.work_count}회</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 일반 리뷰 - 가게 검색 */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                일반 리뷰 <span className="text-slate-400 font-normal">(가게 검색)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={storeSearch}
+                  onChange={(e) => {
+                    setStoreSearch(e.target.value);
+                    setShowSearchResults(true);
+                  }}
+                  onFocus={() => setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+                  placeholder="가게 이름 검색 (2글자 이상)"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {searchResults.map((store) => (
+                      <button
+                        key={store.id}
+                        type="button"
+                        onClick={() => selectSearchedStore(store)}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                      >
+                        {store.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {showSearchResults && storeSearch.length >= 2 && searchResults.length === 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-4 text-center text-sm text-slate-500">
+                    검색 결과가 없습니다
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">출근 이력이 없는 가게는 검색해서 선택하세요</p>
+            </div>
+          </div>
+        )}
 
           {/* Rating */}
           <div>
@@ -322,7 +415,6 @@ export default function WriteStoreReview() {
               : isEditMode ? '리뷰 수정' : '리뷰 작성'}
           </button>
         </form>
-      )}
     </div>
   );
 }

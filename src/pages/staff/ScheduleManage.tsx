@@ -110,13 +110,6 @@ export default function ScheduleManage() {
     setLoading(false);
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const isToday = dateStr === todayStr;
-    return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})${isToday ? ' 오늘' : ''}`;
-  };
-
   const getStatusText = (status: string) => {
     switch (status) {
       case 'approved': return '승인됨';

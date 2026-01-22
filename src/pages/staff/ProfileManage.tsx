@@ -282,58 +282,58 @@ export default function ProfileManage() {
         </button>
       </div>
 
-      {/* 프로필 사진 + 갤러리 + 기본 정보 */}
+      {/* 프로필 사진 + 갤러리 */}
       <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border border-pink-100 p-5">
-        <div className="flex items-start gap-5 max-sm:flex-col">
-          {/* 프로필 사진 + 갤러리 */}
-          <div className="flex flex-col gap-4">
-            {/* 메인 프로필 사진 */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-3xl font-bold text-white overflow-hidden shadow-lg shadow-pink-200">
-                {profilePhotoUrl ? (
-                  <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
-                ) : (
-                  user?.name?.charAt(0) || '?'
-                )}
-              </div>
-              <input type="file" ref={profileInputRef} onChange={handleProfilePhotoUpload} accept="image/*" className="hidden" />
-              <button
-                onClick={() => profileInputRef.current?.click()}
-                disabled={uploadingProfile}
-                className="px-4 py-2 bg-white text-pink-600 text-sm font-medium rounded-full border border-pink-200 hover:bg-pink-50 transition-colors disabled:opacity-50"
-              >
-                {uploadingProfile ? '업로드 중...' : '사진 변경'}
-              </button>
+        <div className="flex items-start gap-4">
+          {/* 메인 프로필 사진 */}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-3xl font-bold text-white overflow-hidden shadow-lg shadow-pink-200">
+              {profilePhotoUrl ? (
+                <img src={profilePhotoUrl} alt="프로필" className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0) || '?'
+              )}
             </div>
+            <input type="file" ref={profileInputRef} onChange={handleProfilePhotoUpload} accept="image/*" className="hidden" />
+            <button
+              onClick={() => profileInputRef.current?.click()}
+              disabled={uploadingProfile}
+              className="px-3 py-1.5 bg-white text-pink-600 text-xs font-medium rounded-full border border-pink-200 hover:bg-pink-50 transition-colors disabled:opacity-50"
+            >
+              {uploadingProfile ? '...' : '변경'}
+            </button>
+          </div>
 
-            {/* 갤러리 사진 */}
-            <div className="bg-white/60 rounded-2xl p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-600">갤러리 ({galleryPhotos.length}/3)</span>
-                {galleryPhotos.length < 3 && (
-                  <>
-                    <input type="file" ref={galleryInputRef} onChange={handleGalleryPhotoUpload} accept="image/*" multiple className="hidden" />
-                    <button
-                      onClick={() => galleryInputRef.current?.click()}
-                      disabled={uploadingGallery}
-                      className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                    >
-                      {uploadingGallery ? '...' : '+ 추가'}
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {galleryPhotos.length > 0 ? (
-                  galleryPhotos.map((photo, index) => (
-                    <div key={photo.id} className="relative w-16 h-16 rounded-xl overflow-hidden shadow-sm group">
+          {/* 갤러리 사진 */}
+          <div className="flex-1 bg-white/60 rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-slate-600">갤러리 ({galleryPhotos.length}/3)</span>
+              {galleryPhotos.length < 3 && (
+                <>
+                  <input type="file" ref={galleryInputRef} onChange={handleGalleryPhotoUpload} accept="image/*" multiple className="hidden" />
+                  <button
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={uploadingGallery}
+                    className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                  >
+                    {uploadingGallery ? '...' : '+ 추가'}
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[0, 1, 2].map((i) => {
+                const photo = galleryPhotos[i];
+                if (photo) {
+                  return (
+                    <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden shadow-sm group">
                       <img
                         src={photo.photo_url}
                         alt=""
                         className="w-full h-full object-cover cursor-pointer"
                         onClick={() => {
                           setSelectedPhotoList(galleryPhotos.map(p => ({ id: p.id, photo_url: p.photo_url, caption: null })));
-                          setSelectedPhotoIndex(index);
+                          setSelectedPhotoIndex(i);
                         }}
                       />
                       <button
@@ -343,34 +343,30 @@ export default function ProfileManage() {
                         ×
                       </button>
                     </div>
-                  ))
-                ) : (
-                  <div className="flex gap-2">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-lg">
-                        +
-                      </div>
-                    ))}
+                  );
+                }
+                return (
+                  <div
+                    key={`empty-${i}`}
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="aspect-square rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-lg cursor-pointer hover:border-pink-300 hover:text-pink-300 transition-colors"
+                  >
+                    +
                   </div>
-                )}
-                {galleryPhotos.length > 0 && galleryPhotos.length < 3 && (
-                  Array.from({ length: 3 - galleryPhotos.length }).map((_, i) => (
-                    <div key={`empty-${i}`} className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 text-lg">
-                      +
-                    </div>
-                  ))
-                )}
-              </div>
+                );
+              })}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* 기본 정보 간략 */}
-          <div className="flex-1 max-sm:w-full">
-            <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-              <span className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-base">👤</span>
-              기본 정보
-            </h2>
-            <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-2">
+      {/* 기본 정보 */}
+      <div className="bg-white rounded-3xl border border-pink-100 p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <span className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-base">👤</span>
+          기본 정보
+        </h2>
+        <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-2">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">나이</label>
                 <input
@@ -449,8 +445,6 @@ export default function ProfileManage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* 자기소개 */}
       <div className="bg-white rounded-3xl border border-pink-100 p-5 shadow-sm">

@@ -22,6 +22,12 @@ interface Stats {
   totalMessages: number;
   conversationsByType: { type: string; count: number }[];
   todayMessages: number;
+  // 방문자 통계
+  todayPageViews: number;
+  weekPageViews: number;
+  monthPageViews: number;
+  todayUniqueVisitors: number;
+  topPages: { path: string; count: number }[];
 }
 
 interface UserDetail {
@@ -437,6 +443,54 @@ export default function SuperAdminDashboard() {
       .select('*', { count: 'exact', head: true })
       .gte('created_at', todayStart.toISOString());
 
+    // 방문자 통계
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
+    const monthStart = new Date();
+    monthStart.setDate(monthStart.getDate() - 30);
+
+    const { count: todayPageViews } = await supabase
+      .from('page_views')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', todayStart.toISOString());
+
+    const { count: weekPageViews } = await supabase
+      .from('page_views')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', weekStart.toISOString());
+
+    const { count: monthPageViews } = await supabase
+      .from('page_views')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', monthStart.toISOString());
+
+    // 오늘 유니크 방문자 (user_id 또는 user_agent 기준)
+    const { data: todayVisitors } = await supabase
+      .from('page_views')
+      .select('user_id, user_agent')
+      .gte('created_at', todayStart.toISOString());
+
+    const uniqueSet = new Set<string>();
+    todayVisitors?.forEach(v => {
+      uniqueSet.add(v.user_id || v.user_agent || 'unknown');
+    });
+    const todayUniqueVisitors = uniqueSet.size;
+
+    // 인기 페이지 Top 5
+    const { data: pageViewsData } = await supabase
+      .from('page_views')
+      .select('path')
+      .gte('created_at', weekStart.toISOString());
+
+    const pathCounts: Record<string, number> = {};
+    pageViewsData?.forEach(pv => {
+      pathCounts[pv.path] = (pathCounts[pv.path] || 0) + 1;
+    });
+    const topPages = Object.entries(pathCounts)
+      .map(([path, count]) => ({ path, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
     setStats({
       totalUsers: totalUsers || 0,
       usersByRole,
@@ -458,7 +512,13 @@ export default function SuperAdminDashboard() {
       totalConversations: totalConversations || 0,
       totalMessages: totalMessages || 0,
       conversationsByType,
-      todayMessages: todayMessages || 0
+      todayMessages: todayMessages || 0,
+      // 방문자 통계
+      todayPageViews: todayPageViews || 0,
+      weekPageViews: weekPageViews || 0,
+      monthPageViews: monthPageViews || 0,
+      todayUniqueVisitors,
+      topPages
     });
     setLoading(false);
   };
@@ -684,6 +744,56 @@ export default function SuperAdminDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Visitor Stats */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <span>📊</span> 방문자 통계
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+            <p className="text-sm text-green-600 mb-1">오늘 페이지뷰</p>
+            <p className="text-3xl font-bold text-green-700">{stats?.todayPageViews || 0}</p>
+          </div>
+          <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+            <p className="text-sm text-green-600 mb-1">오늘 방문자</p>
+            <p className="text-3xl font-bold text-green-700">{stats?.todayUniqueVisitors || 0}</p>
+            <p className="text-xs text-green-500 mt-1">유니크 방문자</p>
+          </div>
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <p className="text-sm text-slate-500 mb-1">주간 페이지뷰</p>
+            <p className="text-3xl font-bold text-slate-900">{stats?.weekPageViews || 0}</p>
+            <p className="text-xs text-slate-400 mt-1">최근 7일</p>
+          </div>
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <p className="text-sm text-slate-500 mb-1">월간 페이지뷰</p>
+            <p className="text-3xl font-bold text-slate-900">{stats?.monthPageViews || 0}</p>
+            <p className="text-xs text-slate-400 mt-1">최근 30일</p>
+          </div>
+        </div>
+        {/* Top Pages */}
+        {stats?.topPages && stats.topPages.length > 0 && (
+          <div className="p-5 bg-white border border-slate-200 rounded-xl">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">인기 페이지 (주간)</h3>
+            <div className="space-y-2">
+              {stats.topPages.map(({ path, count }, index) => (
+                <div key={path} className="flex items-center gap-3">
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                    index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                    index === 1 ? 'bg-slate-200 text-slate-600' :
+                    index === 2 ? 'bg-orange-100 text-orange-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {index + 1}
+                  </span>
+                  <span className="flex-1 text-sm text-slate-600 truncate">{path}</span>
+                  <span className="text-sm font-medium text-slate-900">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1002,7 +1112,7 @@ export default function SuperAdminDashboard() {
                     </div>
                     <div className="p-3 bg-white rounded-lg text-center">
                       <p className="text-2xl font-bold text-slate-900">{selectedUser.favoriteCount}</p>
-                      <p className="text-xs text-slate-500">즐겨찾기</p>
+                      <p className="text-xs text-slate-500">고정</p>
                     </div>
                   </div>
                 </div>

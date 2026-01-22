@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import ScoreBadge from './ScoreBadge';
 import { useNotifications } from '../hooks/useNotifications';
+import { usePageTracking } from '../hooks/usePageTracking';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
+  usePageTracking();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingWorkRequests, setPendingWorkRequests] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);

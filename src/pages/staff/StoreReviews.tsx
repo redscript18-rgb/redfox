@@ -218,13 +218,16 @@ export default function StoreReviews() {
       {/* Header */}
       <div>
         <Link to="/" className="text-pink-500 text-sm hover:text-pink-600 mb-1 inline-block">← 대시보드</Link>
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-800">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">가게 리뷰</span>
-          </h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">가게 리뷰</span>
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">여우들의 블라인드, 출근 가게 솔직 리뷰</p>
+          </div>
           <Link
             to="/staff/reviews/write"
-            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-xl shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-medium rounded-xl shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 transition-all flex-shrink-0"
           >
             리뷰 작성
           </Link>
